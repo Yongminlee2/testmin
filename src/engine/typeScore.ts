@@ -1,5 +1,4 @@
-import { AXES, AXIS_LETTERS, type AxisKey, type AxisResult, type AxisScore, type Question } from './types';
-import type { VoteResult } from './types';
+import { AXES, AXIS_LETTERS, type AxisKey, type AxisResult, type AxisScore, type Question, type VoteResult } from './types';
 import type { Answer } from './score';
 
 /**

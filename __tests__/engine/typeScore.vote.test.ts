@@ -66,4 +66,25 @@ describe('scoreByVote', () => {
     const r = scoreByVote(qs, [{ questionId: '1', chosenIndex: -1 }], TYPES);
     expect(Object.values(r.tally).reduce((s, n) => s + n, 0)).toBe(0);
   });
+
+  test('낮은 표수 동점이 있어도 확실한 승자가 있으면 wasTie는 false다', () => {
+    const qs = [
+      q('1', ['a', 'b', 'c', 'd', 'e']),
+      q('2', ['a', 'b', 'c', 'd', 'e']),
+      q('3', ['a', 'b', 'c', 'd', 'e']),
+      q('4', ['a', 'b', 'c', 'd', 'e']),
+      q('5', ['a', 'b', 'c', 'd', 'e']),
+    ];
+    const answers: Answer[] = [
+      { questionId: '1', chosenIndex: 2 }, // c
+      { questionId: '2', chosenIndex: 2 }, // c
+      { questionId: '3', chosenIndex: 2 }, // c
+      { questionId: '4', chosenIndex: 0 }, // a
+      { questionId: '5', chosenIndex: 1 }, // b
+    ];
+    const r = scoreByVote(qs, answers, TYPES);
+    expect(r.tally).toEqual({ a: 1, b: 1, c: 3, d: 0, e: 0 });
+    expect(r.typeId).toBe('c');
+    expect(r.wasTie).toBe(false);
+  });
 });
