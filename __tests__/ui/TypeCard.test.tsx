@@ -61,13 +61,14 @@ describe('TypeCard', () => {
     expect(screen.getAllByText('이 축은 거의 반반입니다')).toHaveLength(1);
   });
 
-  test('note는 줬을 때만 보인다', async () => {
-    const { unmount } = await render(
+  test('note를 주면 보여준다', async () => {
+    await render(
       <TypeCard label="L" headline="H" nickname="N" description="D" note="메모입니다" />
     );
     expect(screen.getByText('메모입니다')).toBeTruthy();
-    unmount();
+  });
 
+  test('note를 안 주면 보이지 않는다', async () => {
     await render(<TypeCard label="L" headline="H" nickname="N" description="D" />);
     expect(screen.queryByText('메모입니다')).toBeNull();
   });
