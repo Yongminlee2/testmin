@@ -1,0 +1,15 @@
+{
+  "dialect-gyeongsang": {
+    "bands": [
+      { "min": 100, "grade": 1, "title": "부산 이모 인정" },
+      { "min": 90, "grade": 2, "title": "토박이 소리 듣는다" },
+      { "min": 80, "grade": 3, "title": "외가가 경상도" },
+      { "min": 70, "grade": 4, "title": "드라마로 배웠다" },
+      { "min": 60, "grade": 5, "title": "부산 여행 3회" },
+      { "min": 50, "grade": 6, "title": "절반은 찍었다" },
+      { "min": 40, "grade": 7, "title": "억양만 안다" },
+      { "min": 25, "grade": 8, "title": "\"단디\"도 몰랐다" },
+      { "min": 0, "grade": 9, "title": "서울 사람 확정" }
+    ]
+  }
+}
