@@ -51,3 +51,51 @@ export interface GradeBand {
 export interface GradeTable {
   readonly bands: readonly GradeBand[];
 }
+
+/** 성격 16유형의 네 축. 각 축의 음수 방향이 첫 글자, 양수 방향이 둘째 글자. */
+export const AXES = ['EI', 'SN', 'TF', 'JP'] as const;
+export type AxisKey = (typeof AXES)[number];
+
+/** 축별 글자 매핑. weight 합계가 음수면 negative, 양수면 positive. */
+export const AXIS_LETTERS: Record<AxisKey, { negative: string; positive: string }> = {
+  EI: { negative: 'I', positive: 'E' },
+  SN: { negative: 'S', positive: 'N' },
+  TF: { negative: 'T', positive: 'F' },
+  JP: { negative: 'J', positive: 'P' },
+};
+
+export interface AxisScore {
+  readonly axis: AxisKey;
+  /** 가중치 합계 */
+  readonly total: number;
+  /** 이 축에서 나온 글자 */
+  readonly letter: string;
+  /** 0~100. 50이면 완전히 반반 */
+  readonly percent: number;
+  /** 합계가 0이라 마지막 응답으로 결정했는가 */
+  readonly wasTie: boolean;
+}
+
+export interface AxisResult {
+  /** 예: "ENFP" */
+  readonly code: string;
+  readonly axes: readonly AxisScore[];
+}
+
+export interface VoteResult {
+  /** 최다 득표 유형의 id */
+  readonly typeId: string;
+  /** typeId → 득표수 */
+  readonly tally: Readonly<Record<string, number>>;
+  /** 동점이라 뒤쪽 문항 우선 규칙으로 결정했는가 */
+  readonly wasTie: boolean;
+}
+
+/** 16유형 별명 데이터 한 항목 */
+export interface TypeNameEntry {
+  readonly code: string;
+  /** 자체 창작 별명. 16Personalities 유형명 금지 */
+  readonly nickname: string;
+  readonly description: string;
+  readonly emoji: string;
+}
