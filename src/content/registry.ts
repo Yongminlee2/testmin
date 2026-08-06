@@ -4,6 +4,7 @@ import gyeongsang from './dialect/gyeongsang.json';
 import personality from './personality.json';
 import typeNamesJson from './typeNames.json';
 import type { TypeNameEntry } from '@/engine/types';
+import love from './psych/love.json';
 
 const grades = gradesJson as unknown as Record<string, GradeTable>;
 
@@ -26,6 +27,7 @@ export const DIALECT_DRAW: DrawConfig = {
 export const POOLS: Record<string, readonly Question[]> = {
   'dialect:gyeongsang': gyeongsang as unknown as Question[],
   'personality:default': personality as unknown as Question[],
+  'psych:love': (love as unknown as { questions: Question[] }).questions,
 };
 
 /**
@@ -39,6 +41,7 @@ export type PoolScoring = 'scored' | 'axis' | 'vote';
 export const POOL_SCORING: Record<string, PoolScoring> = {
   'dialect:gyeongsang': 'scored',
   'personality:default': 'axis',
+  'psych:love': 'vote',
 };
 
 /** 없는 조합이면 빈 배열을 준다 (호출부가 크래시하지 않게). */
@@ -54,6 +57,51 @@ const TYPE_NAMES = typeNamesJson as unknown as TypeNameEntry[];
 /** 없는 코드면 undefined. 호출부가 폴백을 준비한다. */
 export function getTypeName(code: string): TypeNameEntry | undefined {
   return TYPE_NAMES.find((t) => t.code === code);
+}
+
+export interface PsychTypeEntry {
+  readonly id: string;
+  readonly name: string;
+  readonly emoji: string;
+  readonly description: string;
+}
+
+export interface PsychTestMeta {
+  readonly id: string;
+  readonly title: string;
+  readonly types: readonly PsychTypeEntry[];
+  readonly questions: readonly Question[];
+  readonly available: boolean;
+}
+
+const PSYCH_RAW: Record<string, unknown> = { love };
+
+/** 심리 테스트 목록. intro 화면이 이걸로 선택지를 그린다. */
+export const PSYCH_TESTS: readonly PsychTestMeta[] = [
+  buildPsych('love'),
+  { id: 'stress', title: '스트레스 반응', types: [], questions: [], available: false },
+  { id: 'comm', title: '소통 유형', types: [], questions: [], available: false },
+];
+
+function buildPsych(id: string): PsychTestMeta {
+  const raw = PSYCH_RAW[id] as
+    | { id: string; title: string; types: PsychTypeEntry[]; questions: Question[] }
+    | undefined;
+  if (raw === undefined) {
+    return { id, title: id, types: [], questions: [], available: false };
+  }
+  return {
+    id: raw.id,
+    title: raw.title,
+    types: raw.types,
+    questions: raw.questions,
+    available: raw.questions.length > 0,
+  };
+}
+
+/** 없는 id면 undefined. 호출부가 폴백을 준비한다. */
+export function getPsychTest(id: string): PsychTestMeta | undefined {
+  return PSYCH_TESTS.find((t) => t.id === id && t.available);
 }
 
 /** 이 testId로 등록된 풀이 하나라도 있으면 참. CATEGORIES의 available을 여기서 계산한다. */

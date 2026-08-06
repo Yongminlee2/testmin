@@ -23,15 +23,17 @@ describe('available은 풀 존재 여부로 계산된다', () => {
     }
   });
 
-  test('풀이 있는 카테고리(사투리·성격)는 available이 참이다', () => {
-    for (const id of ['dialect', 'personality']) {
+  test('풀이 있는 카테고리(사투리·성격·심리)는 available이 참이다', () => {
+    for (const id of ['dialect', 'personality', 'psych']) {
       const category = CATEGORIES.find((c) => c.id === id);
       expect(category?.available).toBe(true);
     }
   });
 
   test('아직 풀이 없는 카테고리는 available이 거짓이다', () => {
-    for (const c of CATEGORIES.filter((c) => c.id !== 'dialect' && c.id !== 'personality')) {
+    for (const c of CATEGORIES.filter(
+      (c) => c.id !== 'dialect' && c.id !== 'personality' && c.id !== 'psych'
+    )) {
       expect(c.available).toBe(false);
     }
   });
