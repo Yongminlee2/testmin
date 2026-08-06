@@ -5,6 +5,7 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "resolveJsonModule": true,
+    "types": ["node", "jest", "react-native"],
     "paths": {
       "@/*": ["./src/*"]
     }
