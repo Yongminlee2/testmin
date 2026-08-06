@@ -2095,9 +2095,505 @@ describe('PersonalityResultScreen', () => {
 });
 ```
 
-**Task 10 — 심리 테스트 화면 4종**
-- `app/test/psych/{intro,quiz,result,review}.tsx`
-- `intro`에서 3종 중 하나를 고른다 (사투리의 지역 선택과 같은 구조)
+### Task 10 — 심리 테스트 화면 4종
+
+**Files:**
+- Modify: `src/content/registry.ts`
+- Create: `app/test/psych/{intro,quiz,result,review}.tsx`
+- Test: `__tests__/screens/psychResult.test.tsx`
+
+**먼저 알아야 할 모양 차이**
+
+`src/content/psych/love.json`은 다른 콘텐츠 파일과 구조가 다르다. 배열이 아니라 객체다.
+
+```json
+{ "id": "love", "title": "연애 성향", "types": [...5개...], "questions": [...12개...] }
+```
+
+유형 정의가 문항과 같은 파일에 있는 이유는, 심리 테스트마다 유형이 완전히 다르기 때문이다. `POOLS`는 `Question[]`을 원하므로 **등록할 때 `.questions`를 꺼내 쓴다.** 유형 목록은 별도 함수로 노출한다.
+
+**`src/content/registry.ts` 추가분**
+
+```ts
+import love from './psych/love.json';
+
+export interface PsychTypeEntry {
+  readonly id: string;
+  readonly name: string;
+  readonly emoji: string;
+  readonly description: string;
+}
+
+export interface PsychTestMeta {
+  readonly id: string;
+  readonly title: string;
+  readonly types: readonly PsychTypeEntry[];
+  readonly questions: readonly Question[];
+  readonly available: boolean;
+}
+
+const PSYCH_RAW: Record<string, unknown> = { love };
+
+/** 심리 테스트 목록. intro 화면이 이걸로 선택지를 그린다. */
+export const PSYCH_TESTS: readonly PsychTestMeta[] = [
+  buildPsych('love'),
+  { id: 'stress', title: '스트레스 반응', types: [], questions: [], available: false },
+  { id: 'comm', title: '소통 유형', types: [], questions: [], available: false },
+];
+
+function buildPsych(id: string): PsychTestMeta {
+  const raw = PSYCH_RAW[id] as
+    | { id: string; title: string; types: PsychTypeEntry[]; questions: Question[] }
+    | undefined;
+  if (raw === undefined) {
+    return { id, title: id, types: [], questions: [], available: false };
+  }
+  return {
+    id: raw.id,
+    title: raw.title,
+    types: raw.types,
+    questions: raw.questions,
+    available: raw.questions.length > 0,
+  };
+}
+
+/** 없는 id면 undefined. 호출부가 폴백을 준비한다. */
+export function getPsychTest(id: string): PsychTestMeta | undefined {
+  return PSYCH_TESTS.find((t) => t.id === id && t.available);
+}
+
+// POOLS에 추가 — 객체가 아니라 questions 배열을 넣는다
+  'psych:love': (love as unknown as { questions: Question[] }).questions,
+
+// POOL_SCORING에 추가
+  'psych:love': 'vote',
+```
+
+`CATEGORIES`의 `psych` 항목 `route`를 `/test/psych/intro`로 바꾼다. `available`은 `categoryHasPool`로 자동 도출되므로 손대지 않는다.
+
+**심리 테스트는 출제를 섞지 않는다**
+
+12문항을 그대로 순서대로 낸다. 이유가 두 가지다.
+
+1. **유형별 득표 기회를 10/10/10/9/9로 맞춰놨다.** 일부만 뽑으면 그 균형이 깨져서 특정 유형이 구조적으로 안 나온다.
+2. **동점 규칙이 문항 순서에 의존한다.** `scoreByVote`는 동점 시 뒤쪽 문항에서 득표한 유형을 택하고, 9~12번에 변별력 높은 문항을 배치해뒀다. 순서를 섞으면 그 설계가 사라진다.
+
+따라서 `assemble`도 `assembleByAxis`도 쓰지 않고, `questions`를 그대로 `start()`에 넘긴다.
+
+**`app/test/psych/intro.tsx`**
+
+사투리의 지역 선택과 같은 구조다. 3종 중 하나를 고르고, 준비 안 된 것은 안내만 띄운다.
+
+```tsx
+import { useState } from 'react';
+import { ScrollView, Text, View, Pressable, StyleSheet, Alert } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Card } from '@/ui/Card';
+import { Button } from '@/ui/Button';
+import { PSYCH_TESTS, getPsychTest } from '@/content/registry';
+import { useSession } from '@/store/session';
+import { hashSeed } from '@/engine/rng';
+import { colors, font, space } from '@/ui/tokens';
+
+export default function PsychIntroScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const start = useSession((s) => s.start);
+  const [selected, setSelected] = useState('love');
+
+  const begin = () => {
+    const test = getPsychTest(selected);
+    if (test === undefined) {
+      Alert.alert('준비 중입니다', '이 테스트는 다음 업데이트에 열립니다.');
+      return;
+    }
+    // 섞지 않고 순서 그대로 — 득표 균형과 동점 규칙이 문항 순서에 의존한다
+    const seed = hashSeed(`psych:${selected}:${Date.now()}`);
+    start('psych', selected, seed, test.questions);
+    router.push('/test/psych/quiz');
+  };
+
+  return (
+    <>
+      <Stack.Screen options={{ title: '심리 테스트' }} />
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
+      >
+        <Text style={styles.heading} maxFontSizeMultiplier={font.maxScale}>
+          어떤 테스트를{'\n'}해보시겠습니까?
+        </Text>
+
+        {PSYCH_TESTS.map((t) => (
+          <Pressable
+            key={t.id}
+            testID={`psych-${t.id}`}
+            accessibilityRole="button"
+            accessibilityState={{ selected: selected === t.id }}
+            onPress={() => {
+              if (!t.available) {
+                Alert.alert('준비 중입니다', `${t.title}은(는) 다음 업데이트에 열립니다.`);
+                return;
+              }
+              setSelected(t.id);
+            }}
+          >
+            <Card
+              color={selected === t.id ? colors.sky : colors.white}
+              offset={t.available ? 3 : 0}
+              style={styles.card}
+            >
+              <Text
+                style={[styles.cardText, !t.available && styles.dim]}
+                maxFontSizeMultiplier={font.maxScale}
+              >
+                {t.title}
+                {t.available ? '' : ' · 준비 중'}
+              </Text>
+            </Card>
+          </Pressable>
+        ))}
+
+        <Text style={styles.note} maxFontSizeMultiplier={font.maxScale}>
+          정답이 없는 테스트입니다. 12문항을 풀면 다섯 유형 중 하나가 나옵니다.
+        </Text>
+
+        <Button label="시작하기 →" color={colors.sky} onPress={begin} testID="begin" />
+      </ScrollView>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.cream },
+  content: { padding: space.lg },
+  heading: {
+    fontSize: font.size.title,
+    lineHeight: font.size.title * 1.5,
+    fontFamily: font.family.black,
+    color: colors.ink,
+    marginBottom: space.lg,
+  },
+  card: { marginBottom: space.md },
+  cardText: {
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.5,
+    fontFamily: font.family.black,
+    color: colors.ink,
+    paddingVertical: space.xs,
+    textAlign: 'center',
+  },
+  dim: { color: colors.muted },
+  note: {
+    fontSize: font.size.caption,
+    lineHeight: font.size.caption * 1.6,
+    fontFamily: font.family.body,
+    color: colors.muted,
+    marginVertical: space.lg,
+  },
+});
+```
+
+**`app/test/psych/quiz.tsx`**
+
+```tsx
+import { Stack } from 'expo-router';
+import { QuizRunner } from '@/ui/QuizRunner';
+import { colors } from '@/ui/tokens';
+
+export default function PsychQuizScreen() {
+  return (
+    <>
+      <Stack.Screen options={{ title: '심리 테스트', headerBackVisible: true }} />
+      <QuizRunner resultRoute="/test/psych/result" accent={colors.sky} />
+    </>
+  );
+}
+```
+
+**`app/test/psych/result.tsx`**
+
+```tsx
+import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TypeCard } from '@/ui/TypeCard';
+import { Button } from '@/ui/Button';
+import { AdSlot } from '@/ui/AdSlot';
+import { useSession } from '@/store/session';
+import { scoreByVote } from '@/engine/typeScore';
+import { hashSeed } from '@/engine/rng';
+import { getPsychTest } from '@/content/registry';
+import { colors, font, space } from '@/ui/tokens';
+
+export default function PsychResultScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { questions, answers, variant } = useSession();
+  const start = useSession((s) => s.start);
+
+  const test = variant ? getPsychTest(variant) : undefined;
+
+  if (questions.length === 0 || test === undefined) {
+    return (
+      <View style={styles.empty}>
+        <Text style={styles.emptyText} maxFontSizeMultiplier={font.maxScale}>
+          결과가 없습니다
+        </Text>
+      </View>
+    );
+  }
+
+  const result = scoreByVote(questions, answers, test.types.map((t) => t.id));
+  const won = test.types.find((t) => t.id === result.typeId);
+  const votes = result.tally[result.typeId] ?? 0;
+
+  const retry = () => {
+    const seed = hashSeed(`psych:${test.id}:${Date.now()}`);
+    start('psych', test.id, seed, test.questions);
+    router.replace('/test/psych/quiz');
+  };
+
+  return (
+    <>
+      <Stack.Screen options={{ title: '결과', headerBackVisible: false }} />
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
+      >
+        <TypeCard
+          label={test.title}
+          headline={won?.emoji ?? '🔮'}
+          nickname={won?.name ?? result.typeId}
+          description={won?.description ?? ''}
+          note={
+            result.wasTie
+              ? `12문항 중 ${votes}표 — 다른 유형과 거의 비슷했습니다`
+              : `12문항 중 ${votes}표`
+          }
+        />
+
+        <Button
+          label="✎ 문항별 해설 보기"
+          onPress={() => router.push('/test/psych/review')}
+          testID="go-review"
+        />
+        <Button label="↻ 다시 하기" color={colors.coral} onPress={retry} testID="retry" />
+        <Button label="홈으로" onPress={() => router.dismissAll()} testID="go-home" />
+
+        <AdSlot />
+      </ScrollView>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.cream },
+  content: { padding: space.lg },
+  empty: {
+    flex: 1,
+    backgroundColor: colors.cream,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: space.xl,
+  },
+  emptyText: {
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.5,
+    fontFamily: font.family.bold,
+    color: colors.muted,
+  },
+});
+```
+
+**`app/test/psych/review.tsx`**
+
+득표형 해설은 "내 선택이 어느 유형에 표를 줬는가"를 보여준다.
+
+```tsx
+import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Card } from '@/ui/Card';
+import { Badge } from '@/ui/Badge';
+import { Button } from '@/ui/Button';
+import { useSession } from '@/store/session';
+import { getPsychTest } from '@/content/registry';
+import { colors, font, space } from '@/ui/tokens';
+
+export default function PsychReviewScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { questions, answers, variant } = useSession();
+  const test = variant ? getPsychTest(variant) : undefined;
+
+  if (questions.length === 0 || test === undefined) {
+    return (
+      <View style={styles.empty}>
+        <Text style={styles.emptyText} maxFontSizeMultiplier={font.maxScale}>
+          해설할 문항이 없습니다
+        </Text>
+      </View>
+    );
+  }
+
+  const chosenById = new Map(answers.map((a) => [a.questionId, a.chosenIndex]));
+  const nameById = new Map(test.types.map((t) => [t.id, t.name]));
+
+  return (
+    <>
+      <Stack.Screen options={{ title: '해설' }} />
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
+      >
+        {questions.map((q, i) => {
+          const chosenIndex = chosenById.get(q.id) ?? -1;
+          const choice = chosenIndex >= 0 ? q.choices[chosenIndex] : undefined;
+          const votedName = choice?.typeId ? nameById.get(choice.typeId) : undefined;
+
+          return (
+            <Card key={q.id} style={styles.card}>
+              <View style={styles.head}>
+                <Badge label={`${i + 1}번`} />
+                {votedName ? <Badge label={votedName} color={colors.sky} /> : null}
+              </View>
+
+              <Text style={styles.prompt} maxFontSizeMultiplier={font.maxScale}>
+                {q.prompt}
+              </Text>
+
+              <Text style={styles.line} maxFontSizeMultiplier={font.maxScale}>
+                내 선택: {choice?.text ?? '응답 없음'}
+              </Text>
+
+              {votedName ? (
+                <Text style={styles.line} maxFontSizeMultiplier={font.maxScale}>
+                  이 선택은 &quot;{votedName}&quot;에 한 표를 줬습니다
+                </Text>
+              ) : null}
+
+              <Text style={styles.why} maxFontSizeMultiplier={font.maxScale}>
+                {q.explanation ?? ''}
+              </Text>
+            </Card>
+          );
+        })}
+
+        <Button label="결과로 돌아가기" onPress={() => router.back()} testID="back" />
+      </ScrollView>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.cream },
+  content: { padding: space.lg },
+  card: { marginBottom: space.md },
+  head: { flexDirection: 'row', gap: space.sm, marginBottom: space.sm },
+  prompt: {
+    fontSize: font.size.lead,
+    lineHeight: font.size.lead * 1.5,
+    fontFamily: font.family.black,
+    color: colors.ink,
+    marginBottom: space.sm,
+  },
+  line: {
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.5,
+    fontFamily: font.family.bold,
+    color: colors.ink,
+    marginBottom: 2,
+  },
+  why: {
+    marginTop: space.sm,
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.6,
+    fontFamily: font.family.body,
+    color: colors.muted,
+  },
+  empty: {
+    flex: 1,
+    backgroundColor: colors.cream,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: space.xl,
+  },
+  emptyText: {
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.5,
+    fontFamily: font.family.bold,
+    color: colors.muted,
+  },
+});
+```
+
+**Test:** `__tests__/screens/psychResult.test.tsx`
+
+```tsx
+import React from 'react';
+import { render, screen } from '@testing-library/react-native';
+import PsychResultScreen from '../../app/test/psych/result';
+import { useSession } from '@/store/session';
+import { getPsychTest } from '@/content/registry';
+
+const mockPush = jest.fn();
+const mockReplace = jest.fn();
+const mockDismissAll = jest.fn();
+jest.mock('expo-router', () => ({
+  Stack: { Screen: () => null },
+  useRouter: () => ({ push: mockPush, replace: mockReplace, dismissAll: mockDismissAll, back: jest.fn() }),
+}));
+
+const love = getPsychTest('love');
+
+beforeEach(() => {
+  mockPush.mockClear();
+  mockReplace.mockClear();
+  mockDismissAll.mockClear();
+  useSession.getState().reset();
+});
+
+describe('PsychResultScreen', () => {
+  test('연애 성향 테스트가 등록되어 있다', () => {
+    expect(love).toBeDefined();
+    expect(love?.questions).toHaveLength(12);
+    expect(love?.types).toHaveLength(5);
+  });
+
+  test('한 유형에 몰아서 답하면 그 유형이 나온다', async () => {
+    const test = love!;
+    useSession.getState().start('psych', 'love', 1, test.questions);
+    // 각 문항에서 flame에 투표하는 선택지를 고른다. 없으면 미응답으로 둔다.
+    for (const q of test.questions) {
+      const idx = q.choices.findIndex((c) => c.typeId === 'flame');
+      if (idx >= 0) useSession.getState().answer(q.id, idx);
+    }
+
+    await render(<PsychResultScreen />);
+    const flame = test.types.find((t) => t.id === 'flame')!;
+    expect(screen.getByText(flame.name)).toBeTruthy();
+  });
+
+  test('결과 카드에 득표수가 표시된다', async () => {
+    const test = love!;
+    useSession.getState().start('psych', 'love', 1, test.questions);
+    for (const q of test.questions) {
+      const idx = q.choices.findIndex((c) => c.typeId === 'flame');
+      if (idx >= 0) useSession.getState().answer(q.id, idx);
+    }
+
+    await render(<PsychResultScreen />);
+    expect(screen.getByText(/12문항 중 \d+표/)).toBeTruthy();
+  });
+
+  test('세션이 비어 있으면 크래시하지 않는다', async () => {
+    await render(<PsychResultScreen />);
+    expect(screen.getByText('결과가 없습니다')).toBeTruthy();
+  });
+});
+```
 
 **Task 11 — 릴리스 빌드 + 실기기 검증**
 - 권한이 여전히 하나뿐인지 확인
