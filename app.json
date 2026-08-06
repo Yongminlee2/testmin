@@ -30,7 +30,9 @@
             "buildToolsVersion": "37.0.0"
           }
         }
-      ]
+      ],
+      "expo-font",
+      "expo-splash-screen"
     ]
   }
 }
