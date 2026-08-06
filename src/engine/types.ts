@@ -17,6 +17,8 @@ export interface Choice {
   readonly weight?: number;
   /** 유형형 전용: 이 선택이 뜻하는 것 */
   readonly why?: string;
+  /** 득표 방식 전용: 이 선택지가 표를 던지는 유형 id */
+  readonly typeId?: string;
 }
 
 export interface Question {

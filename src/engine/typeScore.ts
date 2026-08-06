@@ -1,4 +1,5 @@
 import { AXES, AXIS_LETTERS, type AxisKey, type AxisResult, type AxisScore, type Question } from './types';
+import type { VoteResult } from './types';
 import type { Answer } from './score';
 
 /**
@@ -44,4 +45,57 @@ export function scoreByAxis(
   });
 
   return { code: axes.map((a) => a.letter).join(''), axes };
+}
+
+/**
+ * 최다 득표 방식 채점 (심리 테스트).
+ * 선택지마다 typeId에 1표. 동점이면 뒤쪽 문항에서 득표한 유형이 이긴다
+ * (뒤쪽에 변별력 높은 문항을 배치한다는 전제).
+ */
+export function scoreByVote(
+  questions: readonly Question[],
+  answers: readonly Answer[],
+  typeIds: readonly string[]
+): VoteResult {
+  const chosenById = new Map<string, number>();
+  for (const a of answers) chosenById.set(a.questionId, a.chosenIndex);
+
+  const tally: Record<string, number> = {};
+  for (const t of typeIds) tally[t] = 0;
+
+  /** 각 유형이 마지막으로 득표한 문항 순번. 동점 판정에 쓴다. */
+  const lastVotedAt: Record<string, number> = {};
+
+  questions.forEach((q, i) => {
+    const chosenIndex = chosenById.get(q.id);
+    if (chosenIndex === undefined || chosenIndex < 0) return;
+    const typeId = q.choices[chosenIndex]?.typeId;
+    if (typeId === undefined) return;
+    tally[typeId] = (tally[typeId] ?? 0) + 1;
+    lastVotedAt[typeId] = i;
+  });
+
+  let best = typeIds[0] ?? '';
+  let bestCount = -1;
+  let bestAt = -1;
+  let tied = false;
+
+  for (const t of typeIds) {
+    const count = tally[t] ?? 0;
+    const at = lastVotedAt[t] ?? -1;
+    if (count > bestCount) {
+      best = t;
+      bestCount = count;
+      bestAt = at;
+      tied = false;
+    } else if (count === bestCount) {
+      tied = true;
+      if (at > bestAt) {
+        best = t;
+        bestAt = at;
+      }
+    }
+  }
+
+  return { typeId: best, tally, wasTie: tied };
 }
