@@ -20,7 +20,11 @@
 - 앱 이름은 `테스트의 민족`
 - `minSdkVersion 24`, `compileSdkVersion 36`, `targetSdkVersion 36`, `buildToolsVersion 37.0.0`
   - **태스크 2에서 37 → 36으로 정정.** SDK 저장소에 정수 `platforms;android-37`이 존재하지 않는다. 실재하는 패키지는 `platforms;android-37.0`이고 `AndroidVersion.ApiLevel=37.0`이라, 정수 `compileSdk 37`에 대한 AGP의 target-hash 조회가 영영 실패한다. 이를 우회하려면 `android.suppressUnsupportedCompileSdk=37.0`이 필요한데, "이 AGP가 공식 지원하지 않는 compileSdk를 쓰고 있다"는 억제 플래그를 스토어 제출본에 넣을 이유가 없다. 37은 RN 커뮤니티 템플릿의 기본값이었을 뿐 우리 요구사항이 아니었고, 실제로 필요한 건 Play가 요구하는 **targetSdk 36**뿐이다.
-- **권한 0개.** `INTERNET`을 포함해 어떤 `uses-permission`도 최종 산출물에 남지 않아야 한다
+- **사용자 노출 권한 0개.** `INTERNET`을 포함해 사용자에게 보이는 권한이 릴리스 산출물에 남지 않아야 한다.
+  - 유일한 예외: `com.testmin.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. `androidx.core`가 자기 내부 브로드캐스트 보호용으로 정의·사용하는 **서명 수준** 권한이라 사용자에게 노출되지 않고 Play 목록에도 나오지 않는다. 제거하면 androidx의 리시버 보호가 깨진다. 의도된 예외이며 `docs/build-notes.md`에 근거를 남긴다.
+  - 원래 이 줄은 "출력 0줄"이었으나 실제 검증 결과 달성 불가능하고 달성해서도 안 되는 목표임이 드러나 정정했다.
+- **선택지 순서는 출제 시점에 섞는다.** 문항 데이터의 `answerIndex`가 한쪽으로 쏠려도 사용자에게는 무작위로 보여야 한다. `assemble`이 시드 기반으로 각 문항의 `choices`를 섞고 `answerIndex`(및 `distractorNotes`)를 함께 재매핑한다. 콘텐츠 검증기는 한 인덱스가 정답의 40%를 넘게 차지하는 풀을 실패 처리한다.
+  - 최초 계획에는 이 요구사항이 아예 없었다. 그 결과 15문항 전부 정답이 1번인 앱이 만들어졌고 전체 브랜치 리뷰에서야 발견됐다.
 - `expo-updates`(OTA)를 설치하지 않는다 — 인터넷 권한이 붙는다
 - 라이트 모드 고정 (`userInterfaceStyle: "light"`), 다크 모드 미지원
 - "MBTI", "옹호자/중재자" 등 16Personalities 유형명, 레이븐·WAIS 문항을 어디에도 쓰지 않는다
@@ -3713,8 +3717,8 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 - [ ] `npx jest` 전체 통과
 - [ ] `npx tsc --noEmit` 타입 에러 0개
 - [ ] `npm run validate:content` 통과
-- [ ] release APK에서 `aapt2 dump permissions` 출력 0줄
-- [ ] 실기기에서 경상도 사투리 고사를 끝까지 풀고 급수·해설 확인
+- [x] release APK의 `aapt2 dump permissions`에 사용자 노출 권한 0개 (서명 수준 예외 1건만)
+- [ ] **실기기에서 경상도 사투리 고사를 끝까지 풀고 급수·해설 확인** ← 미완. 이 조건을 건너뛴 탓에 "정답이 항상 1번" 결함이 릴리스 빌드까지 통과했다. 한 번만 실제로 풀어봤으면 30초 만에 드러났을 문제다.
 
 ## 다음 계획
 
