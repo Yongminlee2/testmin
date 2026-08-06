@@ -32,7 +32,7 @@ export default function HomeScreen() {
               Alert.alert('준비 중입니다', `${c.title}은(는) 다음 업데이트에 열립니다.`);
               return;
             }
-            router.push('/test/dialect/intro');
+            router.push(c.route);
           }}
         >
           <Card color={categoryColor[c.colorKey]} style={styles.card}>

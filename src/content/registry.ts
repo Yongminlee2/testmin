@@ -1,8 +1,41 @@
-import type { GradeBand, GradeTable, Question } from '@/engine/types';
+import type { Difficulty, GradeBand, GradeTable, Question } from '@/engine/types';
 import gradesJson from './grades.json';
 import gyeongsang from './dialect/gyeongsang.json';
 
 const grades = gradesJson as unknown as Record<string, GradeTable>;
+
+/** 한 시험의 출제 규칙. intro/result/홈배지가 모두 이 값 하나만 읽는다. */
+export interface DrawConfig {
+  readonly questionCount: number;
+  readonly difficultyMix: Partial<Record<Difficulty, number>>;
+}
+
+export const DIALECT_DRAW: DrawConfig = {
+  questionCount: 12,
+  difficultyMix: { 1: 4, 2: 5, 3: 3 },
+};
+
+/**
+ * 등록된 모든 문항 풀. `${testId}:${variant}` 키로 저장한다.
+ * 콘텐츠 검증 CLI(tools/validate-content.ts)가 이 목록을 그대로 순회한다 —
+ * 새 지역/카테고리를 추가할 때 검증 스크립트를 따로 고칠 필요가 없다.
+ */
+export const POOLS: Record<string, readonly Question[]> = {
+  'dialect:gyeongsang': gyeongsang as unknown as Question[],
+};
+
+/** 없는 조합이면 빈 배열을 준다 (호출부가 크래시하지 않게). */
+export function getPool(testId: string, variant: string): readonly Question[] {
+  return POOLS[`${testId}:${variant}`] ?? [];
+}
+
+/** 이 testId로 등록된 풀이 하나라도 있으면 참. CATEGORIES의 available을 여기서 계산한다. */
+function categoryHasPool(testId: string): boolean {
+  const prefix = `${testId}:`;
+  return Object.entries(POOLS).some(
+    ([key, pool]) => key.startsWith(prefix) && pool.length > 0
+  );
+}
 
 export interface CategoryMeta {
   readonly id: string;
@@ -11,16 +44,63 @@ export interface CategoryMeta {
   readonly emoji: string;
   readonly colorKey: 'iq' | 'personality' | 'mz' | 'dialect' | 'psych';
   readonly questionCount: number;
-  /** 계획 1에서 실제로 응시 가능한지 */
+  /** 홈 화면에서 이동할 인트로 경로. available이 false인 동안은 실제로 열리지 않는다. */
+  readonly route: string;
+  /** 이 카테고리에 등록된 풀이 있는지로 계산한다 — 손으로 뒤집는 플래그가 아니다. */
   readonly available: boolean;
 }
 
 export const CATEGORIES: readonly CategoryMeta[] = [
-  { id: 'iq', title: 'IQ 고사', subtitle: '도형·수열·유추', emoji: '🧠', colorKey: 'iq', questionCount: 20, available: false },
-  { id: 'personality', title: '성격 16유형 고사', subtitle: '4개 축 × 6문항', emoji: '🎭', colorKey: 'personality', questionCount: 24, available: false },
-  { id: 'mz', title: 'MZ 고사', subtitle: '신조어·밈 해독', emoji: '📱', colorKey: 'mz', questionCount: 15, available: false },
-  { id: 'dialect', title: '사투리 고사', subtitle: '6개 지역 · 골라서 응시', emoji: '🗣️', colorKey: 'dialect', questionCount: 12, available: true },
-  { id: 'psych', title: '심리 테스트', subtitle: '연애·스트레스 성향', emoji: '🔮', colorKey: 'psych', questionCount: 12, available: false },
+  {
+    id: 'iq',
+    title: 'IQ 고사',
+    subtitle: '도형·수열·유추',
+    emoji: '🧠',
+    colorKey: 'iq',
+    questionCount: 20,
+    route: '/test/iq/intro',
+    available: categoryHasPool('iq'),
+  },
+  {
+    id: 'personality',
+    title: '성격 16유형 고사',
+    subtitle: '4개 축 × 6문항',
+    emoji: '🎭',
+    colorKey: 'personality',
+    questionCount: 24,
+    route: '/test/personality/intro',
+    available: categoryHasPool('personality'),
+  },
+  {
+    id: 'mz',
+    title: 'MZ 고사',
+    subtitle: '신조어·밈 해독',
+    emoji: '📱',
+    colorKey: 'mz',
+    questionCount: 15,
+    route: '/test/mz/intro',
+    available: categoryHasPool('mz'),
+  },
+  {
+    id: 'dialect',
+    title: '사투리 고사',
+    subtitle: '6개 지역 · 골라서 응시',
+    emoji: '🗣️',
+    colorKey: 'dialect',
+    questionCount: DIALECT_DRAW.questionCount,
+    route: '/test/dialect/intro',
+    available: categoryHasPool('dialect'),
+  },
+  {
+    id: 'psych',
+    title: '심리 테스트',
+    subtitle: '연애·스트레스 성향',
+    emoji: '🔮',
+    colorKey: 'psych',
+    questionCount: 12,
+    route: '/test/psych/intro',
+    available: categoryHasPool('psych'),
+  },
 ];
 
 export interface RegionMeta {
@@ -30,22 +110,13 @@ export interface RegionMeta {
 }
 
 export const DIALECT_REGIONS: readonly RegionMeta[] = [
-  { id: 'gyeongsang', title: '경상도', available: true },
-  { id: 'jeolla', title: '전라도', available: false },
-  { id: 'chungcheong', title: '충청도', available: false },
-  { id: 'gangwon', title: '강원도', available: false },
-  { id: 'jeju', title: '제주도', available: false },
-  { id: 'seoul', title: '서울·경기', available: false },
+  { id: 'gyeongsang', title: '경상도', available: getPool('dialect', 'gyeongsang').length > 0 },
+  { id: 'jeolla', title: '전라도', available: getPool('dialect', 'jeolla').length > 0 },
+  { id: 'chungcheong', title: '충청도', available: getPool('dialect', 'chungcheong').length > 0 },
+  { id: 'gangwon', title: '강원도', available: getPool('dialect', 'gangwon').length > 0 },
+  { id: 'jeju', title: '제주도', available: getPool('dialect', 'jeju').length > 0 },
+  { id: 'seoul', title: '서울·경기', available: getPool('dialect', 'seoul').length > 0 },
 ];
-
-const POOLS: Record<string, readonly Question[]> = {
-  'dialect:gyeongsang': gyeongsang as unknown as Question[],
-};
-
-/** 없는 조합이면 빈 배열을 준다 (호출부가 크래시하지 않게). */
-export function getPool(testId: string, variant: string): readonly Question[] {
-  return POOLS[`${testId}:${variant}`] ?? [];
-}
 
 export function gradeTableId(testId: string, variant: string): string {
   return `${testId}-${variant}`;

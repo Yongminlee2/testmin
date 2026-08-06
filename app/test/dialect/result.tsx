@@ -8,15 +8,13 @@ import { scoreTest } from '@/engine/score';
 import { assemble } from '@/engine/assemble';
 import { hashSeed } from '@/engine/rng';
 import {
+  DIALECT_DRAW,
   DIALECT_REGIONS,
   getGradeBands,
   getPool,
   gradeTableId,
 } from '@/content/registry';
 import { colors, font, space } from '@/ui/tokens';
-
-const QUESTION_COUNT = 12;
-const DIFFICULTY_MIX = { 1: 4, 2: 5, 3: 3 } as const;
 
 export default function ResultScreen() {
   const router = useRouter();
@@ -42,8 +40,8 @@ export default function ResultScreen() {
     const pool = getPool('dialect', variant);
     const seed = hashSeed(`dialect:${variant}:${Date.now()}`);
     const next = assemble(pool, seed, {
-      count: QUESTION_COUNT,
-      difficultyMix: DIFFICULTY_MIX,
+      count: DIALECT_DRAW.questionCount,
+      difficultyMix: DIALECT_DRAW.difficultyMix,
       excludeIds: questions.map((q) => q.id),
     });
     start('dialect', variant, seed, next);
@@ -75,14 +73,14 @@ export default function ResultScreen() {
         ) : null}
 
         <Button
-          label="↻ 다시 응시 (새 문제)"
+          label="↻ 다시 응시"
           color={colors.coral}
           onPress={retry}
           testID="retry"
         />
         <Button
           label="홈으로"
-          onPress={() => router.replace('/')}
+          onPress={() => router.dismissAll()}
           testID="go-home"
         />
 

@@ -131,20 +131,39 @@ export function validateGradeTable(id: string, table: GradeTable): string[] {
   return errors;
 }
 
+/** 정답형 문항의 규격 선택지 개수. 텍스트 문항은 4, IQ 도형·수열은 5. */
+function expectedChoiceCountFor(testId: string): number {
+  return testId === 'iq' ? 5 : 4;
+}
+
 /** CLI 진입점. 문제가 있으면 exit 1. */
 async function main(): Promise<void> {
-  const gyeongsang = (await import('../src/content/dialect/gyeongsang.json'))
-    .default as unknown as Question[];
+  // registry.ts가 실제 콘텐츠 인벤토리다 — 파일 경로를 직접 나열하지 않고
+  // 여기 등록된 풀을 그대로 순회한다. 새 지역/카테고리가 POOLS에 추가되면
+  // 이 스크립트를 고치지 않아도 자동으로 검증 대상이 된다.
+  const { POOLS } = await import('../src/content/registry');
   const grades = (await import('../src/content/grades.json')).default as unknown as Record<
     string,
     GradeTable
   >;
 
-  const errors: string[] = [
-    ...validateScoredQuestions(gyeongsang, { expectedChoiceCount: 4 }),
-    ...validateAnswerDistribution('dialect:gyeongsang', gyeongsang),
-    ...Object.entries(grades).flatMap(([id, table]) => validateGradeTable(id, table)),
-  ];
+  const errors: string[] = [];
+  let totalQuestions = 0;
+
+  for (const [poolId, questions] of Object.entries(POOLS)) {
+    const [testId] = poolId.split(':');
+    totalQuestions += questions.length;
+    errors.push(
+      ...validateScoredQuestions(questions, {
+        expectedChoiceCount: expectedChoiceCountFor(testId ?? ''),
+      }),
+      ...validateAnswerDistribution(poolId, questions)
+    );
+  }
+
+  errors.push(
+    ...Object.entries(grades).flatMap(([id, table]) => validateGradeTable(id, table))
+  );
 
   if (errors.length > 0) {
     console.error(`콘텐츠 검증 실패 — ${errors.length}건`);
@@ -152,7 +171,9 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`콘텐츠 검증 통과 — 문항 ${gyeongsang.length}개, 급수 테이블 ${Object.keys(grades).length}개`);
+  console.log(
+    `콘텐츠 검증 통과 — 문항 ${totalQuestions}개, 급수 테이블 ${Object.keys(grades).length}개`
+  );
 }
 
 if (require.main === module) {

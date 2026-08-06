@@ -2,15 +2,12 @@ import { ScrollView, Text, View, Pressable, StyleSheet, Alert } from 'react-nati
 import { Stack, useRouter } from 'expo-router';
 import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
-import { DIALECT_REGIONS, getPool } from '@/content/registry';
+import { DIALECT_DRAW, DIALECT_REGIONS, getPool } from '@/content/registry';
 import { useSession } from '@/store/session';
 import { assemble } from '@/engine/assemble';
 import { hashSeed } from '@/engine/rng';
 import { colors, font, space } from '@/ui/tokens';
 import { useState } from 'react';
-
-const QUESTION_COUNT = 12;
-const DIFFICULTY_MIX = { 1: 4, 2: 5, 3: 3 } as const;
 
 export default function DialectIntroScreen() {
   const router = useRouter();
@@ -25,8 +22,8 @@ export default function DialectIntroScreen() {
     }
     const seed = hashSeed(`dialect:${selected}:${Date.now()}`);
     const questions = assemble(pool, seed, {
-      count: QUESTION_COUNT,
-      difficultyMix: DIFFICULTY_MIX,
+      count: DIALECT_DRAW.questionCount,
+      difficultyMix: DIALECT_DRAW.difficultyMix,
     });
     start('dialect', selected, seed, questions);
     router.push('/test/dialect/quiz');
