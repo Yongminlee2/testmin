@@ -158,13 +158,12 @@ cd /c/workAndroid/TestMin && npm install --save-dev jest jest-expo @types/jest @
           }
         }
       ]
-    ],
-    "experiments": {
-      "typedRoutes": true
-    }
+    ]
   }
 }
 ```
+
+`experiments.typedRoutes`는 **켜지 않는다.** 라우트 타입은 dev 서버가 `.expo/types`에 생성하는데, 태스크 10에서 홈 화면이 아직 없는 `/test/dialect/intro`로 `router.push`를 하므로 `tsc --noEmit`이 그 시점에 깨진다. 타입 안전성보다 태스크 순서가 우선이다.
 
 - [ ] **Step 5: `tsconfig.json`을 strict로**
 
