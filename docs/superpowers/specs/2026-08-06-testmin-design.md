@@ -82,9 +82,11 @@ radius    12px (버튼·선택지) / 14~16px (카드) / 24px (화면 패널)
 
 ### 2.2 타이포그래피
 
-- 제목/급수/합격증: Black Han Sans (Google Fonts, SIL OFL)
-- 본문/선택지/해설: Pretendard (SIL OFL)
-- 둘 다 SIL Open Font License이므로 상업 앱에 번들·재배포할 수 있다 (폰트 자체를 단독 판매하지 않는 한 제한 없음)
+- 제목/급수/합격증: Black Han Sans (`@expo-google-fonts/black-han-sans`, SIL OFL)
+- 본문/선택지/해설: Noto Sans KR (`@expo-google-fonts/noto-sans-kr`, SIL OFL)
+- 둘 다 SIL Open Font License이므로 상업 앱에 번들·재배포할 수 있다 (폰트 자체를 단독 판매하지 않는 한 제한 없음). 라이선스 원문은 `docs/licenses/`에 보관하고 설정 화면에 고지한다.
+- 본문 폰트로 Pretendard를 검토했으나 npm 배포본이 웹폰트(woff2) 위주라 RN이 쓰는 ttf를 안정적으로 얻기 어렵다. 같은 OFL이면서 npm 설치만으로 끝나고 한글 자소 커버리지가 더 넓은 Noto Sans KR로 정했다.
+- **커스텀 폰트에 `fontWeight`를 함께 주지 않는다.** 안드로이드가 가짜 볼드를 합성해 획이 뭉개진다. 굵기는 폰트 패밀리(`NotoSansKR_500Medium` / `_700Bold` / `_900Black`)로 고른다.
 - **모든 폰트는 앱에 번들한다.** iOS 이식 시 폰트 차이로 레이아웃이 깨지지 않도록 시스템 폰트에 의존하지 않는다.
 - 라이선스 원문을 `docs/licenses/`에 보관하고 설정 화면에 오픈소스 고지를 넣는다.
 
