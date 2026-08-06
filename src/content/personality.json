@@ -1,0 +1,482 @@
+[
+  {
+    "id": "pers-0001",
+    "kind": "typed",
+    "prompt": "처음 보는 사람들 사이에서도 먼저 말을 건다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "EI",
+    "explanation": "낯선 자리에서 먼저 다가가는지를 봅니다. 에너지가 밖으로 향하는 쪽(E)의 특징입니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 외향/내향 축"
+  },
+  {
+    "id": "pers-0002",
+    "kind": "typed",
+    "prompt": "여러 명이 모인 자리에 다녀오면 기운이 난다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "EI",
+    "explanation": "사람을 만난 뒤 충전되는지 소모되는지를 봅니다. 충전되면 E 쪽입니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 외향/내향 축"
+  },
+  {
+    "id": "pers-0003",
+    "kind": "typed",
+    "prompt": "주말에 약속이 없으면 허전하다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "EI",
+    "explanation": "혼자 있는 시간을 비는 시간으로 느끼는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 외향/내향 축"
+  },
+  {
+    "id": "pers-0004",
+    "kind": "typed",
+    "prompt": "모임에서 대화를 주도하는 편이다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "EI",
+    "explanation": "말을 꺼내는 쪽인지 받는 쪽인지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 외향/내향 축"
+  },
+  {
+    "id": "pers-0005",
+    "kind": "typed",
+    "prompt": "혼자 있는 시간이 없으면 금방 지친다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "EI",
+    "explanation": "회복이 혼자일 때 일어나는지를 봅니다. 그렇다면 안으로 향하는 쪽(I)입니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 외향/내향 축"
+  },
+  {
+    "id": "pers-0006",
+    "kind": "typed",
+    "prompt": "전화보다 문자가 편하다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "EI",
+    "explanation": "즉석 대화보다 정리할 틈이 있는 소통을 선호하는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 외향/내향 축"
+  },
+  {
+    "id": "pers-0007",
+    "kind": "typed",
+    "prompt": "생각을 정리한 뒤에 말하는 편이다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "EI",
+    "explanation": "말하면서 생각하는지, 생각하고 말하는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 외향/내향 축"
+  },
+  {
+    "id": "pers-0008",
+    "kind": "typed",
+    "prompt": "낯선 자리에서는 먼저 분위기를 살핀다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "EI",
+    "explanation": "뛰어드는 쪽인지 살피는 쪽인지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 외향/내향 축"
+  },
+  {
+    "id": "pers-0009",
+    "kind": "typed",
+    "prompt": "일단 큰 그림부터 그리고 세부는 나중에 채운다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "SN",
+    "explanation": "전체 구조를 먼저 보는지를 봅니다. 직관 쪽(N)의 특징입니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 감각/직관 축"
+  },
+  {
+    "id": "pers-0010",
+    "kind": "typed",
+    "prompt": "'만약에'로 시작하는 상상을 자주 한다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "SN",
+    "explanation": "지금 없는 가능성에 마음이 가는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 감각/직관 축"
+  },
+  {
+    "id": "pers-0011",
+    "kind": "typed",
+    "prompt": "남들이 못 본 연결고리를 찾아내는 편이다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "SN",
+    "explanation": "떨어져 있는 것들을 엮어 보는 성향을 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 감각/직관 축"
+  },
+  {
+    "id": "pers-0012",
+    "kind": "typed",
+    "prompt": "설명할 때 비유를 자주 쓴다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "SN",
+    "explanation": "사실을 그대로 옮기는지, 다른 것에 빗대는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 감각/직관 축"
+  },
+  {
+    "id": "pers-0013",
+    "kind": "typed",
+    "prompt": "설명서를 끝까지 읽고 시작한다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "SN",
+    "explanation": "주어진 정보를 순서대로 다루는지를 봅니다. 감각 쪽(S)의 특징입니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 감각/직관 축"
+  },
+  {
+    "id": "pers-0014",
+    "kind": "typed",
+    "prompt": "직접 만져보고 확인해야 믿는다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "SN",
+    "explanation": "경험한 것과 추론한 것 중 무엇을 더 믿는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 감각/직관 축"
+  },
+  {
+    "id": "pers-0015",
+    "kind": "typed",
+    "prompt": "과거에 해본 방식이 제일 안전하다고 생각한다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "SN",
+    "explanation": "검증된 방법과 새로운 방법 중 어느 쪽에 무게를 두는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 감각/직관 축"
+  },
+  {
+    "id": "pers-0016",
+    "kind": "typed",
+    "prompt": "구체적인 숫자와 사실이 있어야 마음이 놓인다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "SN",
+    "explanation": "근거의 형태가 구체적이어야 하는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 감각/직관 축"
+  },
+  {
+    "id": "pers-0017",
+    "kind": "typed",
+    "prompt": "누가 속상해하면 이유보다 마음이 먼저 쓰인다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "TF",
+    "explanation": "상황보다 사람의 상태에 먼저 반응하는지를 봅니다. 감정 쪽(F)입니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 사고/감정 축"
+  },
+  {
+    "id": "pers-0018",
+    "kind": "typed",
+    "prompt": "칭찬을 들으면 하루가 달라진다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "TF",
+    "explanation": "관계에서 오는 신호가 자신에게 얼마나 크게 작용하는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 사고/감정 축"
+  },
+  {
+    "id": "pers-0019",
+    "kind": "typed",
+    "prompt": "분위기가 나빠지면 내가 나서서 풀려고 한다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "TF",
+    "explanation": "조화가 깨졌을 때 개입하는 쪽인지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 사고/감정 축"
+  },
+  {
+    "id": "pers-0020",
+    "kind": "typed",
+    "prompt": "거절할 때 상대가 상처받을까 봐 오래 고민한다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "TF",
+    "explanation": "결정에 상대의 감정이 얼마나 개입하는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 사고/감정 축"
+  },
+  {
+    "id": "pers-0021",
+    "kind": "typed",
+    "prompt": "결정할 때 논리적으로 옳은지를 먼저 따진다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "TF",
+    "explanation": "판단의 첫 기준이 일관성인지를 봅니다. 사고 쪽(T)입니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 사고/감정 축"
+  },
+  {
+    "id": "pers-0022",
+    "kind": "typed",
+    "prompt": "틀린 건 틀렸다고 말해주는 게 도움이라고 생각한다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "TF",
+    "explanation": "정확함과 부드러움 중 무엇을 먼저 두는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 사고/감정 축"
+  },
+  {
+    "id": "pers-0023",
+    "kind": "typed",
+    "prompt": "감정적인 호소보다 근거가 설득력 있다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "TF",
+    "explanation": "무엇에 설득되는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 사고/감정 축"
+  },
+  {
+    "id": "pers-0024",
+    "kind": "typed",
+    "prompt": "공정한 게 친절한 것보다 중요하다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "TF",
+    "explanation": "원칙과 배려가 부딪힐 때 어느 쪽을 택하는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 사고/감정 축"
+  },
+  {
+    "id": "pers-0025",
+    "kind": "typed",
+    "prompt": "마감이 닥쳐야 집중이 된다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "JP",
+    "explanation": "압박이 있어야 움직이는지를 봅니다. 인식 쪽(P)의 특징입니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 판단/인식 축"
+  },
+  {
+    "id": "pers-0026",
+    "kind": "typed",
+    "prompt": "계획이 바뀌어도 별로 신경 쓰이지 않는다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "JP",
+    "explanation": "변화에 드는 비용을 어떻게 느끼는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 판단/인식 축"
+  },
+  {
+    "id": "pers-0027",
+    "kind": "typed",
+    "prompt": "선택지를 오래 열어두는 편이다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "JP",
+    "explanation": "빨리 닫는 쪽인지 열어두는 쪽인지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 판단/인식 축"
+  },
+  {
+    "id": "pers-0028",
+    "kind": "typed",
+    "prompt": "그때그때 끌리는 대로 하는 게 재미있다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": 2 },
+      { "text": "그렇다", "weight": 1 },
+      { "text": "아니다", "weight": -1 },
+      { "text": "전혀 아니다", "weight": -2 }
+    ],
+    "axis": "JP",
+    "explanation": "즉흥과 계획 중 어느 쪽에서 즐거움을 얻는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 판단/인식 축"
+  },
+  {
+    "id": "pers-0029",
+    "kind": "typed",
+    "prompt": "여행 가기 전에 일정을 다 짜둔다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "JP",
+    "explanation": "미리 정해두는 것이 편한지를 봅니다. 판단 쪽(J)입니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 판단/인식 축"
+  },
+  {
+    "id": "pers-0030",
+    "kind": "typed",
+    "prompt": "할 일 목록을 만들고 지워나가는 게 좋다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "JP",
+    "explanation": "마무리에서 만족을 얻는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 판단/인식 축"
+  },
+  {
+    "id": "pers-0031",
+    "kind": "typed",
+    "prompt": "물건은 제자리에 있어야 마음이 편하다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "JP",
+    "explanation": "정돈된 상태가 심리적 안정과 연결되는지를 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 판단/인식 축"
+  },
+  {
+    "id": "pers-0032",
+    "kind": "typed",
+    "prompt": "약속 시간보다 미리 도착한다.",
+    "choices": [
+      { "text": "매우 그렇다", "weight": -2 },
+      { "text": "그렇다", "weight": -1 },
+      { "text": "아니다", "weight": 1 },
+      { "text": "전혀 아니다", "weight": 2 }
+    ],
+    "axis": "JP",
+    "explanation": "시간을 다루는 방식을 봅니다.",
+    "difficulty": 1,
+    "source": "자체 창작 — 융 이론의 판단/인식 축"
+  }
+]

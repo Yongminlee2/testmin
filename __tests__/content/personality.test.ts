@@ -1,0 +1,62 @@
+import personality from '@/content/personality.json';
+import { AXES } from '@/engine/types';
+import type { Question } from '@/engine/types';
+
+const questions = personality as unknown as Question[];
+const LIKERT = ['매우 그렇다', '그렇다', '아니다', '전혀 아니다'];
+
+describe('성격 16유형 문항', () => {
+  test('32문항이고 ID가 규칙을 지키며 중복이 없다', () => {
+    expect(questions).toHaveLength(32);
+    for (const q of questions) expect(q.id).toMatch(/^pers-\d{4}$/);
+    expect(new Set(questions.map((q) => q.id)).size).toBe(32);
+  });
+
+  test('모든 문항이 typed이고 유효한 축을 갖는다', () => {
+    for (const q of questions) {
+      expect(q.kind).toBe('typed');
+      expect(AXES).toContain(q.axis);
+    }
+  });
+
+  test('축마다 정확히 8문항', () => {
+    for (const axis of AXES) {
+      expect(questions.filter((q) => q.axis === axis)).toHaveLength(8);
+    }
+  });
+
+  test('모든 문항이 같은 리커트 선택지 문구를 같은 순서로 쓴다', () => {
+    for (const q of questions) {
+      expect(q.choices.map((c) => c.text)).toEqual(LIKERT);
+    }
+  });
+
+  test('가중치는 정방향 [2,1,-1,-2] 또는 역방향 [-2,-1,1,2] 둘 중 하나다', () => {
+    for (const q of questions) {
+      const w = q.choices.map((c) => c.weight);
+      const forward = JSON.stringify(w) === JSON.stringify([2, 1, -1, -2]);
+      const reverse = JSON.stringify(w) === JSON.stringify([-2, -1, 1, 2]);
+      expect(forward || reverse).toBe(true);
+    }
+  });
+
+  test('축마다 정방향 4개·역방향 4개로 균형이 잡혀 있다', () => {
+    for (const axis of AXES) {
+      const inAxis = questions.filter((q) => q.axis === axis);
+      const forward = inAxis.filter((q) => q.choices[0]?.weight === 2);
+      expect(forward).toHaveLength(4);
+    }
+  });
+
+  test('모든 문항에 어느 축을 재는지 설명이 있다', () => {
+    for (const q of questions) {
+      expect((q.explanation ?? '').trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  test('정답형 필드가 섞여 있지 않다', () => {
+    for (const q of questions) {
+      expect(q.answerIndex).toBeUndefined();
+    }
+  });
+});
