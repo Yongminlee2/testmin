@@ -19,7 +19,7 @@
     },
     "plugins": [
       "expo-router",
-      "./plugins/withNoInternet",
+      "./plugins/withNoPermissions",
       [
         "expo-build-properties",
         {
