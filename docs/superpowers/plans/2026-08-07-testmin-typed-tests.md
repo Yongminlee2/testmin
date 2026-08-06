@@ -1540,10 +1540,560 @@ describe('TypeCard', () => {
 });
 ```
 
-**Task 9 — 성격 고사 화면 4종**
-- `app/test/personality/{intro,quiz,result,review}.tsx`
-- 계획 1의 `test/dialect/*` 구조를 그대로 따른다. `useSafeAreaInsets()` 하단 여백 포함
-- `registry.ts`의 `CATEGORIES`에서 `personality`의 `available`이 풀 존재로 자동 도출되는지 확인
+### Task 9 — 문항 진행 화면 공용화 + 성격 고사 화면
+
+**Files:**
+- Create: `src/ui/QuizRunner.tsx`
+- Modify: `app/test/dialect/quiz.tsx` (공용 부품을 쓰도록 축소), `src/content/registry.ts`
+- Create: `app/test/personality/{intro,quiz,result,review}.tsx`
+- Test: `__tests__/screens/personalityResult.test.tsx`
+
+**왜 공용화부터 하는가**
+
+사투리 문항 진행 화면과 성격 문항 진행 화면은 구조가 같다 — 진행 배지, 질문, 선택지 목록, 마지막 문항이면 결과로 `replace`. 복사하면 90줄이 두 벌이 되고, 계획 3·5에서 IQ·MZ·심리가 붙으면 다섯 벌이 된다. 그때 버그 하나를 고치려면 다섯 곳을 고쳐야 하고, 반드시 한 곳을 빠뜨린다.
+
+`QuizRunner`로 뽑아내고 각 화면은 제목과 결과 라우트만 넘기는 껍데기가 된다. **기존 사투리 테스트 6개가 그대로 통과해야 한다** — 리팩터링이 동작을 바꾸지 않았다는 증거다.
+
+**`src/ui/QuizRunner.tsx`**
+
+```tsx
+import { useState } from 'react';
+import { ScrollView, Text, View, Pressable, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Card } from './Card';
+import { Badge } from './Badge';
+import { useSession } from '@/store/session';
+import { colors, font, space } from './tokens';
+
+interface Props {
+  /** 마지막 문항 뒤 이동할 결과 화면 경로 */
+  readonly resultRoute: string;
+  /** 진행 배지 색 */
+  readonly accent?: string;
+}
+
+/**
+ * 정답형·유형형 공통 문항 진행 화면.
+ * 세션이 비어 있으면 안내를 보여주고, 마지막 문항에서는 replace로 결과로 넘어간다
+ * (뒤로가기로 끝난 시험에 재진입할 수 없게).
+ */
+export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const questions = useSession((s) => s.questions);
+  const answer = useSession((s) => s.answer);
+  const [index, setIndex] = useState(0);
+
+  const current = questions[index];
+
+  if (questions.length === 0 || current === undefined) {
+    return (
+      <View style={styles.empty}>
+        <Text style={styles.emptyText} maxFontSizeMultiplier={font.maxScale}>
+          응시 중인 시험이 없습니다
+        </Text>
+      </View>
+    );
+  }
+
+  const choose = (choiceIndex: number) => {
+    answer(current.id, choiceIndex);
+    if (index + 1 >= questions.length) {
+      router.replace(resultRoute);
+      return;
+    }
+    setIndex(index + 1);
+  };
+
+  return (
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
+    >
+      <Badge label={`${index + 1} / ${questions.length}`} color={accent} />
+
+      <Text style={styles.prompt} maxFontSizeMultiplier={font.maxScale}>
+        {current.prompt}
+      </Text>
+
+      {current.choices.map((c, i) => (
+        <Pressable
+          key={`${current.id}-${i}`}
+          testID={`choice-${i}`}
+          accessibilityRole="button"
+          onPress={() => choose(i)}
+        >
+          <Card style={styles.choice}>
+            <Text style={styles.choiceText} maxFontSizeMultiplier={font.maxScale}>
+              {c.text ?? ''}
+            </Text>
+          </Card>
+        </Pressable>
+      ))}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.cream },
+  content: { padding: space.lg },
+  prompt: {
+    fontSize: font.size.title,
+    lineHeight: font.size.title * 1.5,
+    fontFamily: font.family.black,
+    color: colors.ink,
+    marginTop: space.md,
+    marginBottom: space.lg,
+  },
+  choice: { marginBottom: space.md },
+  choiceText: {
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.5,
+    fontFamily: font.family.bold,
+    color: colors.ink,
+    paddingVertical: space.xs,
+  },
+  empty: {
+    flex: 1,
+    backgroundColor: colors.cream,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: space.xl,
+  },
+  emptyText: {
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.5,
+    fontFamily: font.family.bold,
+    color: colors.muted,
+  },
+});
+```
+
+**`app/test/dialect/quiz.tsx`를 이걸로 교체**
+
+```tsx
+import { Stack } from 'expo-router';
+import { QuizRunner } from '@/ui/QuizRunner';
+
+export default function DialectQuizScreen() {
+  return (
+    <>
+      <Stack.Screen options={{ title: '사투리 고사', headerBackVisible: true }} />
+      <QuizRunner resultRoute="/test/dialect/result" />
+    </>
+  );
+}
+```
+
+기존 `__tests__/screens/quiz.test.tsx` 6개가 **하나도 수정 없이** 통과해야 한다. 통과하지 않으면 리팩터링이 동작을 바꾼 것이므로, 테스트를 고치지 말고 `QuizRunner`를 고칠 것.
+
+**`src/content/registry.ts` 추가분**
+
+```ts
+import personality from './personality.json';
+import typeNamesJson from './typeNames.json';
+import type { TypeNameEntry } from '@/engine/types';
+
+// POOLS에 추가
+  'personality:default': personality as unknown as Question[],
+
+/** 성격 고사 출제 설정. 축당 6문항 = 총 24문항 */
+export const PERSONALITY_DRAW = { perAxis: 6 } as const;
+
+const TYPE_NAMES = typeNamesJson as unknown as TypeNameEntry[];
+
+/** 없는 코드면 undefined. 호출부가 폴백을 준비한다. */
+export function getTypeName(code: string): TypeNameEntry | undefined {
+  return TYPE_NAMES.find((t) => t.code === code);
+}
+```
+
+`CATEGORIES`의 `personality` 항목은 `route`를 `/test/personality/intro`로 바꾼다. `available`은 이미 `categoryHasPool`로 도출되므로 `POOLS`에 풀이 생기는 순간 자동으로 열린다 — 따로 손대지 않는다.
+
+**`app/test/personality/intro.tsx`**
+
+```tsx
+import { ScrollView, Text, StyleSheet, Alert } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Button } from '@/ui/Button';
+import { getPool, PERSONALITY_DRAW } from '@/content/registry';
+import { useSession } from '@/store/session';
+import { assembleByAxis } from '@/engine/assembleTyped';
+import { hashSeed } from '@/engine/rng';
+import { colors, font, space } from '@/ui/tokens';
+
+export default function PersonalityIntroScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const start = useSession((s) => s.start);
+
+  const begin = () => {
+    const pool = getPool('personality', 'default');
+    if (pool.length === 0) {
+      Alert.alert('준비 중입니다', '성격 16유형 고사는 다음 업데이트에 열립니다.');
+      return;
+    }
+    const seed = hashSeed(`personality:${Date.now()}`);
+    const questions = assembleByAxis(pool, seed, { perAxis: PERSONALITY_DRAW.perAxis });
+    start('personality', 'default', seed, questions);
+    router.push('/test/personality/quiz');
+  };
+
+  return (
+    <>
+      <Stack.Screen options={{ title: '성격 16유형 고사' }} />
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
+      >
+        <Text style={styles.heading} maxFontSizeMultiplier={font.maxScale}>
+          24문항으로{'\n'}당신의 네 글자를 찾습니다
+        </Text>
+        <Text style={styles.note} maxFontSizeMultiplier={font.maxScale}>
+          정답이 없는 시험입니다. 오래 고민하지 말고 먼저 떠오르는 쪽을 고르세요.
+          {'\n\n'}
+          네 개의 축을 각각 6문항씩 묻습니다. 결과에는 각 축이 얼마나 치우쳤는지도 함께 나옵니다.
+        </Text>
+        <Button label="응시하기 →" color={colors.lavender} onPress={begin} testID="begin" />
+      </ScrollView>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.cream },
+  content: { padding: space.lg },
+  heading: {
+    fontSize: font.size.title,
+    lineHeight: font.size.title * 1.5,
+    fontFamily: font.family.black,
+    color: colors.ink,
+    marginBottom: space.lg,
+  },
+  note: {
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.7,
+    fontFamily: font.family.body,
+    color: colors.muted,
+    marginBottom: space.xl,
+  },
+});
+```
+
+**`app/test/personality/quiz.tsx`**
+
+```tsx
+import { Stack } from 'expo-router';
+import { QuizRunner } from '@/ui/QuizRunner';
+import { colors } from '@/ui/tokens';
+
+export default function PersonalityQuizScreen() {
+  return (
+    <>
+      <Stack.Screen options={{ title: '성격 16유형 고사', headerBackVisible: true }} />
+      <QuizRunner resultRoute="/test/personality/result" accent={colors.lavender} />
+    </>
+  );
+}
+```
+
+**`app/test/personality/result.tsx`**
+
+```tsx
+import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { TypeCard } from '@/ui/TypeCard';
+import { Button } from '@/ui/Button';
+import { AdSlot } from '@/ui/AdSlot';
+import { useSession } from '@/store/session';
+import { scoreByAxis } from '@/engine/typeScore';
+import { assembleByAxis } from '@/engine/assembleTyped';
+import { hashSeed } from '@/engine/rng';
+import { getPool, getTypeName, PERSONALITY_DRAW } from '@/content/registry';
+import { colors, font, space } from '@/ui/tokens';
+
+export default function PersonalityResultScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { questions, answers } = useSession();
+  const start = useSession((s) => s.start);
+
+  if (questions.length === 0) {
+    return (
+      <View style={styles.empty}>
+        <Text style={styles.emptyText} maxFontSizeMultiplier={font.maxScale}>
+          결과가 없습니다
+        </Text>
+      </View>
+    );
+  }
+
+  const result = scoreByAxis(questions, answers);
+  const entry = getTypeName(result.code);
+
+  const retry = () => {
+    const pool = getPool('personality', 'default');
+    const seed = hashSeed(`personality:${Date.now()}`);
+    const next = assembleByAxis(pool, seed, {
+      perAxis: PERSONALITY_DRAW.perAxis,
+      excludeIds: questions.map((q) => q.id),
+    });
+    start('personality', 'default', seed, next);
+    router.replace('/test/personality/quiz');
+  };
+
+  return (
+    <>
+      <Stack.Screen options={{ title: '채점 완료', headerBackVisible: false }} />
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
+      >
+        <TypeCard
+          label="성격 16유형 고사"
+          headline={result.code}
+          nickname={entry?.nickname ?? result.code}
+          description={entry?.description ?? ''}
+          axes={result.axes}
+        />
+
+        <Button
+          label="✎ 문항별 해설 보기"
+          onPress={() => router.push('/test/personality/review')}
+          testID="go-review"
+        />
+        <Button label="↻ 다시 응시" color={colors.coral} onPress={retry} testID="retry" />
+        <Button label="홈으로" onPress={() => router.dismissAll()} testID="go-home" />
+
+        <AdSlot />
+      </ScrollView>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.cream },
+  content: { padding: space.lg },
+  empty: {
+    flex: 1,
+    backgroundColor: colors.cream,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: space.xl,
+  },
+  emptyText: {
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.5,
+    fontFamily: font.family.bold,
+    color: colors.muted,
+  },
+});
+```
+
+**`app/test/personality/review.tsx`**
+
+유형형 해설은 정답형과 성격이 다르다. "왜 이게 정답인가"가 아니라 **"이 문항이 어느 축을 쟀고, 당신의 응답이 그 축을 어느 쪽으로 밀었는가"** 를 보여준다.
+
+```tsx
+import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Card } from '@/ui/Card';
+import { Badge } from '@/ui/Badge';
+import { Button } from '@/ui/Button';
+import { useSession } from '@/store/session';
+import { AXIS_LETTERS, type AxisKey } from '@/engine/types';
+import { colors, font, space } from '@/ui/tokens';
+
+export default function PersonalityReviewScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { questions, answers } = useSession();
+
+  if (questions.length === 0) {
+    return (
+      <View style={styles.empty}>
+        <Text style={styles.emptyText} maxFontSizeMultiplier={font.maxScale}>
+          해설할 문항이 없습니다
+        </Text>
+      </View>
+    );
+  }
+
+  const chosenById = new Map(answers.map((a) => [a.questionId, a.chosenIndex]));
+
+  return (
+    <>
+      <Stack.Screen options={{ title: '해설' }} />
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
+      >
+        {questions.map((q, i) => {
+          const chosenIndex = chosenById.get(q.id) ?? -1;
+          const choice = chosenIndex >= 0 ? q.choices[chosenIndex] : undefined;
+          const weight = choice?.weight ?? 0;
+          const letters = q.axis ? AXIS_LETTERS[q.axis as AxisKey] : undefined;
+          const pushed = letters ? (weight > 0 ? letters.positive : letters.negative) : '';
+
+          return (
+            <Card key={q.id} style={styles.card}>
+              <View style={styles.head}>
+                <Badge label={`${i + 1}번`} />
+                {q.axis ? <Badge label={q.axis} color={colors.lavender} /> : null}
+              </View>
+
+              <Text style={styles.prompt} maxFontSizeMultiplier={font.maxScale}>
+                {q.prompt}
+              </Text>
+
+              <Text style={styles.line} maxFontSizeMultiplier={font.maxScale}>
+                내 응답: {choice?.text ?? '응답 없음'}
+              </Text>
+
+              {choice && letters ? (
+                <Text style={styles.line} maxFontSizeMultiplier={font.maxScale}>
+                  이 응답은 {pushed} 쪽으로 {Math.abs(weight)}만큼 밀었습니다
+                </Text>
+              ) : null}
+
+              <Text style={styles.why} maxFontSizeMultiplier={font.maxScale}>
+                {q.explanation ?? ''}
+              </Text>
+            </Card>
+          );
+        })}
+
+        <Button label="결과로 돌아가기" onPress={() => router.back()} testID="back" />
+      </ScrollView>
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.cream },
+  content: { padding: space.lg },
+  card: { marginBottom: space.md },
+  head: { flexDirection: 'row', gap: space.sm, marginBottom: space.sm },
+  prompt: {
+    fontSize: font.size.lead,
+    lineHeight: font.size.lead * 1.5,
+    fontFamily: font.family.black,
+    color: colors.ink,
+    marginBottom: space.sm,
+  },
+  line: {
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.5,
+    fontFamily: font.family.bold,
+    color: colors.ink,
+    marginBottom: 2,
+  },
+  why: {
+    marginTop: space.sm,
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.6,
+    fontFamily: font.family.body,
+    color: colors.muted,
+  },
+  empty: {
+    flex: 1,
+    backgroundColor: colors.cream,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: space.xl,
+  },
+  emptyText: {
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.5,
+    fontFamily: font.family.bold,
+    color: colors.muted,
+  },
+});
+```
+
+**Test:** `__tests__/screens/personalityResult.test.tsx`
+
+`render`는 async이고, `jest.mock()` 팩토리는 `mock` 접두사 변수만 참조할 수 있다.
+
+```tsx
+import React from 'react';
+import { render, screen } from '@testing-library/react-native';
+import PersonalityResultScreen from '../../app/test/personality/result';
+import { useSession } from '@/store/session';
+import type { Question } from '@/engine/types';
+
+const mockPush = jest.fn();
+const mockReplace = jest.fn();
+const mockDismissAll = jest.fn();
+jest.mock('expo-router', () => ({
+  Stack: { Screen: () => null },
+  useRouter: () => ({ push: mockPush, replace: mockReplace, dismissAll: mockDismissAll, back: jest.fn() }),
+}));
+
+function q(id: string, axis: string): Question {
+  return {
+    id,
+    kind: 'typed',
+    prompt: `${id} 문항`,
+    choices: [
+      { text: '매우 그렇다', weight: 2 },
+      { text: '그렇다', weight: 1 },
+      { text: '아니다', weight: -1 },
+      { text: '전혀 아니다', weight: -2 },
+    ],
+    axis,
+    explanation: `${id} 해설`,
+    difficulty: 1,
+  };
+}
+
+const questions = [q('a', 'EI'), q('b', 'SN'), q('c', 'TF'), q('d', 'JP')];
+
+beforeEach(() => {
+  mockPush.mockClear();
+  mockReplace.mockClear();
+  mockDismissAll.mockClear();
+  useSession.getState().reset();
+});
+
+describe('PersonalityResultScreen', () => {
+  test('모두 양수를 고르면 ENFP와 그 별명이 나온다', async () => {
+    useSession.getState().start('personality', 'default', 1, questions);
+    for (const x of questions) useSession.getState().answer(x.id, 0);
+
+    await render(<PersonalityResultScreen />);
+    expect(screen.getByText('ENFP')).toBeTruthy();
+    expect(screen.getByText('판 벌이고 수습 안 하는 사람')).toBeTruthy();
+  });
+
+  test('모두 음수를 고르면 ISTJ가 나온다', async () => {
+    useSession.getState().start('personality', 'default', 1, questions);
+    for (const x of questions) useSession.getState().answer(x.id, 3);
+
+    await render(<PersonalityResultScreen />);
+    expect(screen.getByText('ISTJ')).toBeTruthy();
+  });
+
+  test('네 축의 글자가 모두 표시된다', async () => {
+    useSession.getState().start('personality', 'default', 1, questions);
+    for (const x of questions) useSession.getState().answer(x.id, 0);
+
+    await render(<PersonalityResultScreen />);
+    for (const letter of ['E', 'I', 'S', 'N', 'T', 'F', 'J', 'P']) {
+      expect(screen.getAllByText(letter).length).toBeGreaterThan(0);
+    }
+  });
+
+  test('세션이 비어 있으면 크래시하지 않는다', async () => {
+    await render(<PersonalityResultScreen />);
+    expect(screen.getByText('결과가 없습니다')).toBeTruthy();
+  });
+});
+```
 
 **Task 10 — 심리 테스트 화면 4종**
 - `app/test/psych/{intro,quiz,result,review}.tsx`
