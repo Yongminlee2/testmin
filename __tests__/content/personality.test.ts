@@ -59,4 +59,53 @@ describe('성격 16유형 문항', () => {
       expect(q.answerIndex).toBeUndefined();
     }
   });
+
+  // 브리프 표(task-6-brief.md)의 F/R 열을 그대로 옮긴 지도. id별로 어느
+  // 방향이어야 하는지 고정해서, 같은 축 안에서 F/R이 서로 뒤바뀌어도
+  // (예: pers-0001과 pers-0005가 맞바뀌어도) 위의 "개수만 세는" 테스트들은
+  // 통과하지만 이 테스트는 실패하도록 한다.
+  const DIRECTION: Record<string, 'F' | 'R'> = {
+    'pers-0001': 'F',
+    'pers-0002': 'F',
+    'pers-0003': 'F',
+    'pers-0004': 'F',
+    'pers-0005': 'R',
+    'pers-0006': 'R',
+    'pers-0007': 'R',
+    'pers-0008': 'R',
+    'pers-0009': 'F',
+    'pers-0010': 'F',
+    'pers-0011': 'F',
+    'pers-0012': 'F',
+    'pers-0013': 'R',
+    'pers-0014': 'R',
+    'pers-0015': 'R',
+    'pers-0016': 'R',
+    'pers-0017': 'F',
+    'pers-0018': 'F',
+    'pers-0019': 'F',
+    'pers-0020': 'F',
+    'pers-0021': 'R',
+    'pers-0022': 'R',
+    'pers-0023': 'R',
+    'pers-0024': 'R',
+    'pers-0025': 'F',
+    'pers-0026': 'F',
+    'pers-0027': 'F',
+    'pers-0028': 'F',
+    'pers-0029': 'R',
+    'pers-0030': 'R',
+    'pers-0031': 'R',
+    'pers-0032': 'R',
+  };
+
+  test('각 문항의 방향(F/R)이 브리프 표의 id별 지정과 정확히 일치한다', () => {
+    for (const q of questions) {
+      const expected = DIRECTION[q.id];
+      expect(expected).toBeDefined();
+      const firstWeight = q.choices[0]?.weight;
+      const actual = firstWeight === 2 ? 'F' : firstWeight === -2 ? 'R' : undefined;
+      expect(actual).toBe(expected);
+    }
+  });
 });
