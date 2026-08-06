@@ -81,6 +81,8 @@ describe('scoreByAxis', () => {
     const jp = r.axes.find((a) => a.axis === 'JP');
     expect(jp?.wasTie).toBe(true);
     expect(jp?.letter).toBe('J');
+    expect(jp?.percent).toBe(50);
+    expect(Number.isNaN(jp?.percent)).toBe(false);
   });
 
   test('percent는 0~100 범위이고 완전 치우침이면 100', () => {
