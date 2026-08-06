@@ -1,4 +1,8 @@
-import { validateScoredQuestions, validateGradeTable } from '../../tools/validate-content';
+import {
+  validateScoredQuestions,
+  validateGradeTable,
+  validateAnswerDistribution,
+} from '../../tools/validate-content';
 import type { Question, GradeTable } from '@/engine/types';
 
 function ok(id: string): Question {
@@ -71,6 +75,38 @@ describe('validateScoredQuestions', () => {
     const bad = { ...ok('dialect-gs-0007'), explanation: '' };
     const errors = validateScoredQuestions([bad], opts);
     expect(errors.some((e) => e.includes('dialect-gs-0007'))).toBe(true);
+  });
+});
+
+describe('validateAnswerDistribution', () => {
+  function withAnswer(id: string, answerIndex: number): Question {
+    return { ...ok(id), answerIndex };
+  }
+
+  test('전부 같은 인덱스면 잡는다', () => {
+    const all: Question[] = Array.from({ length: 15 }, (_, i) => withAnswer(`q${i}`, 0));
+    const errors = validateAnswerDistribution('pool', all);
+    expect(errors.some((e) => e.includes('0번'))).toBe(true);
+  });
+
+  test('고르게 분포하면 통과한다', () => {
+    const balanced: Question[] = Array.from({ length: 15 }, (_, i) => withAnswer(`q${i}`, i % 4));
+    expect(validateAnswerDistribution('pool', balanced)).toEqual([]);
+  });
+
+  test('정확히 40%면 통과한다 (초과만 잡는다)', () => {
+    // 10문항 중 4문항이 같은 인덱스 = 정확히 40%
+    const exact: Question[] = [
+      ...Array.from({ length: 4 }, (_, i) => withAnswer(`z${i}`, 0)),
+      ...Array.from({ length: 6 }, (_, i) => withAnswer(`o${i}`, (i % 3) + 1)),
+    ];
+    expect(validateAnswerDistribution('pool', exact)).toEqual([]);
+  });
+
+  test('오류 메시지에 풀 ID가 들어간다', () => {
+    const all: Question[] = Array.from({ length: 5 }, (_, i) => withAnswer(`q${i}`, 0));
+    const errors = validateAnswerDistribution('dialect:gyeongsang', all);
+    expect(errors.some((e) => e.includes('dialect:gyeongsang'))).toBe(true);
   });
 });
 

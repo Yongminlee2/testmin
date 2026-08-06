@@ -65,6 +65,38 @@ export function validateScoredQuestions(
   return errors;
 }
 
+/**
+ * 정답 위치가 한쪽으로 쏠리지 않았는지 검사한다.
+ * 손으로 366문항을 다 확인할 수 없으니, 특정 인덱스가 40%를 넘으면 실패시킨다.
+ * (예: 15문항 전부 answerIndex 0이면 100% — 반드시 걸린다.)
+ */
+export function validateAnswerDistribution(
+  poolId: string,
+  questions: readonly Question[]
+): string[] {
+  const errors: string[] = [];
+  const scorable = questions.filter((q) => typeof q.answerIndex === 'number');
+  if (scorable.length === 0) return errors;
+
+  const counts = new Map<number, number>();
+  for (const q of scorable) {
+    const idx = q.answerIndex as number;
+    counts.set(idx, (counts.get(idx) ?? 0) + 1);
+  }
+
+  const threshold = scorable.length * 0.4;
+  for (const [idx, count] of counts) {
+    if (count > threshold) {
+      const pct = Math.round((count / scorable.length) * 100);
+      errors.push(
+        `[${poolId}] 정답 위치 ${idx}번이 ${count}/${scorable.length}문항(${pct}%)을 차지합니다 — 40%를 넘습니다`
+      );
+    }
+  }
+
+  return errors;
+}
+
 /** 급수 테이블이 0~100%를 빈틈없이 덮는지 검사한다. */
 export function validateGradeTable(id: string, table: GradeTable): string[] {
   const errors: string[] = [];
@@ -110,6 +142,7 @@ async function main(): Promise<void> {
 
   const errors: string[] = [
     ...validateScoredQuestions(gyeongsang, { expectedChoiceCount: 4 }),
+    ...validateAnswerDistribution('dialect:gyeongsang', gyeongsang),
     ...Object.entries(grades).flatMap(([id, table]) => validateGradeTable(id, table)),
   ];
 

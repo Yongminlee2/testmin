@@ -83,4 +83,55 @@ describe('assemble', () => {
     expect(assemble([], 1, { count: 5 })).toEqual([]);
     warn.mockRestore();
   });
+
+  describe('선택지 순서 섞기', () => {
+    test('같은 시드는 같은 선택지 순서와 같은 answerIndex를 준다', () => {
+      const a = assemble(pool, 42, { count: 12 });
+      const b = assemble(pool, 42, { count: 12 });
+      expect(a.map((x) => x.choices.map((c) => c.text))).toEqual(
+        b.map((x) => x.choices.map((c) => c.text))
+      );
+      expect(a.map((x) => x.answerIndex)).toEqual(b.map((x) => x.answerIndex));
+    });
+
+    test('정답 인덱스는 항상 원래 정답 텍스트를 가리킨다', () => {
+      const byId = new Map(pool.map((p) => [p.id, p]));
+      for (const seed of [1, 2, 3, 4, 5, 777, 12345]) {
+        const out = assemble(pool, seed, { count: 12 });
+        for (const drawn of out) {
+          const original = byId.get(drawn.id);
+          if (!original || typeof original.answerIndex !== 'number') continue;
+          const originalAnswerText = original.choices[original.answerIndex]?.text;
+          const drawnAnswerIndex = drawn.answerIndex as number;
+          expect(drawn.choices[drawnAnswerIndex]?.text).toBe(originalAnswerText);
+        }
+      }
+    });
+
+    test('여러 시드에 걸쳐 answerIndex가 항상 0인 것은 아니다', () => {
+      const seenNonZero = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].some((seed) =>
+        assemble(pool, seed, { count: 12 }).some((x) => x.answerIndex !== 0)
+      );
+      expect(seenNonZero).toBe(true);
+    });
+
+    test('answerIndex가 없는 유형형 문항은 선택지 순서가 그대로 유지된다', () => {
+      const typed: Question = {
+        id: 'typed-1',
+        kind: 'typed',
+        prompt: '유형형 질문',
+        choices: [
+          { text: 'ㄱ', weight: 1 },
+          { text: 'ㄴ', weight: -1 },
+        ],
+        axis: 'EI',
+        difficulty: 1,
+      };
+      const typedPool = [typed, ...pool];
+      const out = assemble(typedPool, 99, { count: typedPool.length });
+      const drawn = out.find((x) => x.id === 'typed-1');
+      expect(drawn?.choices.map((c) => c.text)).toEqual(['ㄱ', 'ㄴ']);
+      expect(drawn?.answerIndex).toBeUndefined();
+    });
+  });
 });

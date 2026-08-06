@@ -1,5 +1,5 @@
 import { mulberry32, shuffle } from './rng';
-import type { Difficulty, Question } from './types';
+import type { Choice, Difficulty, Question } from './types';
 
 export interface AssembleOptions {
   readonly count: number;
@@ -68,5 +68,21 @@ export function assemble(
     }
   }
 
-  return shuffle(picked, rand);
+  const withShuffledChoices = picked.map((q) => {
+    if (typeof q.answerIndex !== 'number') return q; // 유형형 문항은 그대로 둔다
+    const order = shuffle(
+      q.choices.map((_, i) => i),
+      rand
+    );
+    return {
+      ...q,
+      choices: order.map((i) => q.choices[i] as Choice),
+      answerIndex: order.indexOf(q.answerIndex),
+      ...(q.distractorNotes
+        ? { distractorNotes: order.map((i) => q.distractorNotes![i] as string) }
+        : {}),
+    };
+  });
+
+  return shuffle(withShuffledChoices, rand);
 }
