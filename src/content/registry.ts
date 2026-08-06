@@ -1,6 +1,9 @@
 import type { Difficulty, GradeBand, GradeTable, Question } from '@/engine/types';
 import gradesJson from './grades.json';
 import gyeongsang from './dialect/gyeongsang.json';
+import personality from './personality.json';
+import typeNamesJson from './typeNames.json';
+import type { TypeNameEntry } from '@/engine/types';
 
 const grades = gradesJson as unknown as Record<string, GradeTable>;
 
@@ -22,11 +25,22 @@ export const DIALECT_DRAW: DrawConfig = {
  */
 export const POOLS: Record<string, readonly Question[]> = {
   'dialect:gyeongsang': gyeongsang as unknown as Question[],
+  'personality:default': personality as unknown as Question[],
 };
 
 /** 없는 조합이면 빈 배열을 준다 (호출부가 크래시하지 않게). */
 export function getPool(testId: string, variant: string): readonly Question[] {
   return POOLS[`${testId}:${variant}`] ?? [];
+}
+
+/** 성격 고사 출제 설정. 축당 6문항 = 총 24문항 */
+export const PERSONALITY_DRAW = { perAxis: 6 } as const;
+
+const TYPE_NAMES = typeNamesJson as unknown as TypeNameEntry[];
+
+/** 없는 코드면 undefined. 호출부가 폴백을 준비한다. */
+export function getTypeName(code: string): TypeNameEntry | undefined {
+  return TYPE_NAMES.find((t) => t.code === code);
 }
 
 /** 이 testId로 등록된 풀이 하나라도 있으면 참. CATEGORIES의 available을 여기서 계산한다. */

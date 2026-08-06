@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import type { GradeTable, Question } from '../src/engine/types';
+import { AXES, type GradeTable, type Question } from '../src/engine/types';
 
 export interface ScoredValidationOptions {
   /** 텍스트 문항은 4, IQ 도형·수열은 5 */
@@ -60,6 +60,52 @@ export function validateScoredQuestions(
         `${at} distractorNotes 길이(${q.distractorNotes.length})가 선택지 수(${q.choices.length})와 다릅니다`
       );
     }
+  }
+
+  return errors;
+}
+
+/** 유형형(축 합계 방식) 문항 묶음을 검사한다. 정답이 없으므로 answerIndex 대신 axis·weight를 본다. */
+export function validateTypedQuestions(
+  questions: readonly Question[],
+  opts: ScoredValidationOptions
+): string[] {
+  const errors: string[] = [];
+  const seen = new Set<string>();
+
+  for (const q of questions) {
+    const at = `[${q.id}]`;
+
+    if (seen.has(q.id)) errors.push(`${at} 문항 ID가 중복됩니다`);
+    seen.add(q.id);
+
+    if (q.choices.length !== opts.expectedChoiceCount) {
+      errors.push(
+        `${at} 선택지 개수가 ${q.choices.length}개입니다 (규격 ${opts.expectedChoiceCount}개)`
+      );
+    }
+
+    if (!q.axis || !(AXES as readonly string[]).includes(q.axis)) {
+      errors.push(`${at} axis가 없거나 유효하지 않습니다: ${q.axis ?? '(없음)'}`);
+    }
+
+    if (!q.explanation || q.explanation.trim().length === 0) {
+      errors.push(`${at} 해설이 비어 있습니다`);
+    }
+
+    if (!q.prompt || q.prompt.trim().length === 0) {
+      errors.push(`${at} 질문이 비어 있습니다`);
+    }
+
+    q.choices.forEach((c, i) => {
+      const text = (c.text ?? '').trim();
+      if (text.length === 0) {
+        errors.push(`${at} ${i}번 선택지가 비어 있습니다`);
+      }
+      if (typeof c.weight !== 'number' || c.weight === 0 || Math.abs(c.weight) > 2) {
+        errors.push(`${at} ${i}번 선택지의 weight가 유효하지 않습니다: ${String(c.weight)}`);
+      }
+    });
   }
 
   return errors;
@@ -153,12 +199,21 @@ async function main(): Promise<void> {
   for (const [poolId, questions] of Object.entries(POOLS)) {
     const [testId] = poolId.split(':');
     totalQuestions += questions.length;
-    errors.push(
-      ...validateScoredQuestions(questions, {
-        expectedChoiceCount: expectedChoiceCountFor(testId ?? ''),
-      }),
-      ...validateAnswerDistribution(poolId, questions)
-    );
+
+    if (questions[0]?.kind === 'typed') {
+      errors.push(
+        ...validateTypedQuestions(questions, {
+          expectedChoiceCount: expectedChoiceCountFor(testId ?? ''),
+        })
+      );
+    } else {
+      errors.push(
+        ...validateScoredQuestions(questions, {
+          expectedChoiceCount: expectedChoiceCountFor(testId ?? ''),
+        }),
+        ...validateAnswerDistribution(poolId, questions)
+      );
+    }
   }
 
   errors.push(
