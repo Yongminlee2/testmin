@@ -4,6 +4,7 @@ import { Card } from '@/ui/Card';
 import { Badge } from '@/ui/Badge';
 import { AdSlot } from '@/ui/AdSlot';
 import { CATEGORIES } from '@/content/registry';
+import { attachParticle } from '@/engine/korean';
 import { categoryColor, colors, font, space } from '@/ui/tokens';
 
 export default function HomeScreen() {
@@ -29,7 +30,7 @@ export default function HomeScreen() {
           accessibilityRole="button"
           onPress={() => {
             if (!c.available) {
-              Alert.alert('준비 중입니다', `${c.title}은(는) 다음 업데이트에 열립니다.`);
+              Alert.alert('준비 중입니다', `${attachParticle(c.title, '은', '는')} 다음 업데이트에 열립니다.`);
               return;
             }
             router.push(c.route);

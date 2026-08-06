@@ -7,6 +7,7 @@ import { Button } from '@/ui/Button';
 import { PSYCH_TESTS, getPsychTest } from '@/content/registry';
 import { useSession } from '@/store/session';
 import { hashSeed } from '@/engine/rng';
+import { attachParticle } from '@/engine/korean';
 import { colors, font, space } from '@/ui/tokens';
 
 export default function PsychIntroScreen() {
@@ -46,7 +47,7 @@ export default function PsychIntroScreen() {
             accessibilityState={{ selected: selected === t.id }}
             onPress={() => {
               if (!t.available) {
-                Alert.alert('준비 중입니다', `${t.title}은(는) 다음 업데이트에 열립니다.`);
+                Alert.alert('준비 중입니다', `${attachParticle(t.title, '은', '는')} 다음 업데이트에 열립니다.`);
                 return;
               }
               setSelected(t.id);
