@@ -5,11 +5,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { BlackHanSans_400Regular } from '@expo-google-fonts/black-han-sans';
-import {
-  NotoSansKR_500Medium,
-  NotoSansKR_700Bold,
-  NotoSansKR_900Black,
-} from '@expo-google-fonts/noto-sans-kr';
+// noto-sans-kr의 index.js는 배럴 모듈이라 require()로 9개 굵기를 전부 불러온다.
+// Metro는 require를 트리쉐이킹하지 못하므로 index에서 import하면 안 쓰는
+// 6개 굵기(약 41MB)까지 APK에 그대로 실린다. 실제로 쓰는 3개만 굵기별
+// 서브패스(패키지가 문서로 안내하는 방식)로 가져와 나머지를 배제한다.
+import { NotoSansKR_500Medium } from '@expo-google-fonts/noto-sans-kr/500Medium';
+import { NotoSansKR_700Bold } from '@expo-google-fonts/noto-sans-kr/700Bold';
+import { NotoSansKR_900Black } from '@expo-google-fonts/noto-sans-kr/900Black';
 import { colors, font } from '@/ui/tokens';
 
 void SplashScreen.preventAutoHideAsync();
