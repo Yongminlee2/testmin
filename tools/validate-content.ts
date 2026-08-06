@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import { AXES, type GradeTable, type Question } from '../src/engine/types';
+import type { PoolScoring } from '../src/content/registry';
 
 export interface ScoredValidationOptions {
   /** 텍스트 문항은 4, IQ 도형·수열은 5 */
@@ -65,8 +66,97 @@ export function validateScoredQuestions(
   return errors;
 }
 
-/** 유형형(축 합계 방식) 문항 묶음을 검사한다. 정답이 없으므로 answerIndex 대신 axis·weight를 본다. */
-export function validateTypedQuestions(
+/**
+ * 축 합계형 리커트 선택지가 지켜야 할 두 가지 표준 순서.
+ * 방향(부호)이 아니라 "순서"에 척도의 의미가 담겨 있으므로 —
+ * [1,2,-1,-2]처럼 개별 가중치는 유효 범위 안이어도 순서가 뒤섞이면
+ * 척도가 조용히 뒤집힌다. 두 표준 순서만 허용한다.
+ */
+const CANONICAL_AXIS_WEIGHTS: readonly (readonly number[])[] = [
+  [2, 1, -1, -2],
+  [-2, -1, 1, 2],
+];
+
+/**
+ * 축 합계형(personality) 문항 묶음을 검사한다. 정답이 없으므로 answerIndex 대신
+ * axis·weight 순서·선택지 라벨 일관성을 본다.
+ */
+export function validateAxisQuestions(
+  questions: readonly Question[],
+  opts: ScoredValidationOptions
+): string[] {
+  const errors: string[] = [];
+  const seen = new Set<string>();
+  let canonicalLabels: readonly string[] | undefined;
+
+  for (const q of questions) {
+    const at = `[${q.id}]`;
+
+    if (seen.has(q.id)) errors.push(`${at} 문항 ID가 중복됩니다`);
+    seen.add(q.id);
+
+    if (q.choices.length !== opts.expectedChoiceCount) {
+      errors.push(
+        `${at} 선택지 개수가 ${q.choices.length}개입니다 (규격 ${opts.expectedChoiceCount}개)`
+      );
+    }
+
+    if (!q.axis || !(AXES as readonly string[]).includes(q.axis)) {
+      errors.push(`${at} axis가 없거나 유효하지 않습니다: ${q.axis ?? '(없음)'}`);
+    }
+
+    if (typeof q.answerIndex === 'number') {
+      errors.push(`${at} 축 합계형 문항에 answerIndex가 있습니다 (정답이 없는 시험입니다)`);
+    }
+
+    if (!q.explanation || q.explanation.trim().length === 0) {
+      errors.push(`${at} 해설이 비어 있습니다`);
+    }
+
+    if (!q.prompt || q.prompt.trim().length === 0) {
+      errors.push(`${at} 질문이 비어 있습니다`);
+    }
+
+    const labels = q.choices.map((c) => (c.text ?? '').trim());
+    labels.forEach((text, i) => {
+      if (text.length === 0) {
+        errors.push(`${at} ${i}번 선택지가 비어 있습니다`);
+      }
+    });
+
+    if (canonicalLabels === undefined) {
+      canonicalLabels = labels;
+    } else if (
+      labels.length !== canonicalLabels.length ||
+      labels.some((text, i) => text !== canonicalLabels?.[i])
+    ) {
+      errors.push(
+        `${at} 선택지 라벨이 앞선 문항과 순서/내용이 다릅니다: [${labels.join(', ')}] ` +
+          `(기준: [${canonicalLabels.join(', ')}])`
+      );
+    }
+
+    const weights = q.choices.map((c) => c.weight);
+    const isCanonicalOrder = CANONICAL_AXIS_WEIGHTS.some(
+      (v) => v.length === weights.length && v.every((w, i) => w === weights[i])
+    );
+    if (!isCanonicalOrder) {
+      errors.push(
+        `${at} 선택지 weight 순서가 표준이 아닙니다: [${weights.join(', ')}] ` +
+          `(허용: [2,1,-1,-2] 또는 [-2,-1,1,2])`
+      );
+    }
+  }
+
+  return errors;
+}
+
+/**
+ * 득표형(심리 테스트) 문항 묶음을 검사한다. weight 대신 choice.typeId로 표를 던진다.
+ * 유형별 득표 균형 검사는 여기 두지 않는다 — 그 검사는 유형 목록 자체를 아는
+ * 콘텐츠별 jest 테스트(예: psych.test.ts)의 몫이다.
+ */
+export function validateVoteQuestions(
   questions: readonly Question[],
   opts: ScoredValidationOptions
 ): string[] {
@@ -85,8 +175,8 @@ export function validateTypedQuestions(
       );
     }
 
-    if (!q.axis || !(AXES as readonly string[]).includes(q.axis)) {
-      errors.push(`${at} axis가 없거나 유효하지 않습니다: ${q.axis ?? '(없음)'}`);
+    if (typeof q.answerIndex === 'number') {
+      errors.push(`${at} 득표형 문항에 answerIndex가 있습니다 (정답이 없는 시험입니다)`);
     }
 
     if (!q.explanation || q.explanation.trim().length === 0) {
@@ -97,15 +187,25 @@ export function validateTypedQuestions(
       errors.push(`${at} 질문이 비어 있습니다`);
     }
 
+    const typeIds: string[] = [];
     q.choices.forEach((c, i) => {
       const text = (c.text ?? '').trim();
       if (text.length === 0) {
         errors.push(`${at} ${i}번 선택지가 비어 있습니다`);
       }
-      if (typeof c.weight !== 'number' || c.weight === 0 || Math.abs(c.weight) > 2) {
-        errors.push(`${at} ${i}번 선택지의 weight가 유효하지 않습니다: ${String(c.weight)}`);
+      if (typeof c.weight === 'number') {
+        errors.push(`${at} ${i}번 선택지에 weight가 있습니다 (득표형은 weight를 쓰지 않습니다)`);
+      }
+      if (!c.typeId || c.typeId.trim().length === 0) {
+        errors.push(`${at} ${i}번 선택지에 typeId가 없습니다`);
+      } else {
+        typeIds.push(c.typeId);
       }
     });
+
+    if (new Set(typeIds).size !== typeIds.length) {
+      errors.push(`${at} 선택지의 typeId가 중복됩니다: [${typeIds.join(', ')}]`);
+    }
   }
 
   return errors;
@@ -182,43 +282,63 @@ function expectedChoiceCountFor(testId: string): number {
   return testId === 'iq' ? 5 : 4;
 }
 
-/** CLI 진입점. 문제가 있으면 exit 1. */
-async function main(): Promise<void> {
-  // registry.ts가 실제 콘텐츠 인벤토리다 — 파일 경로를 직접 나열하지 않고
-  // 여기 등록된 풀을 그대로 순회한다. 새 지역/카테고리가 POOLS에 추가되면
-  // 이 스크립트를 고치지 않아도 자동으로 검증 대상이 된다.
-  const { POOLS } = await import('../src/content/registry');
-  const grades = (await import('../src/content/grades.json')).default as unknown as Record<
-    string,
-    GradeTable
-  >;
-
+/**
+ * POOLS를 순회하며 각 풀의 채점 방식(POOL_SCORING)에 맞는 검사를 돌린다.
+ * 풀은 있는데 채점 방식이 등록되지 않은 경우 조용히 건너뛰지 않고 그 자체를
+ * 오류로 낸다 — 등록 누락이 "검증 안 됨"으로 새는 구멍을 막기 위해서다.
+ */
+export function validateAllPools(
+  pools: Record<string, readonly Question[]>,
+  poolScoring: Record<string, PoolScoring>
+): { errors: string[]; totalQuestions: number } {
   const errors: string[] = [];
   let totalQuestions = 0;
 
-  for (const [poolId, questions] of Object.entries(POOLS)) {
+  for (const [poolId, questions] of Object.entries(pools)) {
     const [testId] = poolId.split(':');
     totalQuestions += questions.length;
 
-    if (questions[0]?.kind === 'typed') {
+    const scoring = poolScoring[poolId];
+    if (scoring === undefined) {
       errors.push(
-        ...validateTypedQuestions(questions, {
-          expectedChoiceCount: expectedChoiceCountFor(testId ?? ''),
-        })
+        `[${poolId}] POOL_SCORING에 채점 방식이 등록되어 있지 않습니다 — 검증할 수 없습니다`
       );
+      continue;
+    }
+
+    const opts = { expectedChoiceCount: expectedChoiceCountFor(testId ?? '') };
+
+    if (scoring === 'axis') {
+      errors.push(...validateAxisQuestions(questions, opts));
+    } else if (scoring === 'vote') {
+      errors.push(...validateVoteQuestions(questions, opts));
     } else {
       errors.push(
-        ...validateScoredQuestions(questions, {
-          expectedChoiceCount: expectedChoiceCountFor(testId ?? ''),
-        }),
+        ...validateScoredQuestions(questions, opts),
         ...validateAnswerDistribution(poolId, questions)
       );
     }
   }
 
-  errors.push(
-    ...Object.entries(grades).flatMap(([id, table]) => validateGradeTable(id, table))
-  );
+  return { errors, totalQuestions };
+}
+
+/** CLI 진입점. 문제가 있으면 exit 1. */
+async function main(): Promise<void> {
+  // registry.ts가 실제 콘텐츠 인벤토리다 — 파일 경로를 직접 나열하지 않고
+  // 여기 등록된 풀을 그대로 순회한다. 새 지역/카테고리가 POOLS에 추가되면
+  // 이 스크립트를 고치지 않아도 자동으로 검증 대상이 된다.
+  const { POOLS, POOL_SCORING } = await import('../src/content/registry');
+  const grades = (await import('../src/content/grades.json')).default as unknown as Record<
+    string,
+    GradeTable
+  >;
+
+  const { errors: poolErrors, totalQuestions } = validateAllPools(POOLS, POOL_SCORING);
+  const errors = [
+    ...poolErrors,
+    ...Object.entries(grades).flatMap(([id, table]) => validateGradeTable(id, table)),
+  ];
 
   if (errors.length > 0) {
     console.error(`콘텐츠 검증 실패 — ${errors.length}건`);

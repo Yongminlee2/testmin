@@ -28,6 +28,19 @@ export const POOLS: Record<string, readonly Question[]> = {
   'personality:default': personality as unknown as Question[],
 };
 
+/**
+ * 풀마다 채점 방식이 다르므로 검증 규칙도 다르다 — 'scored'는 정답형(answerIndex),
+ * 'axis'는 축 합계형(personality), 'vote'는 득표형(심리 테스트, 계획 2 후반).
+ * POOLS에 풀을 추가할 때 여기도 같이 등록해야 한다: 검증 CLI가 등록되지 않은
+ * 풀을 만나면 조용히 건너뛰지 않고 실패한다.
+ */
+export type PoolScoring = 'scored' | 'axis' | 'vote';
+
+export const POOL_SCORING: Record<string, PoolScoring> = {
+  'dialect:gyeongsang': 'scored',
+  'personality:default': 'axis',
+};
+
 /** 없는 조합이면 빈 배열을 준다 (호출부가 크래시하지 않게). */
 export function getPool(testId: string, variant: string): readonly Question[] {
   return POOLS[`${testId}:${variant}`] ?? [];
