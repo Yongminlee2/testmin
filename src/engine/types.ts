@@ -2,10 +2,30 @@ export type TestKind = 'scored' | 'typed';
 export type Axis = 'EI' | 'SN' | 'TF' | 'JP';
 export type Difficulty = 1 | 2 | 3;
 
-/** 도형 문항을 그리기 위한 선언적 스펙. 계획 2에서 확장한다. */
+export type ShapeKind = 'circle' | 'square' | 'triangle' | 'diamond';
+
+export interface ShapeSpec {
+  readonly kind: ShapeKind;
+  /** 0, 90, 180, 270 */
+  readonly rotation: number;
+  readonly filled: boolean;
+  /** 셀 크기 대비 0.2~1.0 */
+  readonly size: number;
+  /** 셀 안에서의 위치. 0~1 */
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface CellSpec {
+  readonly shapes: readonly ShapeSpec[];
+}
+
 export interface FigureSpec {
-  readonly kind: string;
-  readonly [key: string]: unknown;
+  /** 'grid'는 3×3 행렬(cells 9개), 'single'은 낱개 도형(cells 1개) */
+  readonly kind: 'grid' | 'single';
+  readonly cells: readonly CellSpec[];
+  /** grid 전용: 비워둘 칸의 인덱스. 보통 8(마지막) */
+  readonly blankIndex?: number;
 }
 
 export interface Choice {
@@ -39,6 +59,13 @@ export interface Question {
   readonly tags?: readonly string[];
   /** 사실 검증 근거 */
   readonly source?: string;
+}
+
+/** 생성기가 돌려주는 것 — 문항 하나와 그걸 만든 근거 */
+export interface GeneratedQuestion {
+  readonly question: Question;
+  readonly generatorId: string;
+  readonly seed: number;
 }
 
 export interface GradeBand {
