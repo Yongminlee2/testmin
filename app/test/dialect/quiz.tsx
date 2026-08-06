@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ScrollView, Text, View, Pressable, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/ui/Card';
 import { Badge } from '@/ui/Badge';
 import { useSession } from '@/store/session';
@@ -11,6 +12,7 @@ export default function QuizScreen() {
   const questions = useSession((s) => s.questions);
   const answer = useSession((s) => s.answer);
   const [index, setIndex] = useState(0);
+  const insets = useSafeAreaInsets();
 
   if (questions.length === 0) {
     return (
@@ -45,7 +47,13 @@ export default function QuizScreen() {
   return (
     <>
       <Stack.Screen options={{ title: '사투리 고사', headerBackVisible: true }} />
-      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: space.xxl + insets.bottom },
+        ]}
+      >
         <Badge label={`${index + 1} / ${questions.length}`} color={colors.yellow} />
 
         <Text style={styles.prompt} maxFontSizeMultiplier={font.maxScale}>

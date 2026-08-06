@@ -60,7 +60,12 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream },
   content: { padding: space.lg, paddingBottom: space.xxl },
-  brand: { fontSize: font.size.display, fontFamily: font.family.display, color: colors.ink },
+  brand: {
+    fontSize: font.size.display,
+    fontFamily: font.family.display,
+    lineHeight: 40,
+    color: colors.ink,
+  },
   brandSub: {
     fontSize: font.size.caption,
     fontFamily: font.family.bold,
@@ -72,7 +77,12 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   grow: { flex: 1 },
   emoji: { fontSize: 24 },
-  title: { fontSize: font.size.lead, fontFamily: font.family.black, color: colors.ink },
+  title: {
+    fontSize: font.size.lead,
+    fontFamily: font.family.black,
+    lineHeight: 24,
+    color: colors.ink,
+  },
   subtitle: {
     fontSize: font.size.caption,
     fontFamily: font.family.body,

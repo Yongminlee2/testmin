@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
   grade: {
     fontSize: font.size.grade,
     fontFamily: font.family.display,
+    lineHeight: 64,
     color: colors.ink,
     marginVertical: space.xs,
   },

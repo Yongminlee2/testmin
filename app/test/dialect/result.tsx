@@ -1,5 +1,6 @@
 import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Certificate } from '@/ui/Certificate';
 import { Button } from '@/ui/Button';
 import { AdSlot } from '@/ui/AdSlot';
@@ -20,6 +21,7 @@ export default function ResultScreen() {
   const router = useRouter();
   const { questions, answers, variant } = useSession();
   const start = useSession((s) => s.start);
+  const insets = useSafeAreaInsets();
 
   if (questions.length === 0 || variant === null) {
     return (
@@ -51,7 +53,13 @@ export default function ResultScreen() {
   return (
     <>
       <Stack.Screen options={{ title: '채점 완료', headerBackVisible: false }} />
-      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: space.xxl + insets.bottom },
+        ]}
+      >
         <Certificate
           label={`사투리고사 · ${regionTitle}`}
           grade={result.grade}

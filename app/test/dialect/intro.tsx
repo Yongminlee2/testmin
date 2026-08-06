@@ -1,5 +1,6 @@
 import { ScrollView, Text, View, Pressable, StyleSheet, Alert } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
 import { DIALECT_DRAW, DIALECT_REGIONS, getPool } from '@/content/registry';
@@ -13,6 +14,7 @@ export default function DialectIntroScreen() {
   const router = useRouter();
   const start = useSession((s) => s.start);
   const [selected, setSelected] = useState('gyeongsang');
+  const insets = useSafeAreaInsets();
 
   const begin = () => {
     const pool = getPool('dialect', selected);
@@ -32,7 +34,13 @@ export default function DialectIntroScreen() {
   return (
     <>
       <Stack.Screen options={{ title: '사투리 고사' }} />
-      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: space.xxl + insets.bottom },
+        ]}
+      >
         <Text style={styles.heading} maxFontSizeMultiplier={font.maxScale}>
           어느 지역으로{'\n'}응시하시겠습니까?
         </Text>

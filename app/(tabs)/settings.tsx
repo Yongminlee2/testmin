@@ -34,7 +34,12 @@ const styles = StyleSheet.create({
     padding: space.xl,
     gap: space.lg,
   },
-  version: { fontSize: font.size.lead, fontFamily: font.family.black, color: colors.ink },
+  version: {
+    fontSize: font.size.lead,
+    fontFamily: font.family.black,
+    lineHeight: 24,
+    color: colors.ink,
+  },
   text: {
     fontSize: font.size.body,
     fontFamily: font.family.bold,

@@ -1,5 +1,6 @@
 import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/ui/Card';
 import { Badge } from '@/ui/Badge';
 import { Button } from '@/ui/Button';
@@ -11,6 +12,7 @@ import { colors, font, space } from '@/ui/tokens';
 export default function ReviewScreen() {
   const router = useRouter();
   const { questions, answers, variant } = useSession();
+  const insets = useSafeAreaInsets();
 
   if (questions.length === 0 || variant === null) {
     return (
@@ -28,7 +30,13 @@ export default function ReviewScreen() {
   return (
     <>
       <Stack.Screen options={{ title: '해설' }} />
-      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: space.xxl + insets.bottom },
+        ]}
+      >
         {questions.map((q, i) => {
           const wrong = wrongById.get(q.id);
           const answerIndex = q.answerIndex ?? 0;
