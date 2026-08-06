@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import type { GradeTable, Question } from '../src/engine/types';
 
 export interface ScoredValidationOptions {
