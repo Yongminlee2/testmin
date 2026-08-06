@@ -1150,14 +1150,16 @@ interface PsychTest { id: string; title: string; types: PsychType[]; questions: 
 
 const tests: PsychTest[] = [love as unknown as PsychTest];
 
-describe.each(tests.map((t) => [t.id, t] as const))('심리 테스트 %s', (_id, test) => {
+// 콜백 인자를 `test`로 이름 짓지 말 것 — Jest의 전역 test()를 가려서
+// 안에 있는 모든 단언이 "test is not a function"으로 실패한다. Task 7에서 실제로 겪었다.
+describe.each(tests.map((t) => [t.id, t] as const))('심리 테스트 %s', (_id, psychTest) => {
   test('유형이 5개이고 id가 중복되지 않는다', () => {
-    expect(test.types).toHaveLength(5);
-    expect(new Set(test.types.map((t) => t.id)).size).toBe(5);
+    expect(psychTest.types).toHaveLength(5);
+    expect(new Set(psychTest.types.map((t) => t.id)).size).toBe(5);
   });
 
   test('모든 유형에 이름·이모지·설명이 있다', () => {
-    for (const t of test.types) {
+    for (const t of psychTest.types) {
       expect(t.name.trim().length).toBeGreaterThan(0);
       expect(t.emoji.trim().length).toBeGreaterThan(0);
       expect(t.description.trim().length).toBeGreaterThan(0);
@@ -1165,34 +1167,34 @@ describe.each(tests.map((t) => [t.id, t] as const))('심리 테스트 %s', (_id,
   });
 
   test('문항이 12개이고 id가 중복되지 않는다', () => {
-    expect(test.questions).toHaveLength(12);
-    expect(new Set(test.questions.map((q) => q.id)).size).toBe(12);
+    expect(psychTest.questions).toHaveLength(12);
+    expect(new Set(psychTest.questions.map((q) => q.id)).size).toBe(12);
   });
 
   test('모든 문항이 typed이고 선택지가 4개다', () => {
-    for (const q of test.questions) {
+    for (const q of psychTest.questions) {
       expect(q.kind).toBe('typed');
       expect(q.choices).toHaveLength(4);
     }
   });
 
   test('한 문항 안에서 같은 유형에 두 번 투표하지 않는다', () => {
-    for (const q of test.questions) {
+    for (const q of psychTest.questions) {
       expect(new Set(q.choices.map((c) => c.typeId)).size).toBe(4);
     }
   });
 
   test('모든 선택지의 typeId가 정의된 유형 중 하나다', () => {
-    const ids = new Set(test.types.map((t) => t.id));
-    for (const q of test.questions) {
+    const ids = new Set(psychTest.types.map((t) => t.id));
+    for (const q of psychTest.questions) {
       for (const c of q.choices) expect(ids.has(c.typeId)).toBe(true);
     }
   });
 
   test('유형별 득표 기회가 균등하다 (최대-최소 차이 1 이하)', () => {
     const counts = new Map<string, number>();
-    for (const t of test.types) counts.set(t.id, 0);
-    for (const q of test.questions) {
+    for (const t of psychTest.types) counts.set(t.id, 0);
+    for (const q of psychTest.questions) {
       for (const c of q.choices) counts.set(c.typeId, (counts.get(c.typeId) ?? 0) + 1);
     }
     const values = [...counts.values()];
@@ -1200,14 +1202,14 @@ describe.each(tests.map((t) => [t.id, t] as const))('심리 테스트 %s', (_id,
   });
 
   test('모든 문항에 해설이 있고 선택지 텍스트가 비어 있지 않다', () => {
-    for (const q of test.questions) {
+    for (const q of psychTest.questions) {
       expect(q.explanation.trim().length).toBeGreaterThan(0);
       for (const c of q.choices) expect(c.text.trim().length).toBeGreaterThan(0);
     }
   });
 
   test('정답형 필드가 섞여 있지 않다', () => {
-    for (const q of test.questions) {
+    for (const q of psychTest.questions) {
       expect((q as unknown as Record<string, unknown>)['answerIndex']).toBeUndefined();
     }
   });
@@ -1249,10 +1251,294 @@ describe.each(tests.map((t) => [t.id, t] as const))('심리 테스트 %s', (_id,
 
 **구현자에게:** 위 표를 그대로 옮기면 이 분포가 나온다. 직접 다시 세어 보고서에 적고, 균등 테스트가 통과하는 것으로 확인할 것. 숫자가 안 맞으면 표를 잘못 옮긴 것이지 표가 틀린 것이 아니다.
 
-**Task 8 — `TypeCard` · `AxisBar` 컴포넌트**
-- `TypeCard`는 계획 1의 `Certificate`와 같은 자리 — 나중에 이미지로 캡처될 대상이므로 화면 상태를 끌고 들어오지 않는다
-- `AxisBar`는 축별 치우침을 막대로 표시하고, `wasTie`면 "거의 반반입니다"를 함께 보여준다
-- 큰 글자에 `lineHeight` 필수
+### Task 8 — `TypeCard` · `AxisBar` 컴포넌트
+
+**Files:** Create `src/ui/AxisBar.tsx`, `src/ui/TypeCard.tsx`, `__tests__/ui/TypeCard.test.tsx`
+
+계획 1의 `Certificate`(정답형 합격증)에 대응하는 유형형 결과 카드다. **나중에 이미지로 캡처되어 공유되는 대상**이므로 `Certificate`와 같은 규칙을 지킨다 — 화면 상태나 라우터를 끌어들이지 않고 평범한 props만 받는다.
+
+**`lineHeight`를 지우지 말 것.** 계획 1 실기기 검증에서 `font.family.display`를 큰 크기로 쓴 앱 이름의 글자 위가 잘렸다. `TypeCard`의 `headline`이 같은 조건이므로 `lineHeight`가 반드시 필요하다.
+
+**`src/ui/AxisBar.tsx`**
+
+```tsx
+import { Text, View, StyleSheet } from 'react-native';
+import { colors, font, radius, space } from './tokens';
+import { AXIS_LETTERS, type AxisScore } from '@/engine/types';
+
+interface Props {
+  readonly score: AxisScore;
+}
+
+/** 축 하나의 치우침 막대. wasTie면 "거의 반반"을 함께 알린다. */
+export function AxisBar({ score }: Props) {
+  const letters = AXIS_LETTERS[score.axis];
+  const fillsRight = score.letter === letters.positive;
+
+  return (
+    <View style={styles.wrap}>
+      <View style={styles.row}>
+        <Text
+          style={[styles.side, !fillsRight && styles.sideActive]}
+          maxFontSizeMultiplier={font.maxScale}
+        >
+          {letters.negative}
+        </Text>
+        <View style={styles.track}>
+          <View
+            style={[
+              styles.fill,
+              { width: `${score.percent}%` },
+              fillsRight ? styles.fillRight : styles.fillLeft,
+            ]}
+          />
+        </View>
+        <Text
+          style={[styles.side, fillsRight && styles.sideActive]}
+          maxFontSizeMultiplier={font.maxScale}
+        >
+          {letters.positive}
+        </Text>
+      </View>
+      {score.wasTie ? (
+        <Text style={styles.tie} maxFontSizeMultiplier={font.maxScale}>
+          이 축은 거의 반반입니다
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: { marginBottom: space.md },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  side: {
+    width: 22,
+    textAlign: 'center',
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.4,
+    fontFamily: font.family.bold,
+    color: colors.muted,
+  },
+  sideActive: { color: colors.ink, fontFamily: font.family.black },
+  track: {
+    flex: 1,
+    height: 18,
+    borderWidth: 2,
+    borderColor: colors.ink,
+    borderRadius: radius.pill,
+    backgroundColor: colors.white,
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  fill: { height: '100%', backgroundColor: colors.lavender },
+  fillLeft: { alignSelf: 'flex-start' },
+  fillRight: { alignSelf: 'flex-end' },
+  tie: {
+    marginTop: space.xs,
+    fontSize: font.size.caption,
+    lineHeight: font.size.caption * 1.5,
+    fontFamily: font.family.body,
+    color: colors.muted,
+    textAlign: 'center',
+  },
+});
+```
+
+**`src/ui/TypeCard.tsx`** — 성격(4글자 코드 + 축 막대)과 심리(유형 하나) 양쪽에 쓰인다. 축 막대는 `axes`가 있을 때만 그린다.
+
+```tsx
+import { Text, View, StyleSheet } from 'react-native';
+import { Card } from './Card';
+import { AxisBar } from './AxisBar';
+import { borderWidth, colors, font, radius, space } from './tokens';
+import type { AxisScore } from '@/engine/types';
+
+interface Props {
+  /** 상단 라벨. 예: "성격 16유형 고사" */
+  readonly label: string;
+  /** 큰 글씨. 성격은 "ENFP", 심리는 유형 이모지 */
+  readonly headline: string;
+  /** 자체 별명 */
+  readonly nickname: string;
+  readonly description: string;
+  /** 성격 전용. 없으면 막대를 그리지 않는다 */
+  readonly axes?: readonly AxisScore[];
+  readonly note?: string;
+}
+
+/** 유형형 결과 카드. 계획 4에서 이 View를 그대로 이미지로 캡처한다. */
+export function TypeCard({ label, headline, nickname, description, axes, note }: Props) {
+  return (
+    <Card radius={radius.card} offset={4} style={styles.wrap}>
+      <View style={styles.inner}>
+        <Text style={styles.label} maxFontSizeMultiplier={font.maxScale}>
+          {label}
+        </Text>
+        <Text style={styles.headline} maxFontSizeMultiplier={1}>
+          {headline}
+        </Text>
+        <View style={styles.seal}>
+          <Text style={styles.sealText} maxFontSizeMultiplier={font.maxScale}>
+            {nickname}
+          </Text>
+        </View>
+        <Text style={styles.description} maxFontSizeMultiplier={font.maxScale}>
+          {description}
+        </Text>
+
+        {axes && axes.length > 0 ? (
+          <View style={styles.axes}>
+            {axes.map((a) => (
+              <AxisBar key={a.axis} score={a} />
+            ))}
+          </View>
+        ) : null}
+
+        {note ? (
+          <Text style={styles.note} maxFontSizeMultiplier={font.maxScale}>
+            {note}
+          </Text>
+        ) : null}
+      </View>
+    </Card>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: { marginBottom: space.lg },
+  inner: { alignItems: 'stretch', paddingVertical: space.md },
+  label: {
+    fontSize: font.size.caption,
+    lineHeight: font.size.caption * 1.5,
+    fontFamily: font.family.black,
+    letterSpacing: 3,
+    color: colors.muted,
+    textAlign: 'center',
+  },
+  headline: {
+    fontSize: font.size.grade,
+    lineHeight: font.size.grade * 1.35,
+    fontFamily: font.family.display,
+    color: colors.ink,
+    textAlign: 'center',
+    marginVertical: space.xs,
+  },
+  seal: {
+    alignSelf: 'center',
+    borderWidth: borderWidth.strong,
+    borderColor: colors.ink,
+    borderRadius: radius.pill,
+    backgroundColor: colors.lavender,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    marginTop: space.sm,
+  },
+  sealText: {
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.4,
+    fontFamily: font.family.black,
+    color: colors.ink,
+    textAlign: 'center',
+  },
+  description: {
+    marginTop: space.md,
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.6,
+    fontFamily: font.family.body,
+    color: colors.ink,
+    textAlign: 'center',
+  },
+  axes: { marginTop: space.lg },
+  note: {
+    marginTop: space.md,
+    fontSize: font.size.caption,
+    lineHeight: font.size.caption * 1.5,
+    fontFamily: font.family.body,
+    color: colors.muted,
+    textAlign: 'center',
+  },
+});
+```
+
+**Test:** `__tests__/ui/TypeCard.test.tsx` — `render`는 async다.
+
+```tsx
+import React from 'react';
+import { render, screen } from '@testing-library/react-native';
+import { TypeCard } from '@/ui/TypeCard';
+import type { AxisScore } from '@/engine/types';
+
+const axes: AxisScore[] = [
+  { axis: 'EI', total: 6, letter: 'E', percent: 90, wasTie: false },
+  { axis: 'SN', total: 0, letter: 'S', percent: 50, wasTie: true },
+  { axis: 'TF', total: -4, letter: 'T', percent: 78, wasTie: false },
+  { axis: 'JP', total: 2, letter: 'P', percent: 60, wasTie: false },
+];
+
+describe('TypeCard', () => {
+  test('라벨·큰글씨·별명·설명을 보여준다', async () => {
+    await render(
+      <TypeCard
+        label="성격 16유형 고사"
+        headline="ENFP"
+        nickname="판 벌이고 수습 안 하는 사람"
+        description="아이디어는 열 개, 완성은 한 개."
+      />
+    );
+    expect(screen.getByText('성격 16유형 고사')).toBeTruthy();
+    expect(screen.getByText('ENFP')).toBeTruthy();
+    expect(screen.getByText('판 벌이고 수습 안 하는 사람')).toBeTruthy();
+    expect(screen.getByText('아이디어는 열 개, 완성은 한 개.')).toBeTruthy();
+  });
+
+  test('축이 없으면 막대를 그리지 않는다', async () => {
+    await render(
+      <TypeCard label="심리 테스트" headline="🔥" nickname="직진형" description="좋으면 바로 말합니다." />
+    );
+    expect(screen.queryByText('이 축은 거의 반반입니다')).toBeNull();
+  });
+
+  test('축이 있으면 여덟 글자가 모두 나온다', async () => {
+    await render(
+      <TypeCard
+        label="성격 16유형 고사"
+        headline="ESTP"
+        nickname="일단 지르고 보는 사람"
+        description="고민하는 시간에 이미 해버립니다."
+        axes={axes}
+      />
+    );
+    for (const letter of ['E', 'I', 'S', 'N', 'T', 'F', 'J', 'P']) {
+      expect(screen.getAllByText(letter).length).toBeGreaterThan(0);
+    }
+  });
+
+  test('동점인 축에만 "거의 반반" 안내가 붙는다', async () => {
+    await render(
+      <TypeCard
+        label="성격 16유형 고사"
+        headline="ESTP"
+        nickname="일단 지르고 보는 사람"
+        description="고민하는 시간에 이미 해버립니다."
+        axes={axes}
+      />
+    );
+    expect(screen.getAllByText('이 축은 거의 반반입니다')).toHaveLength(1);
+  });
+
+  test('note는 줬을 때만 보인다', async () => {
+    const { unmount } = await render(
+      <TypeCard label="L" headline="H" nickname="N" description="D" note="메모입니다" />
+    );
+    expect(screen.getByText('메모입니다')).toBeTruthy();
+    unmount();
+
+    await render(<TypeCard label="L" headline="H" nickname="N" description="D" />);
+    expect(screen.queryByText('메모입니다')).toBeNull();
+  });
+});
+```
 
 **Task 9 — 성격 고사 화면 4종**
 - `app/test/personality/{intro,quiz,result,review}.tsx`
