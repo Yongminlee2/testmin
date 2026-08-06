@@ -6,7 +6,9 @@
 
 **Architecture:** `src/engine`은 React를 전혀 import하지 않는 순수 TypeScript로 두고 Node에서 Jest로 검증한다. 화면은 Expo Router 파일 기반 라우팅을 쓰고, 문항 데이터는 `src/content`의 순수 JSON으로 분리한다. 출제·채점은 시드 기반이라 같은 시드면 항상 같은 문제가 나온다.
 
-**Tech Stack:** Expo SDK 56 (React Native 0.85), TypeScript strict, Expo Router, Zustand, Jest + jest-expo + @testing-library/react-native
+**Tech Stack:** Expo SDK 57 (React Native 0.86), TypeScript strict, Expo Router, Zustand, Jest + jest-expo + @testing-library/react-native
+
+> 태스크 1 실행 시점에 `create-expo-app@latest`가 SDK 57을 설치했다. 계획 작성 시점 기준은 56이었으나 SDK 57의 `minSdkVersion` 기본값도 24라 안드로이드 8 지원 요건은 그대로 충족되며, targetSdk 36 요건에도 더 잘 맞는다. 57로 진행한다.
 
 **설계 문서:** `docs/superpowers/specs/2026-08-06-testmin-design.md`
 

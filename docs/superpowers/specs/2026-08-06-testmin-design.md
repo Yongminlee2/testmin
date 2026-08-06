@@ -106,7 +106,7 @@ radius    12px (버튼·선택지) / 14~16px (카드) / 24px (화면 패널)
 
 | 항목 | 선택 | 이유 |
 |---|---|---|
-| 프레임워크 | Expo SDK 56 (React Native 0.85) | Mac 없이 EAS로 iOS 빌드 가능. 필요한 네이티브 기능이 전부 검증된 패키지로 존재 |
+| 프레임워크 | Expo SDK 57 (React Native 0.86) | Mac 없이 EAS로 iOS 빌드 가능. 필요한 네이티브 기능이 전부 검증된 패키지로 존재 |
 | 언어 | TypeScript (strict) | 문항 스키마를 타입으로 강제 |
 | 빌드 형태 | `expo prebuild`로 `android/` 생성 | Gradle 직접 제어 유지 |
 | 네비게이션 | Expo Router | 파일 기반, 딥링크 기본 지원 |
@@ -121,7 +121,8 @@ radius    12px (버튼·선택지) / 14~16px (카드) / 24px (화면 패널)
 - `minSdkVersion 24` (Android 7.0) — 요청 사항인 Android 8(API 26)을 포함한다
 - `compileSdkVersion 37`, `targetSdkVersion 36`
 - Google Play는 2026-08-31부터 신규 앱에 targetSdk 36을 요구한다. 처음부터 36으로 간다.
-- iOS 최소 버전: 16.4 (Expo SDK 56 기준)
+- iOS 최소 버전: Expo SDK 57 기준값을 따른다 (SDK 56 기준으로는 16.4였다)
+- `minSdkVersion 24`는 Expo SDK 57의 기본값이며 `expo-modules-core`에서 확인했다
 
 ### 3.2 권한 — v1은 0개
 
