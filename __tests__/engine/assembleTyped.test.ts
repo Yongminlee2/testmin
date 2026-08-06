@@ -82,6 +82,9 @@ describe('assembleByAxis', () => {
     const out = assembleByAxis(thin, 3, { perAxis: 6 });
     expect(out.filter((x) => x.axis === 'EI')).toHaveLength(2);
     expect(out.filter((x) => x.axis === 'SN')).toHaveLength(6);
+    expect(out.filter((x) => x.axis === 'TF')).toHaveLength(6);
+    expect(out.filter((x) => x.axis === 'JP')).toHaveLength(6);
+    expect(out).toHaveLength(20);
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();
   });
