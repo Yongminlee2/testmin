@@ -1102,11 +1102,152 @@ describe('성격 16유형 문항', () => {
 
 **검증기 확장** (`tools/validate-content.ts`): `validateTypedQuestions(questions, { axes, expectedChoiceCount })` 를 추가한다. 검사 항목 — 모든 문항에 유효한 `axis`가 있는가, `answerIndex`가 없는가, 선택지 가중치가 정방향/역방향 두 벌 중 하나인가, 축당 문항 수가 출제 요구치 이상인가, **축마다 정·역이 균형인가**, ID 중복이 없는가, 설명이 비어 있지 않은가.
 
-**Task 7 — 심리 테스트 3종 데이터**
-- `src/content/psych/{love,stress,comm}.json`
-- 각 12문항 · 5유형 · 문항당 4선택지(각기 다른 유형에 투표)
-- 유형별 득표 기회가 균등한지 검증기가 확인 (±1 이내)
-- 각 테스트의 5유형 이름·설명은 `typeNames.json`과 별도로 파일 안에 둔다
+### Task 7 — 심리 테스트: 연애 성향
+
+**범위 조정:** 원래 3종(연애·스트레스·소통)을 한 태스크로 묶었으나, 문항 36개 + 유형 15개는 한 검증 단위로 너무 크다. **연애 성향 1종만** 먼저 만들어 화면까지 끝까지 도는 것을 확인하고, 나머지 2종은 같은 틀에 콘텐츠만 붓는 별도 태스크(Task 7b)로 뺀다.
+
+**Files:** Create `src/content/psych/love.json`, `__tests__/content/psych.test.ts`
+
+**구조**
+
+파일 하나가 테스트 하나를 담는다. 유형 정의와 문항이 같은 파일에 있다 — 심리 테스트는 유형이 테스트마다 완전히 다르므로 `typeNames.json` 같은 공용 파일로 뺄 이유가 없다.
+
+```json
+{
+  "id": "love",
+  "title": "연애 성향",
+  "types": [ { "id": "...", "name": "...", "emoji": "...", "description": "..." } ],
+  "questions": [ { "id": "...", "kind": "typed", "prompt": "...", "choices": [...], "explanation": "...", "difficulty": 1 } ]
+}
+```
+
+**득표 균등** — 12문항 × 4선택지 = 48표 기회를 5유형에 나눈다. 완전 균등은 불가능하므로 **10/10/10/9/9**로 배분하고, 검증에서 최대-최소 차이가 1 이하인지 확인한다. 한 유형이 구조적으로 적게 등장하면 그 결과는 사실상 나오지 않는다.
+
+**동점 규칙과 문항 순서** — `scoreByVote`는 동점 시 **뒤쪽 문항에서 득표한 유형**을 택한다. 따라서 뒤쪽 4문항(9~12번)에 변별력이 높은 문항을 배치한다. 이건 데이터 설계 제약이지 코드가 강제하는 게 아니므로, 문항 순서를 바꾸면 동점 처리 결과가 달라진다는 점을 기억할 것.
+
+**5유형**
+
+| id | 이름 | 이모지 | 설명 |
+|---|---|---|---|
+| flame | 직진형 | 🔥 | 좋으면 바로 말합니다. 재는 시간이 아까운 쪽입니다. |
+| slow | 신중형 | 🌱 | 확신이 서야 움직입니다. 대신 한번 시작하면 오래갑니다. |
+| giver | 헌신형 | 🎁 | 받는 것보다 주는 게 편합니다. 가끔 자기를 잊습니다. |
+| space | 거리형 | 🪟 | 각자의 시간이 있어야 관계가 편안합니다. |
+| wave | 파도형 | 🌊 | 감정의 진폭이 큽니다. 좋을 땐 아주 좋습니다. |
+
+**Test:** `__tests__/content/psych.test.ts`
+
+```ts
+import love from '@/content/psych/love.json';
+
+interface PsychType { id: string; name: string; emoji: string; description: string }
+interface PsychChoice { text: string; typeId: string }
+interface PsychQuestion {
+  id: string; kind: string; prompt: string;
+  choices: PsychChoice[]; explanation: string; difficulty: number;
+}
+interface PsychTest { id: string; title: string; types: PsychType[]; questions: PsychQuestion[] }
+
+const tests: PsychTest[] = [love as unknown as PsychTest];
+
+describe.each(tests.map((t) => [t.id, t] as const))('심리 테스트 %s', (_id, test) => {
+  test('유형이 5개이고 id가 중복되지 않는다', () => {
+    expect(test.types).toHaveLength(5);
+    expect(new Set(test.types.map((t) => t.id)).size).toBe(5);
+  });
+
+  test('모든 유형에 이름·이모지·설명이 있다', () => {
+    for (const t of test.types) {
+      expect(t.name.trim().length).toBeGreaterThan(0);
+      expect(t.emoji.trim().length).toBeGreaterThan(0);
+      expect(t.description.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  test('문항이 12개이고 id가 중복되지 않는다', () => {
+    expect(test.questions).toHaveLength(12);
+    expect(new Set(test.questions.map((q) => q.id)).size).toBe(12);
+  });
+
+  test('모든 문항이 typed이고 선택지가 4개다', () => {
+    for (const q of test.questions) {
+      expect(q.kind).toBe('typed');
+      expect(q.choices).toHaveLength(4);
+    }
+  });
+
+  test('한 문항 안에서 같은 유형에 두 번 투표하지 않는다', () => {
+    for (const q of test.questions) {
+      expect(new Set(q.choices.map((c) => c.typeId)).size).toBe(4);
+    }
+  });
+
+  test('모든 선택지의 typeId가 정의된 유형 중 하나다', () => {
+    const ids = new Set(test.types.map((t) => t.id));
+    for (const q of test.questions) {
+      for (const c of q.choices) expect(ids.has(c.typeId)).toBe(true);
+    }
+  });
+
+  test('유형별 득표 기회가 균등하다 (최대-최소 차이 1 이하)', () => {
+    const counts = new Map<string, number>();
+    for (const t of test.types) counts.set(t.id, 0);
+    for (const q of test.questions) {
+      for (const c of q.choices) counts.set(c.typeId, (counts.get(c.typeId) ?? 0) + 1);
+    }
+    const values = [...counts.values()];
+    expect(Math.max(...values) - Math.min(...values)).toBeLessThanOrEqual(1);
+  });
+
+  test('모든 문항에 해설이 있고 선택지 텍스트가 비어 있지 않다', () => {
+    for (const q of test.questions) {
+      expect(q.explanation.trim().length).toBeGreaterThan(0);
+      for (const c of q.choices) expect(c.text.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  test('정답형 필드가 섞여 있지 않다', () => {
+    for (const q of test.questions) {
+      expect((q as unknown as Record<string, unknown>)['answerIndex']).toBeUndefined();
+    }
+  });
+});
+```
+
+**Content:** `src/content/psych/love.json` — 아래 표를 JSON으로 옮긴다. 각 문항의 선택지는 표에 적힌 순서 그대로, `typeId`는 괄호 안의 값.
+
+문항 id는 `love-01` … `love-12`.
+
+| # | prompt | 선택지 1 | 선택지 2 | 선택지 3 | 선택지 4 | explanation |
+|---|---|---|---|---|---|---|
+| 01 | 마음에 드는 사람이 생겼습니다. 먼저 하는 일은? | 일단 연락처부터 묻는다 (flame) | 한동안 지켜본다 (slow) | 뭘 좋아하는지 알아본다 (giver) | 굳이 티 내지 않는다 (space) | 호감이 생겼을 때의 첫 행동이 관계를 시작하는 속도를 보여줍니다. |
+| 02 | 상대에게 답장이 늦게 옵니다. | 무슨 일 있나 바로 물어본다 (wave) | 바쁜가 보다 하고 둔다 (space) | 부담됐나 되짚어본다 (slow) | 기다렸다가 더 다정하게 답한다 (giver) | 불확실한 상황에서 나오는 반응이 애착의 방식을 드러냅니다. |
+| 03 | 데이트 계획은 보통? | 떠오르는 대로 즉흥적으로 (flame) | 미리 다 정해둔다 (slow) | 상대가 좋아할 곳 위주로 (giver) | 각자 편한 걸로 맞춘다 (space) | 함께하는 시간을 설계하는 방식을 봅니다. |
+| 04 | 싸운 다음 날 아침. | 먼저 연락한다 (flame) | 정리될 때까지 시간을 둔다 (space) | 내가 뭘 잘못했나 생각한다 (giver) | 하루 종일 마음이 오르내린다 (wave) | 갈등 직후의 행동이 관계를 복구하는 방식입니다. |
+| 05 | 상대가 힘들어 보입니다. | 당장 달려간다 (flame) | 뭐가 필요한지 묻는다 (giver) | 말 걸 때까지 기다린다 (space) | 같이 기분이 가라앉는다 (wave) | 상대의 감정에 개입하는 거리감을 봅니다. |
+| 06 | 연애할 때 제일 힘든 건? | 미지근한 반응 (flame) | 확신이 안 서는 상태 (slow) | 내 마음을 몰라줄 때 (giver) | 감정이 요동칠 때 (wave) | 무엇을 견디기 어려워하는지가 성향의 축입니다. |
+| 07 | 기념일은? | 크게 챙긴다 (flame) | 조용히 둘이서 (slow) | 상대가 감동할 준비를 한다 (giver) | 굳이 안 챙겨도 된다 (space) | 관계를 표현하는 방식과 강도를 봅니다. |
+| 08 | 상대의 친구 모임에 초대받았습니다. | 좋다, 바로 간다 (flame) | 어떤 자리인지 먼저 묻는다 (slow) | 뭘 사 갈지 고민한다 (giver) | 잘 보여야 한다는 생각에 긴장된다 (wave) | 관계를 넓히는 것에 대한 태도를 봅니다. |
+| 09 | 연락 빈도에 대한 생각은? | 하루에도 여러 번이 자연스럽다 (wave) | 필요할 때만 하면 된다 (space) | 상대 리듬에 맞춘다 (giver) | 정해두는 게 편하다 (slow) | 연락은 연애 성향에서 가장 자주 부딪히는 지점입니다. |
+| 10 | 상대에게 서운한 일이 생겼습니다. | 그 자리에서 말한다 (flame) | 참았다가 나중에 말한다 (slow) | 웬만하면 넘어간다 (giver) | 티가 나버린다 (wave) | 부정적 감정을 다루는 방식이 관계의 지속성을 좌우합니다. |
+| 11 | 관계가 안정기에 접어들면? | 새로운 걸 시도하고 싶다 (flame) | 이 편안함이 좋다 (slow) | 가끔 예전의 설렘이 그립다 (wave) | 각자 생활이 살아난다 (space) | 안정된 뒤의 태도가 장기적인 성향을 보여줍니다. |
+| 12 | 헤어진 뒤의 나는? | 한동안 크게 흔들린다 (wave) | 시간이 걸려도 천천히 정리한다 (slow) | 곧 다음 사람이 눈에 들어온다 (flame) | 생각보다 담담하다 (space) | 관계가 끝난 뒤의 반응이 감정의 진폭을 보여줍니다. |
+
+**득표 기회 — 계산 완료, 이 분포가 정답이다**
+
+각 문항은 5유형 중 4개에만 투표하므로 문항마다 한 유형이 빠진다. 12문항 × 4선택지 = 48표 기회를 10/10/10/9/9로 나누려면 빠지는 횟수가 2/2/2/3/3이어야 한다.
+
+| 유형 | 등장 문항 | 횟수 |
+|---|---|---|
+| flame | 01·03·04·05·06·07·08·10·11·12 | **10** |
+| slow | 01·02·03·06·07·08·09·10·11·12 | **10** |
+| giver | 01·02·03·04·05·06·07·08·09·10 | **10** |
+| space | 01·02·03·04·05·07·09·11·12 | **9** |
+| wave | 02·04·05·06·08·09·10·11·12 | **9** |
+
+합계 48. 최대−최소 = 1 → 균등 검증 통과.
+
+**구현자에게:** 위 표를 그대로 옮기면 이 분포가 나온다. 직접 다시 세어 보고서에 적고, 균등 테스트가 통과하는 것으로 확인할 것. 숫자가 안 맞으면 표를 잘못 옮긴 것이지 표가 틀린 것이 아니다.
 
 **Task 8 — `TypeCard` · `AxisBar` 컴포넌트**
 - `TypeCard`는 계획 1의 `Certificate`와 같은 자리 — 나중에 이미지로 캡처될 대상이므로 화면 상태를 끌고 들어오지 않는다
