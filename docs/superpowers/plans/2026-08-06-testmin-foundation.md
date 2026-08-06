@@ -18,7 +18,8 @@
 
 - 패키지명은 `com.testmin.app` — 절대 변경 금지
 - 앱 이름은 `테스트의 민족`
-- `minSdkVersion 24`, `compileSdkVersion 37`, `targetSdkVersion 36`, `buildToolsVersion 37.0.0`
+- `minSdkVersion 24`, `compileSdkVersion 36`, `targetSdkVersion 36`, `buildToolsVersion 37.0.0`
+  - **태스크 2에서 37 → 36으로 정정.** SDK 저장소에 정수 `platforms;android-37`이 존재하지 않는다. 실재하는 패키지는 `platforms;android-37.0`이고 `AndroidVersion.ApiLevel=37.0`이라, 정수 `compileSdk 37`에 대한 AGP의 target-hash 조회가 영영 실패한다. 이를 우회하려면 `android.suppressUnsupportedCompileSdk=37.0`이 필요한데, "이 AGP가 공식 지원하지 않는 compileSdk를 쓰고 있다"는 억제 플래그를 스토어 제출본에 넣을 이유가 없다. 37은 RN 커뮤니티 템플릿의 기본값이었을 뿐 우리 요구사항이 아니었고, 실제로 필요한 건 Play가 요구하는 **targetSdk 36**뿐이다.
 - **권한 0개.** `INTERNET`을 포함해 어떤 `uses-permission`도 최종 산출물에 남지 않아야 한다
 - `expo-updates`(OTA)를 설치하지 않는다 — 인터넷 권한이 붙는다
 - 라이트 모드 고정 (`userInterfaceStyle: "light"`), 다크 모드 미지원

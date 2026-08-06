@@ -119,7 +119,8 @@ radius    12px (버튼·선택지) / 14~16px (카드) / 24px (화면 패널)
 ### 3.1 SDK 레벨
 
 - `minSdkVersion 24` (Android 7.0) — 요청 사항인 Android 8(API 26)을 포함한다
-- `compileSdkVersion 37`, `targetSdkVersion 36`
+- `compileSdkVersion 36`, `targetSdkVersion 36`
+  - compileSdk를 37이 아니라 36으로 쓴다. SDK 저장소에 정수 `platforms;android-37`이 없고 실재하는 건 `platforms;android-37.0`(`ApiLevel=37.0`)이라, 정수 37에 대한 AGP target-hash 조회가 실패한다. 억제 플래그(`android.suppressUnsupportedCompileSdk`)로 우회할 수 있지만 스토어 제출본에 넣을 성질이 아니다. 필요한 건 Play가 요구하는 targetSdk 36뿐이다.
 - Google Play는 2026-08-31부터 신규 앱에 targetSdk 36을 요구한다. 처음부터 36으로 간다.
 - iOS 최소 버전: Expo SDK 57 기준값을 따른다 (SDK 56 기준으로는 16.4였다)
 - `minSdkVersion 24`는 Expo SDK 57의 기본값이며 `expo-modules-core`에서 확인했다
