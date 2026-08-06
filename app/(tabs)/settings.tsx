@@ -1,11 +1,14 @@
 import { View, Text, StyleSheet } from 'react-native';
+import Constants from 'expo-constants';
 import { colors, font, space } from '@/ui/tokens';
+
+const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
 export default function SettingsScreen() {
   return (
     <View style={styles.wrap}>
       <Text style={styles.version} maxFontSizeMultiplier={font.maxScale}>
-        테스트의 민족 v1.0.0
+        테스트의 민족 v{appVersion}
       </Text>
       <Text style={styles.text} maxFontSizeMultiplier={font.maxScale}>
         이 앱의 모든 테스트는 오락을 목적으로 만들어졌으며{'\n'}

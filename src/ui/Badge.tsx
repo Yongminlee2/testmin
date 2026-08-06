@@ -20,7 +20,7 @@ export function Badge({ label, color = colors.white }: Props) {
 const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
-    borderWidth: 2,
+    borderWidth: borderWidth.card,
     borderColor: colors.ink,
     borderRadius: radius.pill,
     paddingHorizontal: space.md,

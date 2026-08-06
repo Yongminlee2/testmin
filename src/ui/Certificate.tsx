@@ -1,6 +1,6 @@
 import { Text, View, StyleSheet } from 'react-native';
 import { Card } from './Card';
-import { colors, font, radius, space } from './tokens';
+import { borderWidth, colors, font, radius, space } from './tokens';
 
 interface Props {
   readonly label: string;
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   detail: { fontSize: font.size.caption, fontFamily: font.family.bold, color: colors.muted },
   seal: {
     marginTop: space.md,
-    borderWidth: 2.5,
+    borderWidth: borderWidth.strong,
     borderColor: colors.ink,
     borderRadius: radius.pill,
     backgroundColor: colors.yellow,

@@ -32,7 +32,6 @@ export default function ReviewScreen() {
         {questions.map((q, i) => {
           const wrong = wrongById.get(q.id);
           const answerIndex = q.answerIndex ?? 0;
-          const chosen = wrong ? wrong.chosenIndex : answerIndex;
 
           return (
             <Card key={q.id} style={styles.card}>
@@ -55,7 +54,9 @@ export default function ReviewScreen() {
               {wrong ? (
                 <Text style={styles.line} maxFontSizeMultiplier={font.maxScale}>
                   내가 고른 답:{' '}
-                  {chosen >= 0 ? q.choices[chosen]?.text ?? '' : '응답 없음'}
+                  {wrong.chosenIndex >= 0
+                    ? q.choices[wrong.chosenIndex]?.text ?? ''
+                    : '응답 없음'}
                 </Text>
               ) : null}
 
