@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   },
   grade: {
     fontSize: font.size.grade,
-    fontFamily: font.family.black,
+    fontFamily: font.family.display,
     color: colors.ink,
     marginVertical: space.xs,
   },

@@ -60,7 +60,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream },
   content: { padding: space.lg, paddingBottom: space.xxl },
-  brand: { fontSize: font.size.display, fontFamily: font.family.black, color: colors.ink },
+  brand: { fontSize: font.size.display, fontFamily: font.family.display, color: colors.ink },
   brandSub: {
     fontSize: font.size.caption,
     fontFamily: font.family.bold,
