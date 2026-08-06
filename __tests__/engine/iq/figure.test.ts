@@ -45,6 +45,24 @@ describe('cellEquals', () => {
     expect(cellEquals(a, b)).toBe(false);
   });
 
+  test('크기가 다르면 다르다', () => {
+    const a: CellSpec = { shapes: [shape('circle', { size: 0.3 })] };
+    const b: CellSpec = { shapes: [shape('circle', { size: 0.8 })] };
+    expect(cellEquals(a, b)).toBe(false);
+  });
+
+  test('x 위치가 다르면 다르다', () => {
+    const a: CellSpec = { shapes: [shape('circle', { x: 0.2, y: 0.5 })] };
+    const b: CellSpec = { shapes: [shape('circle', { x: 0.8, y: 0.5 })] };
+    expect(cellEquals(a, b)).toBe(false);
+  });
+
+  test('y 위치가 다르면 다르다', () => {
+    const a: CellSpec = { shapes: [shape('circle', { x: 0.5, y: 0.2 })] };
+    const b: CellSpec = { shapes: [shape('circle', { x: 0.5, y: 0.8 })] };
+    expect(cellEquals(a, b)).toBe(false);
+  });
+
   test('도형 순서가 달라도 내용이 같으면 같다', () => {
     const a: CellSpec = { shapes: [shape('circle'), shape('square')] };
     const b: CellSpec = { shapes: [shape('square'), shape('circle')] };
