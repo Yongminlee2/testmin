@@ -950,12 +950,157 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 여기부터는 계획 1에서 확립된 패턴을 그대로 따르므로, 각 태스크의 전체 코드는 해당 태스크 착수 시점에 이 문서에 채워 넣는다. 지금 확정된 것은 범위와 인터페이스다.
 
-**Task 6 — 성격 문항 32개 (축당 8개)**
-- `src/content/personality.json`
-- 각 문항은 진술문 + 리커트 4선택지(매우 그렇다 +2 / 그렇다 +1 / 아니다 −1 / 전혀 아니다 −2)
-- 축당 8개를 확보해 출제 6개 대비 여유를 둔다
-- 문항별 `explanation`은 "이 문항이 어느 축을 재는가"를 설명한다 (정답형의 "왜 이게 답인가"에 대응)
-- 검증기에 유형형 규칙 추가: 모든 문항에 `axis`가 있고 유효한가, 선택지 가중치가 `[2,1,-1,-2]`인가, 축당 문항 수가 출제 요구치 이상인가
+### Task 6 — 성격 문항 32개 (축당 8개)
+
+**Files:** Create `src/content/personality.json`, `__tests__/content/personality.test.ts`
+
+**문항 설계 — 리커트 척도**
+
+모든 문항이 **같은 4선택지**를 쓴다. 진술문에 얼마나 동의하는지를 묻는 방식이다.
+
+```
+매우 그렇다  weight +2
+그렇다       weight +1
+아니다       weight -1
+전혀 아니다  weight -2
+```
+
+가중치의 **부호는 선택지가 아니라 진술문이 결정**한다. 예를 들어 EI 축에서 "처음 보는 사람에게 먼저 말을 건다"는 E 방향 진술이므로 위 순서 그대로 `[2, 1, -1, -2]`를 쓰고, "생각을 정리한 뒤에 말한다"는 I 방향 진술이므로 **뒤집어서** `[-2, -1, 1, 2]`를 쓴다. 이렇게 해야 한쪽으로만 답하는 사용자(전부 "매우 그렇다")가 자동으로 한쪽 극단에 몰리지 않는다.
+
+**축별로 정방향 4개 · 역방향 4개**를 배치한다. 이 균형이 깨지면 응답 편향이 결과에 그대로 새어 들어간다.
+
+**Test:** `__tests__/content/personality.test.ts`
+
+```ts
+import personality from '@/content/personality.json';
+import { AXES } from '@/engine/types';
+import type { Question } from '@/engine/types';
+
+const questions = personality as unknown as Question[];
+const LIKERT = ['매우 그렇다', '그렇다', '아니다', '전혀 아니다'];
+
+describe('성격 16유형 문항', () => {
+  test('32문항이고 ID가 규칙을 지키며 중복이 없다', () => {
+    expect(questions).toHaveLength(32);
+    for (const q of questions) expect(q.id).toMatch(/^pers-\d{4}$/);
+    expect(new Set(questions.map((q) => q.id)).size).toBe(32);
+  });
+
+  test('모든 문항이 typed이고 유효한 축을 갖는다', () => {
+    for (const q of questions) {
+      expect(q.kind).toBe('typed');
+      expect(AXES).toContain(q.axis);
+    }
+  });
+
+  test('축마다 정확히 8문항', () => {
+    for (const axis of AXES) {
+      expect(questions.filter((q) => q.axis === axis)).toHaveLength(8);
+    }
+  });
+
+  test('모든 문항이 같은 리커트 선택지 문구를 같은 순서로 쓴다', () => {
+    for (const q of questions) {
+      expect(q.choices.map((c) => c.text)).toEqual(LIKERT);
+    }
+  });
+
+  test('가중치는 정방향 [2,1,-1,-2] 또는 역방향 [-2,-1,1,2] 둘 중 하나다', () => {
+    for (const q of questions) {
+      const w = q.choices.map((c) => c.weight);
+      const forward = JSON.stringify(w) === JSON.stringify([2, 1, -1, -2]);
+      const reverse = JSON.stringify(w) === JSON.stringify([-2, -1, 1, 2]);
+      expect(forward || reverse).toBe(true);
+    }
+  });
+
+  test('축마다 정방향 4개·역방향 4개로 균형이 잡혀 있다', () => {
+    for (const axis of AXES) {
+      const inAxis = questions.filter((q) => q.axis === axis);
+      const forward = inAxis.filter((q) => q.choices[0]?.weight === 2);
+      expect(forward).toHaveLength(4);
+    }
+  });
+
+  test('모든 문항에 어느 축을 재는지 설명이 있다', () => {
+    for (const q of questions) {
+      expect((q.explanation ?? '').trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  test('정답형 필드가 섞여 있지 않다', () => {
+    for (const q of questions) {
+      expect(q.answerIndex).toBeUndefined();
+    }
+  });
+});
+```
+
+**Content:** `src/content/personality.json` — 아래를 그대로 옮긴다. 한글은 한 글자도 바꾸지 않는다.
+
+선택지는 모든 문항이 동일하므로, 정방향(`F`)과 역방향(`R`) 두 벌만 존재한다.
+
+```
+정방향 F: [{"text":"매우 그렇다","weight":2},{"text":"그렇다","weight":1},{"text":"아니다","weight":-1},{"text":"전혀 아니다","weight":-2}]
+역방향 R: [{"text":"매우 그렇다","weight":-2},{"text":"그렇다","weight":-1},{"text":"아니다","weight":1},{"text":"전혀 아니다","weight":2}]
+```
+
+| id | axis | 방향 | prompt | explanation |
+|---|---|---|---|---|
+| pers-0001 | EI | F | 처음 보는 사람들 사이에서도 먼저 말을 건다. | 낯선 자리에서 먼저 다가가는지를 봅니다. 에너지가 밖으로 향하는 쪽(E)의 특징입니다. |
+| pers-0002 | EI | F | 여러 명이 모인 자리에 다녀오면 기운이 난다. | 사람을 만난 뒤 충전되는지 소모되는지를 봅니다. 충전되면 E 쪽입니다. |
+| pers-0003 | EI | F | 주말에 약속이 없으면 허전하다. | 혼자 있는 시간을 비는 시간으로 느끼는지를 봅니다. |
+| pers-0004 | EI | F | 모임에서 대화를 주도하는 편이다. | 말을 꺼내는 쪽인지 받는 쪽인지를 봅니다. |
+| pers-0005 | EI | R | 혼자 있는 시간이 없으면 금방 지친다. | 회복이 혼자일 때 일어나는지를 봅니다. 그렇다면 안으로 향하는 쪽(I)입니다. |
+| pers-0006 | EI | R | 전화보다 문자가 편하다. | 즉석 대화보다 정리할 틈이 있는 소통을 선호하는지를 봅니다. |
+| pers-0007 | EI | R | 생각을 정리한 뒤에 말하는 편이다. | 말하면서 생각하는지, 생각하고 말하는지를 봅니다. |
+| pers-0008 | EI | R | 낯선 자리에서는 먼저 분위기를 살핀다. | 뛰어드는 쪽인지 살피는 쪽인지를 봅니다. |
+| pers-0009 | SN | F | 일단 큰 그림부터 그리고 세부는 나중에 채운다. | 전체 구조를 먼저 보는지를 봅니다. 직관 쪽(N)의 특징입니다. |
+| pers-0010 | SN | F | '만약에'로 시작하는 상상을 자주 한다. | 지금 없는 가능성에 마음이 가는지를 봅니다. |
+| pers-0011 | SN | F | 남들이 못 본 연결고리를 찾아내는 편이다. | 떨어져 있는 것들을 엮어 보는 성향을 봅니다. |
+| pers-0012 | SN | F | 설명할 때 비유를 자주 쓴다. | 사실을 그대로 옮기는지, 다른 것에 빗대는지를 봅니다. |
+| pers-0013 | SN | R | 설명서를 끝까지 읽고 시작한다. | 주어진 정보를 순서대로 다루는지를 봅니다. 감각 쪽(S)의 특징입니다. |
+| pers-0014 | SN | R | 직접 만져보고 확인해야 믿는다. | 경험한 것과 추론한 것 중 무엇을 더 믿는지를 봅니다. |
+| pers-0015 | SN | R | 과거에 해본 방식이 제일 안전하다고 생각한다. | 검증된 방법과 새로운 방법 중 어느 쪽에 무게를 두는지를 봅니다. |
+| pers-0016 | SN | R | 구체적인 숫자와 사실이 있어야 마음이 놓인다. | 근거의 형태가 구체적이어야 하는지를 봅니다. |
+| pers-0017 | TF | F | 누가 속상해하면 이유보다 마음이 먼저 쓰인다. | 상황보다 사람의 상태에 먼저 반응하는지를 봅니다. 감정 쪽(F)입니다. |
+| pers-0018 | TF | F | 칭찬을 들으면 하루가 달라진다. | 관계에서 오는 신호가 자신에게 얼마나 크게 작용하는지를 봅니다. |
+| pers-0019 | TF | F | 분위기가 나빠지면 내가 나서서 풀려고 한다. | 조화가 깨졌을 때 개입하는 쪽인지를 봅니다. |
+| pers-0020 | TF | F | 거절할 때 상대가 상처받을까 봐 오래 고민한다. | 결정에 상대의 감정이 얼마나 개입하는지를 봅니다. |
+| pers-0021 | TF | R | 결정할 때 논리적으로 옳은지를 먼저 따진다. | 판단의 첫 기준이 일관성인지를 봅니다. 사고 쪽(T)입니다. |
+| pers-0022 | TF | R | 틀린 건 틀렸다고 말해주는 게 도움이라고 생각한다. | 정확함과 부드러움 중 무엇을 먼저 두는지를 봅니다. |
+| pers-0023 | TF | R | 감정적인 호소보다 근거가 설득력 있다. | 무엇에 설득되는지를 봅니다. |
+| pers-0024 | TF | R | 공정한 게 친절한 것보다 중요하다. | 원칙과 배려가 부딪힐 때 어느 쪽을 택하는지를 봅니다. |
+| pers-0025 | JP | F | 마감이 닥쳐야 집중이 된다. | 압박이 있어야 움직이는지를 봅니다. 인식 쪽(P)의 특징입니다. |
+| pers-0026 | JP | F | 계획이 바뀌어도 별로 신경 쓰이지 않는다. | 변화에 드는 비용을 어떻게 느끼는지를 봅니다. |
+| pers-0027 | JP | F | 선택지를 오래 열어두는 편이다. | 빨리 닫는 쪽인지 열어두는 쪽인지를 봅니다. |
+| pers-0028 | JP | F | 그때그때 끌리는 대로 하는 게 재미있다. | 즉흥과 계획 중 어느 쪽에서 즐거움을 얻는지를 봅니다. |
+| pers-0029 | JP | R | 여행 가기 전에 일정을 다 짜둔다. | 미리 정해두는 것이 편한지를 봅니다. 판단 쪽(J)입니다. |
+| pers-0030 | JP | R | 할 일 목록을 만들고 지워나가는 게 좋다. | 마무리에서 만족을 얻는지를 봅니다. |
+| pers-0031 | JP | R | 물건은 제자리에 있어야 마음이 편하다. | 정돈된 상태가 심리적 안정과 연결되는지를 봅니다. |
+| pers-0032 | JP | R | 약속 시간보다 미리 도착한다. | 시간을 다루는 방식을 봅니다. |
+
+각 항목은 다음 형태의 JSON 객체가 된다.
+
+```json
+{
+  "id": "pers-0001",
+  "kind": "typed",
+  "prompt": "처음 보는 사람들 사이에서도 먼저 말을 건다.",
+  "choices": [
+    { "text": "매우 그렇다", "weight": 2 },
+    { "text": "그렇다", "weight": 1 },
+    { "text": "아니다", "weight": -1 },
+    { "text": "전혀 아니다", "weight": -2 }
+  ],
+  "axis": "EI",
+  "explanation": "낯선 자리에서 먼저 다가가는지를 봅니다. 에너지가 밖으로 향하는 쪽(E)의 특징입니다.",
+  "difficulty": 1,
+  "source": "자체 창작 — 융 이론의 외향/내향 축"
+}
+```
+
+**검증기 확장** (`tools/validate-content.ts`): `validateTypedQuestions(questions, { axes, expectedChoiceCount })` 를 추가한다. 검사 항목 — 모든 문항에 유효한 `axis`가 있는가, `answerIndex`가 없는가, 선택지 가중치가 정방향/역방향 두 벌 중 하나인가, 축당 문항 수가 출제 요구치 이상인가, **축마다 정·역이 균형인가**, ID 중복이 없는가, 설명이 비어 있지 않은가.
 
 **Task 7 — 심리 테스트 3종 데이터**
 - `src/content/psych/{love,stress,comm}.json`
