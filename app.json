@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "테스트의 민족",
+    "slug": "testmin",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "testmin",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "backgroundColor": "#FFF8E1",
+    "android": {
+      "package": "com.testmin.app",
+      "versionCode": 1,
+      "edgeToEdgeEnabled": true
+    },
+    "ios": {
+      "bundleIdentifier": "com.testmin.app",
+      "supportsTablet": false
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 24,
+            "compileSdkVersion": 37,
+            "targetSdkVersion": 36,
+            "buildToolsVersion": "37.0.0"
+          }
+        }
+      ]
+    ]
+  }
+}
