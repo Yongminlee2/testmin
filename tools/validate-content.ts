@@ -1,6 +1,8 @@
 /// <reference types="node" />
 import { AXES, type GradeTable, type Question } from '../src/engine/types';
 import type { PoolScoring } from '../src/content/registry';
+import { verifyGenerated } from '../src/engine/iq/verify';
+import type { Generator } from '../src/engine/iq/generators';
 
 export interface ScoredValidationOptions {
   /** 텍스트 문항은 4, IQ 도형·수열은 5 */
@@ -323,20 +325,49 @@ export function validateAllPools(
   return { errors, totalQuestions };
 }
 
+/**
+ * IQ는 POOLS에 없다 — 시드에서 생성하기 때문에 정적 배열로 못 담는다.
+ * 그래서 validateAllPools(POOLS 순회)는 IQ를 영원히 건너뛴다. 여기서 등록된
+ * 생성기를 직접 시드 1~200으로 돌려 verifyGenerated로 검사한다 — 앱의 가장 큰
+ * 문항 공급원이 릴리스 게이트를 그냥 통과하는 구멍을 막는다.
+ *
+ * 오류 메시지는 verifyGenerated가 이미 `[생성기id/시드]` 형식으로 붙여 주므로
+ * 여기서 다시 접두사를 만들지 않는다.
+ */
+export function validateGenerators(
+  generators: readonly Generator[],
+  seedCount = 200
+): { errors: string[]; totalGenerated: number } {
+  const errors: string[] = [];
+  let totalGenerated = 0;
+
+  for (const gen of generators) {
+    for (let seed = 1; seed <= seedCount; seed++) {
+      totalGenerated += 1;
+      errors.push(...verifyGenerated(gen.generate(seed)));
+    }
+  }
+
+  return { errors, totalGenerated };
+}
+
 /** CLI 진입점. 문제가 있으면 exit 1. */
 async function main(): Promise<void> {
   // registry.ts가 실제 콘텐츠 인벤토리다 — 파일 경로를 직접 나열하지 않고
   // 여기 등록된 풀을 그대로 순회한다. 새 지역/카테고리가 POOLS에 추가되면
   // 이 스크립트를 고치지 않아도 자동으로 검증 대상이 된다.
   const { POOLS, POOL_SCORING } = await import('../src/content/registry');
+  const { GENERATORS } = await import('../src/engine/iq/generators');
   const grades = (await import('../src/content/grades.json')).default as unknown as Record<
     string,
     GradeTable
   >;
 
   const { errors: poolErrors, totalQuestions } = validateAllPools(POOLS, POOL_SCORING);
+  const { errors: generatorErrors, totalGenerated } = validateGenerators(GENERATORS);
   const errors = [
     ...poolErrors,
+    ...generatorErrors,
     ...Object.entries(grades).flatMap(([id, table]) => validateGradeTable(id, table)),
   ];
 
@@ -347,7 +378,8 @@ async function main(): Promise<void> {
   }
 
   console.log(
-    `콘텐츠 검증 통과 — 문항 ${totalQuestions}개, 급수 테이블 ${Object.keys(grades).length}개`
+    `콘텐츠 검증 통과 — 문항 ${totalQuestions}개, 생성형 검증 ${totalGenerated}건, ` +
+      `급수 테이블 ${Object.keys(grades).length}개`
   );
 }
 

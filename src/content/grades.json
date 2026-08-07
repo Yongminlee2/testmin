@@ -11,5 +11,18 @@
       { "min": 25, "grade": 8, "title": "\"단디\"도 몰랐다" },
       { "min": 0, "grade": 9, "title": "서울 사람 확정" }
     ]
+  },
+  "iq-default": {
+    "bands": [
+      { "min": 100, "grade": 1, "title": "머리에 CPU 들었나" },
+      { "min": 85, "grade": 2, "title": "패턴이 그냥 보인다" },
+      { "min": 75, "grade": 3, "title": "눈치가 남다르다" },
+      { "min": 65, "grade": 4, "title": "평균 위는 확실하다" },
+      { "min": 55, "grade": 5, "title": "딱 중간, 안정적" },
+      { "min": 45, "grade": 6, "title": "절반은 감으로" },
+      { "min": 35, "grade": 7, "title": "도형은 원래 어렵다" },
+      { "min": 20, "grade": 8, "title": "찍기의 장인" },
+      { "min": 0, "grade": 9, "title": "다음 판이 진짜다" }
+    ]
   }
 }

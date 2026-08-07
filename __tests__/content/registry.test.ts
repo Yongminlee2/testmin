@@ -30,9 +30,15 @@ describe('available은 풀 존재 여부로 계산된다', () => {
     }
   });
 
-  test('아직 풀이 없는 카테고리는 available이 거짓이다', () => {
+  // IQ는 POOLS가 아니라 GENERATORS로 가용성을 계산한다 — 정적 풀이 없어도 잠기면 안 된다.
+  test('생성기가 등록된 IQ는 available이 참이다', () => {
+    const iq = CATEGORIES.find((c) => c.id === 'iq');
+    expect(iq?.available).toBe(true);
+  });
+
+  test('아직 풀도 생성기도 없는 카테고리는 available이 거짓이다', () => {
     for (const c of CATEGORIES.filter(
-      (c) => c.id !== 'dialect' && c.id !== 'personality' && c.id !== 'psych'
+      (c) => c.id !== 'dialect' && c.id !== 'personality' && c.id !== 'psych' && c.id !== 'iq'
     )) {
       expect(c.available).toBe(false);
     }

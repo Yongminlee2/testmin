@@ -5,6 +5,8 @@ import personality from './personality.json';
 import typeNamesJson from './typeNames.json';
 import type { TypeNameEntry } from '@/engine/types';
 import love from './psych/love.json';
+import { GENERATORS } from '@/engine/iq/generators';
+import type { IqDrawConfig } from '@/engine/iq/assembleIq';
 
 const grades = gradesJson as unknown as Record<string, GradeTable>;
 
@@ -17,6 +19,12 @@ export interface DrawConfig {
 export const DIALECT_DRAW: DrawConfig = {
   questionCount: 12,
   difficultyMix: { 1: 4, 2: 5, 3: 3 },
+};
+
+/** IQ 고사 출제 설정. 난이도별 목표 개수의 합이 questionCount와 같아야 한다. */
+export const IQ_DRAW: IqDrawConfig = {
+  questionCount: 20,
+  difficultyMix: { 1: 7, 2: 7, 3: 6 },
 };
 
 /**
@@ -132,9 +140,11 @@ export const CATEGORIES: readonly CategoryMeta[] = [
     subtitle: '도형·수열·유추',
     emoji: '🧠',
     colorKey: 'iq',
-    questionCount: 20,
+    questionCount: IQ_DRAW.questionCount,
     route: '/test/iq/intro',
-    available: categoryHasPool('iq'),
+    // IQ는 정적 풀(POOLS)이 아니라 시드에서 생성한다. categoryHasPool은 항상
+    // false를 주므로 여기서는 등록된 생성기가 있는지로 계산한다.
+    available: GENERATORS.length > 0,
   },
   {
     id: 'personality',

@@ -5,9 +5,12 @@ import {
   validateAxisQuestions,
   validateVoteQuestions,
   validateAllPools,
+  validateGenerators,
 } from '../../tools/validate-content';
 import type { PoolScoring } from '../../src/content/registry';
-import type { Question, GradeTable } from '@/engine/types';
+import type { Question, GradeTable, GeneratedQuestion } from '@/engine/types';
+import type { Generator } from '@/engine/iq/generators';
+import { GENERATORS } from '@/engine/iq/generators';
 
 function ok(id: string): Question {
   return {
@@ -342,5 +345,57 @@ describe('validateGradeTable', () => {
       ],
     };
     expect(validateGradeTable('t', bad).some((e) => e.includes('칭호'))).toBe(true);
+  });
+});
+
+/**
+ * IQ는 POOLS에 없어서 validateAllPools 순회로는 절대 검사되지 않는다.
+ * 이 검사가 없으면 릴리스 게이트가 앱의 가장 큰 문항 공급원을 그냥 통과시킨다.
+ */
+describe('validateGenerators', () => {
+  function goodQuestion(seed: number): GeneratedQuestion {
+    return {
+      question: {
+        id: `good-${seed}`,
+        kind: 'scored',
+        prompt: `${seed}번 문제`,
+        choices: [{ text: 'a' }, { text: 'b' }, { text: 'c' }, { text: 'd' }, { text: 'e' }],
+        answerIndex: seed % 5,
+        explanation: '해설',
+        difficulty: 1,
+      },
+      generatorId: 'good',
+      seed,
+    };
+  }
+
+  test('정상 생성기는 지정한 시드 수만큼 검증하고 오류가 없다', () => {
+    const good: Generator = { id: 'good', difficulty: 1, generate: goodQuestion };
+    const { errors, totalGenerated } = validateGenerators([good], 5);
+    expect(errors).toEqual([]);
+    expect(totalGenerated).toBe(5);
+  });
+
+  test('생성기가 잘못된 문항을 내면 오류 메시지에 생성기 id와 시드가 들어간다', () => {
+    const bad: Generator = {
+      id: 'bad',
+      difficulty: 1,
+      generate: (seed) => ({
+        ...goodQuestion(seed),
+        generatorId: 'bad',
+        question: { ...goodQuestion(seed).question, choices: [{ text: 'a' }, { text: 'b' }] },
+      }),
+    };
+    const { errors } = validateGenerators([bad], 3);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors.every((e) => e.includes('bad'))).toBe(true);
+    // verifyGenerated가 이미 [id/seed] 형식으로 시드를 찍는다
+    expect(errors[0]).toMatch(/bad\/1/);
+  });
+
+  test('실제 등록된 생성기 6종은 시드 1~200에서 오류가 없다', () => {
+    const { errors, totalGenerated } = validateGenerators(GENERATORS, 200);
+    expect(errors).toEqual([]);
+    expect(totalGenerated).toBe(GENERATORS.length * 200);
   });
 });
