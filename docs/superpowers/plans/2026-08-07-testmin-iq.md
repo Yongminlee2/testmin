@@ -922,7 +922,9 @@ function dots(n: number): CellSpec {
   const count = Math.max(0, Math.min(n, DOT_POSITIONS.length));
   return {
     shapes: DOT_POSITIONS.slice(0, count).map(([x, y]) =>
-      shape('circle', { x, y, size: 0.2, filled: true })
+      // size 0.18 = 반지름 0.09. 위 배치의 최소 중심간 거리가 0.228이므로
+      // 어느 조합도 겹치지 않는다. 0.2 이상으로 올리면 간격이 사라진다.
+      shape('circle', { x, y, size: 0.18, filled: true })
     ),
   };
 }
@@ -1102,16 +1104,18 @@ export const fillGenerator: Generator = {
 
     const answer = comboAt(2, 2);
 
-    // 오답: 종류만 틀린 것 2개, 채움만 틀린 것 1개, 둘 다 틀린 것 1개.
-    // 서로 다른 방식으로 규칙을 어겨야 매력적인 오답이 된다.
-    const pool: Combo[] = [];
-    for (const kind of KINDS) {
-      for (const filled of [true, false]) {
-        const cand = { kind, filled };
-        if (comboKey(cand) !== comboKey(answer)) pool.push(cand);
-      }
-    }
-    const wrong = shuffle(pool, rand).slice(0, 4);
+    // 오답 4개는 무작위로 뽑지 않고 **어긴 규칙별로 하나씩** 구성한다.
+    // 후보 5개 중 4개를 무작위로 뽑으면 가장 교육적인 오답이 빠질 수 있다.
+    //  (a) 종류는 맞고 채움만 틀림 → 열 규칙만 읽고 행 규칙을 놓친 사람이 고른다
+    //  (b) 채움은 맞고 종류만 틀림 (2개) → 행 규칙만 읽고 열 규칙을 놓친 사람이 고른다
+    //  (c) 둘 다 틀림 (1개) → 아무 규칙도 못 읽은 경우
+    const otherKinds = KINDS.filter((k) => k !== answer.kind);
+    const bothWrong = otherKinds.map((k) => ({ kind: k, filled: !answer.filled }));
+    const wrong: Combo[] = [
+      { kind: answer.kind, filled: !answer.filled },
+      ...otherKinds.map((k) => ({ kind: k, filled: answer.filled })),
+      bothWrong[pickInt(rand, 0, bothWrong.length - 1)] as Combo,
+    ];
     const options = shuffle([answer, ...wrong], rand);
     const answerIndex = options.findIndex((o) => comboKey(o) === comboKey(answer));
 
@@ -1185,6 +1189,31 @@ describe('fillGenerator', () => {
           expect(s.rotation).toBe(0);
         }
       }
+    }
+  });
+
+  // 오답 구성이 규칙별 하나씩인지 확인한다. 이 테스트가 없으면
+  // 무작위 slice로 되돌아가도 아무도 눈치채지 못한다.
+  test('오답은 종류만 틀림 2개, 채움만 틀림 1개, 둘 다 틀림 1개다', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const { question } = fillGenerator.generate(seed);
+      const ai = question.answerIndex ?? -1;
+      const a = question.choices[ai]?.figure?.cells[0]?.shapes[0];
+      expect(a).toBeDefined();
+
+      let kindOnly = 0;
+      let fillOnly = 0;
+      let both = 0;
+      question.choices.forEach((c, i) => {
+        if (i === ai) return;
+        const s = c.figure?.cells[0]?.shapes[0];
+        const kindWrong = s?.kind !== a!.kind;
+        const fillWrong = s?.filled !== a!.filled;
+        if (kindWrong && fillWrong) both++;
+        else if (kindWrong) kindOnly++;
+        else if (fillWrong) fillOnly++;
+      });
+      expect({ kindOnly, fillOnly, both }).toEqual({ kindOnly: 2, fillOnly: 1, both: 1 });
     }
   });
 
