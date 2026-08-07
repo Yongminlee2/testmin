@@ -5,6 +5,7 @@ import personality from './personality.json';
 import typeNamesJson from './typeNames.json';
 import type { TypeNameEntry } from '@/engine/types';
 import love from './psych/love.json';
+import mz from './mz.json';
 import { GENERATORS } from '@/engine/iq/generators';
 import type { IqDrawConfig } from '@/engine/iq/assembleIq';
 
@@ -15,6 +16,12 @@ export interface DrawConfig {
   readonly questionCount: number;
   readonly difficultyMix: Partial<Record<Difficulty, number>>;
 }
+
+/** MZ 고사 출제 설정. 풀 15개에서 15문항 — 전부 낸다. */
+export const MZ_DRAW: DrawConfig = {
+  questionCount: 15,
+  difficultyMix: { 1: 5, 2: 5, 3: 5 },
+};
 
 export const DIALECT_DRAW: DrawConfig = {
   questionCount: 12,
@@ -34,6 +41,7 @@ export const IQ_DRAW: IqDrawConfig = {
  */
 export const POOLS: Record<string, readonly Question[]> = {
   'dialect:gyeongsang': gyeongsang as unknown as Question[],
+  'mz:default': mz as unknown as Question[],
   'personality:default': personality as unknown as Question[],
   'psych:love': (love as unknown as { questions: Question[] }).questions,
 };
@@ -48,6 +56,7 @@ export type PoolScoring = 'scored' | 'axis' | 'vote';
 
 export const POOL_SCORING: Record<string, PoolScoring> = {
   'dialect:gyeongsang': 'scored',
+  'mz:default': 'scored',
   'personality:default': 'axis',
   'psych:love': 'vote',
 };
@@ -162,7 +171,7 @@ export const CATEGORIES: readonly CategoryMeta[] = [
     subtitle: '신조어·밈 해독',
     emoji: '📱',
     colorKey: 'mz',
-    questionCount: 15,
+    questionCount: MZ_DRAW.questionCount,
     route: '/test/mz/intro',
     available: categoryHasPool('mz'),
   },

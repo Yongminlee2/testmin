@@ -1,4 +1,11 @@
-import { CATEGORIES, DIALECT_DRAW, DIALECT_REGIONS, IQ_DRAW, getPool } from '@/content/registry';
+import {
+  CATEGORIES,
+  DIALECT_DRAW,
+  DIALECT_REGIONS,
+  IQ_DRAW,
+  MZ_DRAW,
+  getPool,
+} from '@/content/registry';
 
 describe('DIALECT_DRAW (출제 규칙 단일 소스)', () => {
   test('12문항, 난이도 배분 {1:4, 2:5, 3:3}이다', () => {
@@ -36,12 +43,18 @@ describe('available은 풀 존재 여부로 계산된다', () => {
     expect(iq?.available).toBe(true);
   });
 
-  test('아직 풀도 생성기도 없는 카테고리는 available이 거짓이다', () => {
-    for (const c of CATEGORIES.filter(
-      (c) => c.id !== 'dialect' && c.id !== 'personality' && c.id !== 'psych' && c.id !== 'iq'
-    )) {
-      expect(c.available).toBe(false);
+  // available은 손으로 뒤집는 플래그가 아니라 계산된 값이어야 한다.
+  // 콘텐츠 없이 available: true로 적어두면 사용자가 빈 시험에 들어간다.
+  test('콘텐츠가 있는 카테고리만 available이다', () => {
+    const withContent = new Set(['iq', 'personality', 'mz', 'dialect', 'psych']);
+    for (const c of CATEGORIES) {
+      expect(c.available).toBe(withContent.has(c.id));
     }
+  });
+
+  test('MZ 카테고리의 questionCount는 MZ_DRAW와 같은 값을 공유한다', () => {
+    const mz = CATEGORIES.find((c) => c.id === 'mz');
+    expect(mz?.questionCount).toBe(MZ_DRAW.questionCount);
   });
 
   test('사투리 카테고리의 questionCount는 DIALECT_DRAW와 같은 값을 공유한다', () => {
