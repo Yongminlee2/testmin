@@ -22,6 +22,33 @@ describe('rotationGenerator', () => {
     expect(question.figure?.blankIndex).toBe(8);
   });
 
+  // 리뷰(Task 1 이후) — cellAt()의 주석은 "회전이 보이는 도형은 삼각형뿐"이라고
+  // 명시하지만 그걸 강제하는 테스트가 없었다. 원(circle)은 SvgFigure가 회전
+  // transform을 주지 않으므로(회전해도 픽셀이 같다) kind를 circle로 바꿔도
+  // rotation 숫자 필드는 여전히 다 다르므로 verifyGenerated·figureEquals 계열
+  // 검사를 전부 통과한다 — 그런데도 화면에는 9칸과 5선택지가 전부 같은
+  // 그림으로 보이는 채로 릴리스 게이트를 통과하게 된다(count.ts의 M16과 같은
+  // 결함군). count.test.ts의 "회전을 구분 기준으로 쓰지 않는다"처럼 격자
+  // (figure.cells)와 선택지(choices) 양쪽 경로를 다 훑는다 — 격자 생성 경로만
+  // 바꾸고 choices만 따로 만드는 뮤테이션은 choices만 보는 검사로는 못 잡는다.
+  test('격자와 선택지의 도형이 항상 삼각형이다', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const { question } = rotationGenerator.generate(seed);
+      for (const cell of question.figure?.cells ?? []) {
+        for (const s of cell.shapes) {
+          expect(s.kind).toBe('triangle');
+        }
+      }
+      for (const c of question.choices) {
+        for (const cell of c.figure?.cells ?? []) {
+          for (const s of cell.shapes) {
+            expect(s.kind).toBe('triangle');
+          }
+        }
+      }
+    }
+  });
+
   test('시드 500개에서 항상 검증을 통과한다', () => {
     for (let seed = 1; seed <= 500; seed++) {
       const gq = rotationGenerator.generate(seed);
