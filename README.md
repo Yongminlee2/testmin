@@ -270,5 +270,4 @@ Config Plugin이 매니페스트 병합 단계에서 `INTERNET`, `SYSTEM_ALERT_W
 
 ## 남은 일
 
-- 기록 · 오답노트 · 결과 카드 이미지 공유
 - 서명 키 · AAB 빌드 · 스토어 등록
