@@ -2,6 +2,8 @@ import type { Difficulty, GeneratedQuestion } from '../../types';
 import { rotationGenerator } from './rotation';
 import { countGenerator } from './count';
 import { fillGenerator } from './fill';
+import { distributeGenerator } from './distribute';
+import { sizeGenerator } from './size';
 
 export interface Generator {
   readonly id: string;
@@ -11,4 +13,10 @@ export interface Generator {
 }
 
 /** Task 5에서 나머지가 채워진다. */
-export const GENERATORS: readonly Generator[] = [rotationGenerator, countGenerator, fillGenerator];
+export const GENERATORS: readonly Generator[] = [
+  rotationGenerator,
+  countGenerator,
+  fillGenerator,
+  distributeGenerator,
+  sizeGenerator,
+];
