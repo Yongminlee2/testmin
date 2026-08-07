@@ -1,0 +1,392 @@
+[
+  {
+    "id": "dialect-cc-0001",
+    "kind": "scored",
+    "prompt": "\"그류\"는 표준어로 무엇일까요?",
+    "choices": [
+      {
+        "text": "그래요"
+      },
+      {
+        "text": "그럴 리가"
+      },
+      {
+        "text": "그만해요"
+      },
+      {
+        "text": "그리로"
+      }
+    ],
+    "answerIndex": 0,
+    "explanation": "'~요'가 충청에서 '~유'로 나는 대표적인 예입니다. \"그래요\"가 \"그류\"로 줄어듭니다.",
+    "difficulty": 1,
+    "tags": [
+      "어미"
+    ],
+    "source": "충청 방언의 '~요 → ~유' 변화"
+  },
+  {
+    "id": "dialect-cc-0002",
+    "kind": "scored",
+    "prompt": "\"뭐여?\"는 어떤 뜻일까요?",
+    "choices": [
+      {
+        "text": "뭐 줄까?"
+      },
+      {
+        "text": "뭐야?"
+      },
+      {
+        "text": "뭐 하러?"
+      },
+      {
+        "text": "뭐 없어?"
+      }
+    ],
+    "answerIndex": 1,
+    "explanation": "'무엇이야'가 줄어든 형태입니다. 충청 말은 '~이야'가 '~여'로 자주 바뀝니다.",
+    "difficulty": 1,
+    "tags": [
+      "어미"
+    ],
+    "source": "~이야 → ~여"
+  },
+  {
+    "id": "dialect-cc-0003",
+    "kind": "scored",
+    "prompt": "\"됐슈\"는 무슨 뜻일까요?",
+    "choices": [
+      {
+        "text": "될까요?"
+      },
+      {
+        "text": "되겠네요"
+      },
+      {
+        "text": "됐어요"
+      },
+      {
+        "text": "돼야죠"
+      }
+    ],
+    "answerIndex": 2,
+    "explanation": "'됐어요'의 충청식 어미입니다. 거절할 때도, 다 끝났다고 할 때도 씁니다.",
+    "difficulty": 1,
+    "tags": [
+      "어미"
+    ],
+    "source": "~어요 → ~슈"
+  },
+  {
+    "id": "dialect-cc-0004",
+    "kind": "scored",
+    "prompt": "\"워디 가유?\"에서 '워디'는?",
+    "choices": [
+      {
+        "text": "왜"
+      },
+      {
+        "text": "언제"
+      },
+      {
+        "text": "누구"
+      },
+      {
+        "text": "어디"
+      }
+    ],
+    "answerIndex": 3,
+    "explanation": "'어디'의 첫소리가 '워'로 바뀐 형태입니다. '어떻게'가 '워띃게'가 되는 것과 같은 변화입니다.",
+    "difficulty": 1,
+    "tags": [
+      "의문사"
+    ],
+    "source": "어- → 워- 변화"
+  },
+  {
+    "id": "dialect-cc-0005",
+    "kind": "scored",
+    "prompt": "\"~하니께\"는 표준어로 어떤 어미일까요?",
+    "choices": [
+      {
+        "text": "~하는데"
+      },
+      {
+        "text": "~하니까"
+      },
+      {
+        "text": "~하려고"
+      },
+      {
+        "text": "~하지만"
+      }
+    ],
+    "answerIndex": 1,
+    "explanation": "이유를 나타내는 '~하니까'입니다. \"비 오니께 우산 챙겨\"처럼 씁니다.",
+    "difficulty": 1,
+    "tags": [
+      "어미"
+    ],
+    "source": "~하니까 → ~하니께"
+  },
+  {
+    "id": "dialect-cc-0006",
+    "kind": "scored",
+    "prompt": "\"개갈 안 난다\"는 무슨 뜻일까요?",
+    "choices": [
+      {
+        "text": "시원하게 마무리가 안 된다"
+      },
+      {
+        "text": "개를 무서워한다"
+      },
+      {
+        "text": "값이 안 나간다"
+      },
+      {
+        "text": "길을 잘 모른다"
+      }
+    ],
+    "answerIndex": 0,
+    "explanation": "일이 매끄럽게 매듭지어지지 않고 어정쩡할 때 씁니다. 충청 말을 대표하는 표현으로 자주 꼽힙니다.",
+    "difficulty": 2,
+    "tags": [
+      "관용구"
+    ],
+    "source": "충청 방언 관용 표현 '개갈 안 나다'"
+  },
+  {
+    "id": "dialect-cc-0007",
+    "kind": "scored",
+    "prompt": "\"허유, 증말\"에서 '증말'은?",
+    "choices": [
+      {
+        "text": "증거"
+      },
+      {
+        "text": "지금 말"
+      },
+      {
+        "text": "중간"
+      },
+      {
+        "text": "정말"
+      }
+    ],
+    "answerIndex": 3,
+    "explanation": "'정말'의 모음이 바뀐 형태입니다. 충청 말은 'ㅓ'가 'ㅡ'에 가깝게 나는 경우가 있습니다.",
+    "difficulty": 2,
+    "tags": [
+      "부사"
+    ],
+    "source": "정말 → 증말 (모음 변화)"
+  },
+  {
+    "id": "dialect-cc-0008",
+    "kind": "scored",
+    "prompt": "\"찌뿌둥허다\"의 '~허다'는 표준어의 무엇일까요?",
+    "choices": [
+      {
+        "text": "~하지 마라"
+      },
+      {
+        "text": "~한 척한다"
+      },
+      {
+        "text": "~하다"
+      },
+      {
+        "text": "~해 보인다"
+      }
+    ],
+    "answerIndex": 2,
+    "explanation": "'하다'가 '허다'로 나는 것이 충청 말의 특징입니다. \"뭐 헐 겨?\"는 \"뭐 할 거야?\"입니다.",
+    "difficulty": 2,
+    "tags": [
+      "어미"
+    ],
+    "source": "하다 → 허다"
+  },
+  {
+    "id": "dialect-cc-0009",
+    "kind": "scored",
+    "prompt": "\"올라와유\" 같은 충청 말투가 느리게 들리는 이유로 흔히 꼽히는 것은?",
+    "choices": [
+      {
+        "text": "자음을 모두 된소리로 내서"
+      },
+      {
+        "text": "말끝을 길게 늘여 맺어서"
+      },
+      {
+        "text": "받침을 전부 빼서"
+      },
+      {
+        "text": "모음을 짧게 끊어서"
+      }
+    ],
+    "answerIndex": 1,
+    "explanation": "충청 말은 문장 끝을 길게 늘이며 맺는 특징이 있습니다. 실제 말하는 속도보다 느긋하게 들리는 이유로 자주 이야기됩니다.",
+    "difficulty": 2,
+    "tags": [
+      "억양"
+    ],
+    "source": "충청 방언의 종결부 장음화 특징"
+  },
+  {
+    "id": "dialect-cc-0010",
+    "kind": "scored",
+    "prompt": "\"얼릉 와\"에서 '얼릉'은?",
+    "choices": [
+      {
+        "text": "천천히"
+      },
+      {
+        "text": "얼굴을"
+      },
+      {
+        "text": "얼른"
+      },
+      {
+        "text": "나중에"
+      }
+    ],
+    "answerIndex": 2,
+    "explanation": "'얼른'이 부드러워진 형태입니다. 뜻은 그대로 '빨리, 어서'입니다.",
+    "difficulty": 2,
+    "tags": [
+      "부사"
+    ],
+    "source": "얼른 → 얼릉"
+  },
+  {
+    "id": "dialect-cc-0011",
+    "kind": "scored",
+    "prompt": "\"핵교\"는 무엇일까요?",
+    "choices": [
+      {
+        "text": "핵심"
+      },
+      {
+        "text": "가게"
+      },
+      {
+        "text": "학교"
+      },
+      {
+        "text": "고개"
+      }
+    ],
+    "answerIndex": 2,
+    "explanation": "'학교'의 모음이 앞으로 당겨진 형태입니다. '학생'이 '핵생'이 되는 것도 같은 변화입니다.",
+    "difficulty": 3,
+    "tags": [
+      "명사"
+    ],
+    "source": "학교 → 핵교 (전설모음화)"
+  },
+  {
+    "id": "dialect-cc-0012",
+    "kind": "scored",
+    "prompt": "\"저기 있잖유\"의 '있잖유'는 어떤 자리에 쓰일까요?",
+    "choices": [
+      {
+        "text": "물건이 없다고 할 때"
+      },
+      {
+        "text": "말을 꺼내기 전에 뜸 들일 때"
+      },
+      {
+        "text": "화가 났을 때"
+      },
+      {
+        "text": "작별할 때"
+      }
+    ],
+    "answerIndex": 1,
+    "explanation": "본론에 들어가기 전 운을 떼는 표현입니다. 표준어의 \"저기요, 있잖아요\"와 같은 자리에 옵니다.",
+    "difficulty": 3,
+    "tags": [
+      "담화표지"
+    ],
+    "source": "있잖아요 → 있잖유"
+  },
+  {
+    "id": "dialect-cc-0013",
+    "kind": "scored",
+    "prompt": "\"뭐 헐라구 그려\"에서 '헐라구'는?",
+    "choices": [
+      {
+        "text": "하려고"
+      },
+      {
+        "text": "헐값에"
+      },
+      {
+        "text": "할 수 없이"
+      },
+      {
+        "text": "하지 말고"
+      }
+    ],
+    "answerIndex": 0,
+    "explanation": "'하려고'가 '헐라구'로 바뀐 형태입니다. '하다 → 허다' 변화에 의도의 '~려고'가 붙었습니다.",
+    "difficulty": 3,
+    "tags": [
+      "어미"
+    ],
+    "source": "하려고 → 헐라구"
+  },
+  {
+    "id": "dialect-cc-0014",
+    "kind": "scored",
+    "prompt": "\"션찮다\"는 어떤 뜻일까요?",
+    "choices": [
+      {
+        "text": "시원하다"
+      },
+      {
+        "text": "서운하다"
+      },
+      {
+        "text": "신선하다"
+      },
+      {
+        "text": "변변찮고 시원치 않다"
+      }
+    ],
+    "answerIndex": 3,
+    "explanation": "'시원찮다'가 줄어든 말로, 몸이 안 좋거나 물건이 신통찮을 때 씁니다. \"몸이 좀 션찮유\"처럼 씁니다.",
+    "difficulty": 3,
+    "tags": [
+      "형용사"
+    ],
+    "source": "시원찮다 → 션찮다 (축약)"
+  },
+  {
+    "id": "dialect-cc-0015",
+    "kind": "scored",
+    "prompt": "\"인저 가유\"에서 '인저'는?",
+    "choices": [
+      {
+        "text": "이제"
+      },
+      {
+        "text": "인사"
+      },
+      {
+        "text": "일찍"
+      },
+      {
+        "text": "아직"
+      }
+    ],
+    "answerIndex": 0,
+    "explanation": "'이제'가 '인저'로 나는 형태입니다. \"인저 됐슈\"는 \"이제 됐어요\"입니다.",
+    "difficulty": 3,
+    "tags": [
+      "시간"
+    ],
+    "source": "이제 → 인저"
+  }
+]

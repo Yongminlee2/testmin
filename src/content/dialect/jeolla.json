@@ -1,0 +1,244 @@
+[
+  {
+    "id": "dialect-jl-0001",
+    "kind": "scored",
+    "prompt": "\"거시기\"는 언제 쓰는 말일까요?",
+    "choices": [
+      { "text": "이름이 얼른 안 떠오르는 것을 가리킬 때" },
+      { "text": "거절할 때" },
+      { "text": "거리가 멀 때" },
+      { "text": "거세게 화낼 때" }
+    ],
+    "answerIndex": 0,
+    "explanation": "사람이든 물건이든 말이 막힐 때 두루 끼워 쓰는 대명사입니다. \"그 거시기 좀 갖고 와\"처럼 앞뒤 상황으로 알아듣습니다.",
+    "difficulty": 1,
+    "tags": ["대명사"],
+    "source": "전라 방언의 대표적 대용 표현"
+  },
+  {
+    "id": "dialect-jl-0002",
+    "kind": "scored",
+    "prompt": "\"워메\"는 어떤 상황에서 나올까요?",
+    "choices": [
+      { "text": "누군가를 부를 때" },
+      { "text": "놀라거나 감탄했을 때" },
+      { "text": "길을 물을 때" },
+      { "text": "화를 참을 때" }
+    ],
+    "answerIndex": 1,
+    "explanation": "놀람과 감탄을 나타내는 감탄사입니다. \"워메, 이것이 뭐시다냐\"처럼 문장 앞에 붙습니다.",
+    "difficulty": 1,
+    "tags": ["감탄사"],
+    "source": "전라 방언 감탄사"
+  },
+  {
+    "id": "dialect-jl-0003",
+    "kind": "scored",
+    "prompt": "\"시방\"은 무슨 뜻일까요?",
+    "choices": [
+      { "text": "사방" },
+      { "text": "저녁" },
+      { "text": "지금" },
+      { "text": "시골" }
+    ],
+    "answerIndex": 2,
+    "explanation": "'지금'을 뜻합니다. 한자 時方에서 왔고, 전라뿐 아니라 충청에서도 씁니다.",
+    "difficulty": 1,
+    "tags": ["시간"],
+    "source": "한자어 時方, 전라·충청 공통"
+  },
+  {
+    "id": "dialect-jl-0004",
+    "kind": "scored",
+    "prompt": "\"허벌나게 좋다\"에서 '허벌나게'는?",
+    "choices": [
+      { "text": "허전하게" },
+      { "text": "겨우" },
+      { "text": "가끔" },
+      { "text": "아주 많이" }
+    ],
+    "answerIndex": 3,
+    "explanation": "'아주, 굉장히'를 뜻하는 강조 부사입니다. '겁나게'와 바꿔 써도 뜻이 같습니다.",
+    "difficulty": 1,
+    "tags": ["부사"],
+    "source": "전라 방언 강조 부사"
+  },
+  {
+    "id": "dialect-jl-0005",
+    "kind": "scored",
+    "prompt": "\"짠하다\"는 어떤 마음일까요?",
+    "choices": [
+      { "text": "짜증이 난다" },
+      { "text": "안쓰럽고 마음이 아리다" },
+      { "text": "맛이 짜다" },
+      { "text": "깜짝 놀랐다" }
+    ],
+    "answerIndex": 1,
+    "explanation": "가엾어서 가슴이 아릿한 느낌입니다. 지금은 표준어로도 오르내리지만 남도 말에서 널리 쓰이던 표현입니다.",
+    "difficulty": 1,
+    "tags": ["감정"],
+    "source": "전라 방언에서 널리 쓰이다 표준어로 편입"
+  },
+
+  {
+    "id": "dialect-jl-0006",
+    "kind": "scored",
+    "prompt": "\"아따\"는 어떤 역할을 할까요?",
+    "choices": [
+      { "text": "작별 인사" },
+      { "text": "숫자를 셀 때" },
+      { "text": "감탄하거나 강조할 때" },
+      { "text": "물건을 건넬 때" }
+    ],
+    "answerIndex": 2,
+    "explanation": "\"아따, 말도 마소\"처럼 문장 앞에 붙어 감탄이나 강조를 얹습니다. 놀람·짜증·반가움 어디에나 붙습니다.",
+    "difficulty": 2,
+    "tags": ["감탄사"],
+    "source": "전라 방언 감탄사"
+  },
+  {
+    "id": "dialect-jl-0007",
+    "kind": "scored",
+    "prompt": "\"겁나게 맛있다\"는 무슨 뜻일까요?",
+    "choices": [
+      { "text": "무서울 만큼 맵다" },
+      { "text": "겨우 먹을 만하다" },
+      { "text": "굉장히 맛있다" },
+      { "text": "조금 짜다" }
+    ],
+    "answerIndex": 2,
+    "explanation": "'겁나다'가 '아주, 몹시'라는 강조 부사로 굳은 것입니다. 무섭다는 뜻은 남아 있지 않습니다.",
+    "difficulty": 2,
+    "tags": ["부사"],
+    "source": "겁나다 → 정도 부사로 의미 변화"
+  },
+  {
+    "id": "dialect-jl-0008",
+    "kind": "scored",
+    "prompt": "요즘 전국에서 쓰는 \"오지다\"는 원래 어느 지역 말일까요?",
+    "choices": [
+      { "text": "전라 방언" },
+      { "text": "제주 방언" },
+      { "text": "함경 방언" },
+      { "text": "강원 방언" }
+    ],
+    "answerIndex": 0,
+    "explanation": "'아주 좋다, 대단하다'는 뜻의 남도 말이었는데 인터넷을 타고 전국으로 퍼졌습니다. \"오진다\"는 이제 사투리로 안 느껴질 정도입니다.",
+    "difficulty": 2,
+    "tags": ["의미 확장"],
+    "source": "전라 방언에서 전국 구어로 확산"
+  },
+  {
+    "id": "dialect-jl-0009",
+    "kind": "scored",
+    "prompt": "\"참말로\"는 무슨 뜻일까요?",
+    "choices": [
+      { "text": "참고 말한다" },
+      { "text": "말을 참는다" },
+      { "text": "참 좋은 말" },
+      { "text": "정말로" }
+    ],
+    "answerIndex": 3,
+    "explanation": "'참말'에 조사가 붙어 '정말로'가 된 형태입니다. \"참말로 그랬냐?\"처럼 되묻는 자리에 자주 옵니다.",
+    "difficulty": 2,
+    "tags": ["부사"],
+    "source": "참말 + -로"
+  },
+  {
+    "id": "dialect-jl-0010",
+    "kind": "scored",
+    "prompt": "\"밥 먹었지라잉\"에서 끝에 붙은 '잉'은?",
+    "choices": [
+      { "text": "부드럽게 확인하고 다짐받는 어미" },
+      { "text": "질문을 강하게 만드는 어미" },
+      { "text": "거절을 뜻하는 어미" },
+      { "text": "높임을 나타내는 어미" }
+    ],
+    "answerIndex": 0,
+    "explanation": "문장 끝에 붙어 말을 부드럽게 하고 상대의 동의를 청합니다. 표준어의 '~응', '~그렇지?'에 가까운 자리입니다.",
+    "difficulty": 2,
+    "tags": ["어미"],
+    "source": "전라 방언 종결 첨사"
+  },
+
+  {
+    "id": "dialect-jl-0011",
+    "kind": "scored",
+    "prompt": "음식이 \"게미지다\"는 건 어떤 맛일까요?",
+    "choices": [
+      { "text": "달고 자극적인 맛" },
+      { "text": "씹을수록 우러나는 깊은 맛" },
+      { "text": "차갑고 개운한 맛" },
+      { "text": "간이 세서 짠 맛" }
+    ],
+    "answerIndex": 1,
+    "explanation": "'게미'는 씹을수록 나는 감칠맛을 가리키는 남도 말입니다. 한입에 확 오는 맛이 아니라 두고두고 우러나는 맛을 칭찬할 때 씁니다.",
+    "difficulty": 3,
+    "tags": ["음식"],
+    "source": "전라 방언 '게미'(깊은 감칠맛)"
+  },
+  {
+    "id": "dialect-jl-0012",
+    "kind": "scored",
+    "prompt": "\"항꾼에 가자\"는 무슨 뜻일까요?",
+    "choices": [
+      { "text": "한 번에 가자" },
+      { "text": "함께 가자" },
+      { "text": "한참 뒤에 가자" },
+      { "text": "혼자 가자" }
+    ],
+    "answerIndex": 1,
+    "explanation": "'함께'가 전라 방언에서 '항꾼에'로 굳은 형태입니다. '한 곳에'에서 왔다고 봅니다.",
+    "difficulty": 3,
+    "tags": ["부사"],
+    "source": "함께/한 곳에 → 항꾼에"
+  },
+  {
+    "id": "dialect-jl-0013",
+    "kind": "scored",
+    "prompt": "\"쪼까\"는 무슨 뜻일까요?",
+    "choices": [
+      { "text": "쫓아서" },
+      { "text": "쪼개서" },
+      { "text": "조금" },
+      { "text": "전부" }
+    ],
+    "answerIndex": 2,
+    "explanation": "'조금'이 줄고 된소리가 된 형태입니다. \"쪼까만 기다려\"처럼 씁니다.",
+    "difficulty": 3,
+    "tags": ["부사"],
+    "source": "조금 → 쪼까 (축약·경음화)"
+  },
+  {
+    "id": "dialect-jl-0014",
+    "kind": "scored",
+    "prompt": "\"깨복쟁이 친구\"는 어떤 사이일까요?",
+    "choices": [
+      { "text": "깨끗한 것을 좋아하는 친구" },
+      { "text": "돈을 자주 빌리는 친구" },
+      { "text": "최근에 사귄 친구" },
+      { "text": "벌거벗고 놀던 어릴 적 친구" }
+    ],
+    "answerIndex": 3,
+    "explanation": "'깨복'은 벌거숭이를 뜻합니다. 같이 물놀이하며 자란, 서로 못 볼 꼴 다 본 어린 시절 친구를 가리킵니다.",
+    "difficulty": 3,
+    "tags": ["사람"],
+    "source": "깨복(벌거숭이) + -쟁이"
+  },
+  {
+    "id": "dialect-jl-0015",
+    "kind": "scored",
+    "prompt": "\"포도시 왔네\"에서 '포도시'는?",
+    "choices": [
+      { "text": "겨우, 간신히" },
+      { "text": "포도를 들고" },
+      { "text": "일찍" },
+      { "text": "다 같이" }
+    ],
+    "answerIndex": 0,
+    "explanation": "'겨우, 가까스로'를 뜻합니다. 힘들게 도착했거나 아슬아슬하게 해냈을 때 씁니다.",
+    "difficulty": 3,
+    "tags": ["부사"],
+    "source": "전라 방언 '포도시'(겨우)"
+  }
+]

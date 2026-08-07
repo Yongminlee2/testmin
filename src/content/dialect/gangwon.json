@@ -1,0 +1,244 @@
+[
+  {
+    "id": "dialect-gw-0001",
+    "kind": "scored",
+    "prompt": "\"마카 모여라\"에서 '마카'는?",
+    "choices": [
+      { "text": "모두" },
+      { "text": "마당에" },
+      { "text": "천천히" },
+      { "text": "따로" }
+    ],
+    "answerIndex": 0,
+    "explanation": "'모두, 전부'를 뜻하는 강원 말입니다. '마커'로도 씁니다.",
+    "difficulty": 1,
+    "tags": ["부사"],
+    "source": "강원 방언 '마카/마커'(모두)"
+  },
+  {
+    "id": "dialect-gw-0002",
+    "kind": "scored",
+    "prompt": "\"어여 와\"에서 '어여'는?",
+    "choices": [
+      { "text": "어제" },
+      { "text": "어서" },
+      { "text": "어디" },
+      { "text": "어쩌면" }
+    ],
+    "answerIndex": 1,
+    "explanation": "'어서'를 뜻하는 재촉하는 말입니다. 강원과 경기 북부에서 널리 씁니다.",
+    "difficulty": 1,
+    "tags": ["부사"],
+    "source": "어서 → 어여"
+  },
+  {
+    "id": "dialect-gw-0003",
+    "kind": "scored",
+    "prompt": "\"감재\"는 무엇일까요?",
+    "choices": [
+      { "text": "감" },
+      { "text": "고구마" },
+      { "text": "감자" },
+      { "text": "재료" }
+    ],
+    "answerIndex": 2,
+    "explanation": "'감자'의 강원식 발음입니다. 감자가 많이 나는 지역이라 음식 이름에도 자주 등장합니다.",
+    "difficulty": 1,
+    "tags": ["음식"],
+    "source": "감자 → 감재"
+  },
+  {
+    "id": "dialect-gw-0004",
+    "kind": "scored",
+    "prompt": "\"이까\"는 무엇을 가리킬까요?",
+    "choices": [
+      { "text": "이쪽" },
+      { "text": "이야기" },
+      { "text": "이까짓 것" },
+      { "text": "오징어" }
+    ],
+    "answerIndex": 3,
+    "explanation": "오징어를 뜻하는 동해안 말입니다. 물오징어를 '물이까'라고 부르기도 합니다.",
+    "difficulty": 1,
+    "tags": ["음식"],
+    "source": "강원 동해안 방언 '이까'(오징어)"
+  },
+  {
+    "id": "dialect-gw-0005",
+    "kind": "scored",
+    "prompt": "\"~드래요\"는 어떤 어미일까요?",
+    "choices": [
+      { "text": "들은 이야기를 전할 때 쓰는 어미" },
+      { "text": "명령할 때 쓰는 어미" },
+      { "text": "부탁할 때 쓰는 어미" },
+      { "text": "사과할 때 쓰는 어미" }
+    ],
+    "answerIndex": 0,
+    "explanation": "\"비 온드래요\"처럼 남한테 들은 말을 옮길 때 붙입니다. 표준어의 '~대요'에 해당합니다.",
+    "difficulty": 1,
+    "tags": ["어미"],
+    "source": "인용 어미 ~대요 → ~드래요"
+  },
+
+  {
+    "id": "dialect-gw-0006",
+    "kind": "scored",
+    "prompt": "\"할마이\"는 누구일까요?",
+    "choices": [
+      { "text": "할머니" },
+      { "text": "아주머니" },
+      { "text": "맏이" },
+      { "text": "손님" }
+    ],
+    "answerIndex": 0,
+    "explanation": "'할머니'를 뜻합니다. 짝이 되는 '할아버지'는 '할바이'라고 합니다.",
+    "difficulty": 2,
+    "tags": ["호칭"],
+    "source": "강원 방언 '할마이/할바이'"
+  },
+  {
+    "id": "dialect-gw-0007",
+    "kind": "scored",
+    "prompt": "\"우터래?\"는 무슨 뜻일까요?",
+    "choices": [
+      { "text": "웃긴다" },
+      { "text": "어떡해?" },
+      { "text": "위에 있어?" },
+      { "text": "우리 것?" }
+    ],
+    "answerIndex": 1,
+    "explanation": "'어떡해, 어떻게 해'가 줄어든 형태입니다. 난감할 때 나오는 말입니다.",
+    "difficulty": 2,
+    "tags": ["의문사"],
+    "source": "어떡해 → 우터래"
+  },
+  {
+    "id": "dialect-gw-0008",
+    "kind": "scored",
+    "prompt": "\"곤드레\"는 무엇일까요?",
+    "choices": [
+      { "text": "생선" },
+      { "text": "고드름" },
+      { "text": "나물의 한 종류" },
+      { "text": "곤충" }
+    ],
+    "answerIndex": 2,
+    "explanation": "강원 산나물의 하나로, 정선·평창에서 곤드레밥으로 잘 알려져 있습니다. 표준명은 고려엉겅퀴입니다.",
+    "difficulty": 2,
+    "tags": ["음식"],
+    "source": "강원 산나물, 표준명 고려엉겅퀴"
+  },
+  {
+    "id": "dialect-gw-0009",
+    "kind": "scored",
+    "prompt": "\"쫌 있다 가재이\"에서 '가재이'는?",
+    "choices": [
+      { "text": "가지 마라" },
+      { "text": "가자" },
+      { "text": "가까이" },
+      { "text": "가재" }
+    ],
+    "answerIndex": 1,
+    "explanation": "권유하는 '가자'입니다. 강원 말은 청유형 끝에 '~재이', '~자이'가 붙는 경우가 있습니다.",
+    "difficulty": 2,
+    "tags": ["어미"],
+    "source": "청유형 어미 ~자 → ~재이"
+  },
+  {
+    "id": "dialect-gw-0010",
+    "kind": "scored",
+    "prompt": "\"뜨락\"은 어디를 가리킬까요?",
+    "choices": [
+      { "text": "지붕 위" },
+      { "text": "부엌" },
+      { "text": "다락방" },
+      { "text": "집 앞의 뜰" }
+    ],
+    "answerIndex": 3,
+    "explanation": "집 앞뒤의 뜰을 뜻합니다. 지금은 시적인 말로 남아 있지만 강원·충청에서 일상어로 쓰였습니다.",
+    "difficulty": 2,
+    "tags": ["장소"],
+    "source": "뜰 + -악, 중부 방언에서 일상어로 사용"
+  },
+
+  {
+    "id": "dialect-gw-0011",
+    "kind": "scored",
+    "prompt": "\"삐뚜룸하다\"는 어떤 모양일까요?",
+    "choices": [
+      { "text": "조금 비뚤어져 있다" },
+      { "text": "매우 뾰족하다" },
+      { "text": "아주 반듯하다" },
+      { "text": "둥글게 말려 있다" }
+    ],
+    "answerIndex": 0,
+    "explanation": "'비뚤다'에 상태를 나타내는 말이 붙어 '약간 기울어져 있다'가 됐습니다. 표준어 '비뚜름하다'와 짝을 이룹니다.",
+    "difficulty": 3,
+    "tags": ["형용사"],
+    "source": "비뚤다 + -우름하다"
+  },
+  {
+    "id": "dialect-gw-0012",
+    "kind": "scored",
+    "prompt": "\"매매 씻어라\"에서 '매매'는?",
+    "choices": [
+      { "text": "빨리빨리" },
+      { "text": "조금만" },
+      { "text": "깨끗이, 꼼꼼히" },
+      { "text": "나중에" }
+    ],
+    "answerIndex": 2,
+    "explanation": "'꼼꼼하게, 야무지게'를 뜻하는 부사입니다. 대충 하지 말고 제대로 하라는 뜻이 담깁니다.",
+    "difficulty": 3,
+    "tags": ["부사"],
+    "source": "강원 방언 '매매'(야무지게)"
+  },
+  {
+    "id": "dialect-gw-0013",
+    "kind": "scored",
+    "prompt": "\"멀꺼디\"는 무엇일까요?",
+    "choices": [
+      { "text": "먼지" },
+      { "text": "머리카락" },
+      { "text": "먼 길" },
+      { "text": "멀미" }
+    ],
+    "answerIndex": 1,
+    "explanation": "머리카락을 뜻합니다. '머리끄덩이'와 뿌리가 닿아 있는 말로 봅니다.",
+    "difficulty": 3,
+    "tags": ["신체"],
+    "source": "강원 방언 '멀꺼디'(머리카락)"
+  },
+  {
+    "id": "dialect-gw-0014",
+    "kind": "scored",
+    "prompt": "\"어정쩡\"의 강원 말 \"어중치기\"는 어떤 상태일까요?",
+    "choices": [
+      { "text": "아주 뛰어난 상태" },
+      { "text": "완전히 끝난 상태" },
+      { "text": "이도 저도 아닌 중간 상태" },
+      { "text": "처음 시작한 상태" }
+    ],
+    "answerIndex": 2,
+    "explanation": "'어중'은 가운데를 뜻합니다. 크지도 작지도, 되지도 안 되지도 않은 어중간한 것을 가리킵니다.",
+    "difficulty": 3,
+    "tags": ["형용사"],
+    "source": "어중(於中) + -치기"
+  },
+  {
+    "id": "dialect-gw-0015",
+    "kind": "scored",
+    "prompt": "\"질\"은 무엇을 뜻할까요?",
+    "choices": [
+      { "text": "길" },
+      { "text": "질그릇" },
+      { "text": "질문" },
+      { "text": "짐" }
+    ],
+    "answerIndex": 0,
+    "explanation": "'길'의 첫소리가 'ㅈ'으로 바뀐 형태입니다. \"질이 미끄럽다\"처럼 씁니다. 이 변화는 남부 방언에서도 널리 나타납니다.",
+    "difficulty": 3,
+    "tags": ["명사"],
+    "source": "길 → 질 (구개음화)"
+  }
+]

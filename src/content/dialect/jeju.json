@@ -1,0 +1,244 @@
+[
+  {
+    "id": "dialect-jj-0001",
+    "kind": "scored",
+    "prompt": "가게 앞의 \"혼저옵서예\"는 무슨 뜻일까요?",
+    "choices": [
+      { "text": "천천히 보세요" },
+      { "text": "어서 오세요" },
+      { "text": "혼자 오세요" },
+      { "text": "잠시 쉬어 가세요" }
+    ],
+    "answerIndex": 1,
+    "explanation": "'혼저'는 '어서', '옵서'는 '오십시오'입니다. 끝의 '예'는 말을 부드럽게 하는 제주말 첨사입니다. '혼자'와는 관계가 없습니다.",
+    "difficulty": 1,
+    "tags": ["인사"],
+    "source": "혼저(어서) + 옵서(오십시오) + 예"
+  },
+  {
+    "id": "dialect-jj-0002",
+    "kind": "scored",
+    "prompt": "\"하영 먹읍서\"에서 '하영'은?",
+    "choices": [
+      { "text": "많이" },
+      { "text": "천천히" },
+      { "text": "조금" },
+      { "text": "혼자" }
+    ],
+    "answerIndex": 0,
+    "explanation": "'많이'를 뜻합니다. 옛말 '하다'(많다)가 제주에 남은 것으로, '하늘'의 '하'와도 뿌리가 닿습니다.",
+    "difficulty": 1,
+    "tags": ["부사"],
+    "source": "옛말 하다(많다)의 잔존형"
+  },
+  {
+    "id": "dialect-jj-0003",
+    "kind": "scored",
+    "prompt": "제주에서 \"어멍\"은 누구일까요?",
+    "choices": [
+      { "text": "언니" },
+      { "text": "할머니" },
+      { "text": "이모" },
+      { "text": "어머니" }
+    ],
+    "answerIndex": 3,
+    "explanation": "'어머니'입니다. 아버지는 '아방'이라고 합니다. 두 말이 짝을 이룹니다.",
+    "difficulty": 1,
+    "tags": ["호칭"],
+    "source": "제주어 아방/어멍"
+  },
+  {
+    "id": "dialect-jj-0004",
+    "kind": "scored",
+    "prompt": "\"어떵 해수과?\"에서 '어떵'은?",
+    "choices": [
+      { "text": "언제" },
+      { "text": "어떻게" },
+      { "text": "얼마나" },
+      { "text": "어디서" }
+    ],
+    "answerIndex": 1,
+    "explanation": "'어떻게'입니다. \"어떵 살암수과?\"는 \"어떻게 지내십니까?\"가 됩니다.",
+    "difficulty": 1,
+    "tags": ["의문사"],
+    "source": "어떻게 → 어떵"
+  },
+  {
+    "id": "dialect-jj-0005",
+    "kind": "scored",
+    "prompt": "\"어디 감수과?\"는 무슨 뜻일까요?",
+    "choices": [
+      { "text": "어디 계십니까?" },
+      { "text": "어디가 아픕니까?" },
+      { "text": "어디 가십니까?" },
+      { "text": "어디서 왔습니까?" }
+    ],
+    "answerIndex": 2,
+    "explanation": "'감수과'는 '가십니까'입니다. '~수과'가 제주말의 높임 의문 어미이고, 대답은 \"감수다\"(갑니다)가 됩니다.",
+    "difficulty": 1,
+    "tags": ["어미"],
+    "source": "제주어 높임 의문 어미 ~수과"
+  },
+
+  {
+    "id": "dialect-jj-0006",
+    "kind": "scored",
+    "prompt": "\"폭싹 속았수다\"는 무슨 뜻일까요?",
+    "choices": [
+      { "text": "완전히 속았습니다" },
+      { "text": "푹 잠들었습니다" },
+      { "text": "정말 수고하셨습니다" },
+      { "text": "몹시 서운합니다" }
+    ],
+    "answerIndex": 2,
+    "explanation": "여기서 '속다'는 '수고하다'라는 뜻의 제주말입니다. 표준어의 '속다(기만당하다)'와는 다른 말이라 뜻을 오해하기 쉽습니다.",
+    "difficulty": 2,
+    "tags": ["인사"],
+    "source": "제주어 속다(수고하다), 표준어 속다와 동음이의"
+  },
+  {
+    "id": "dialect-jj-0007",
+    "kind": "scored",
+    "prompt": "제주에서 이웃 어른을 부르는 \"삼춘\"의 특징은?",
+    "choices": [
+      { "text": "남녀 구분 없이 두루 쓴다" },
+      { "text": "남자 어른에게만 쓴다" },
+      { "text": "친척에게만 쓴다" },
+      { "text": "자기보다 어린 사람에게 쓴다" }
+    ],
+    "answerIndex": 0,
+    "explanation": "혈연이 아니어도, 남녀를 가리지 않고 동네 어른이면 '삼춘'이라 부릅니다. 표준어 '삼촌'과 쓰임이 크게 다릅니다.",
+    "difficulty": 2,
+    "tags": ["호칭"],
+    "source": "제주 지역 호칭 관습"
+  },
+  {
+    "id": "dialect-jj-0008",
+    "kind": "scored",
+    "prompt": "\"곱닥허다\"는 어떤 뜻일까요?",
+    "choices": [
+      { "text": "고약하다" },
+      { "text": "곱다, 예쁘다" },
+      { "text": "곱슬거린다" },
+      { "text": "숨어 있다" }
+    ],
+    "answerIndex": 1,
+    "explanation": "'곱다'에 뿌리를 둔 말로 '예쁘다'는 뜻입니다. \"아기 곱닥허다\"처럼 씁니다.",
+    "difficulty": 2,
+    "tags": ["형용사"],
+    "source": "곱다 + -닥허다"
+  },
+  {
+    "id": "dialect-jj-0009",
+    "kind": "scored",
+    "prompt": "\"게메\"는 어떤 자리에 쓰일까요?",
+    "choices": [
+      { "text": "단호하게 거절할 때" },
+      { "text": "크게 놀랐을 때" },
+      { "text": "\"글쎄, 그러게\"처럼 맞장구칠 때" },
+      { "text": "작별 인사를 할 때" }
+    ],
+    "answerIndex": 2,
+    "explanation": "상대 말에 가볍게 동의하거나 얼버무릴 때 씁니다. \"게메 마씀\"처럼 높임말과도 붙습니다.",
+    "difficulty": 2,
+    "tags": ["담화표지"],
+    "source": "제주어 감탄사 '게메'(글쎄)"
+  },
+  {
+    "id": "dialect-jj-0010",
+    "kind": "scored",
+    "prompt": "\"놀멍 쉬멍\"에서 '~멍'은 무엇일까요?",
+    "choices": [
+      { "text": "~하지 말고" },
+      { "text": "~하면서" },
+      { "text": "~한 다음에" },
+      { "text": "~하려고" }
+    ],
+    "answerIndex": 1,
+    "explanation": "동시에 일어나는 동작을 잇는 '~면서'입니다. '놀면서 쉬면서'가 '놀멍 쉬멍'이 되어, 제주 여행 문구로도 자주 쓰입니다.",
+    "difficulty": 2,
+    "tags": ["어미"],
+    "source": "~면서 → ~멍"
+  },
+
+  {
+    "id": "dialect-jj-0011",
+    "kind": "scored",
+    "prompt": "\"지꺼지다\"는 어떤 감정일까요?",
+    "choices": [
+      { "text": "지치고 힘들다" },
+      { "text": "짜증이 난다" },
+      { "text": "지겹다" },
+      { "text": "몹시 기쁘다" }
+    ],
+    "answerIndex": 3,
+    "explanation": "'기쁘다, 신난다'는 뜻입니다. 소리만 들으면 '지치다'나 '지겹다' 쪽으로 짐작하기 쉬워 헷갈립니다.",
+    "difficulty": 3,
+    "tags": ["감정"],
+    "source": "제주어 '지꺼지다'(기쁘다)"
+  },
+  {
+    "id": "dialect-jj-0012",
+    "kind": "scored",
+    "prompt": "제주 옛 집 어귀의 \"정낭\"은 무엇일까요?",
+    "choices": [
+      { "text": "대문 대신 걸쳐두는 긴 나무 막대" },
+      { "text": "마당의 우물" },
+      { "text": "지붕을 덮는 억새" },
+      { "text": "곡식을 넣는 창고" }
+    ],
+    "answerIndex": 0,
+    "explanation": "돌기둥에 걸친 막대 개수로 주인이 집에 있는지 알렸습니다. 다 내려두면 사람이 있고, 셋 다 걸쳐두면 멀리 나갔다는 뜻입니다.",
+    "difficulty": 3,
+    "tags": ["생활"],
+    "source": "제주 전통 가옥의 정주석·정낭"
+  },
+  {
+    "id": "dialect-jj-0013",
+    "kind": "scored",
+    "prompt": "\"몽생이\"는 무엇일까요?",
+    "choices": [
+      { "text": "모기" },
+      { "text": "망아지" },
+      { "text": "송아지" },
+      { "text": "물방울" }
+    ],
+    "answerIndex": 1,
+    "explanation": "망아지를 뜻합니다. 말을 많이 기르던 제주라 말과 관련된 말이 유난히 발달했습니다.",
+    "difficulty": 3,
+    "tags": ["동물"],
+    "source": "제주어 '몽생이'(망아지)"
+  },
+  {
+    "id": "dialect-jj-0014",
+    "kind": "scored",
+    "prompt": "\"조베기\"는 어떤 음식일까요?",
+    "choices": [
+      { "text": "국수" },
+      { "text": "부침개" },
+      { "text": "수제비" },
+      { "text": "떡국" }
+    ],
+    "answerIndex": 2,
+    "explanation": "밀가루 반죽을 손으로 떼어 넣어 끓인 수제비입니다. 제주에서는 몸국이나 미역국에 넣어 먹기도 합니다.",
+    "difficulty": 3,
+    "tags": ["음식"],
+    "source": "제주어 '조베기'(수제비)"
+  },
+  {
+    "id": "dialect-jj-0015",
+    "kind": "scored",
+    "prompt": "\"강생이\"는 무엇일까요?",
+    "choices": [
+      { "text": "강아지" },
+      { "text": "강물" },
+      { "text": "생강" },
+      { "text": "학생" }
+    ],
+    "answerIndex": 0,
+    "explanation": "강아지를 뜻합니다. 제주어는 유네스코가 소멸 위기 언어로 분류할 만큼 표준어와 차이가 커서, 이런 낱말이 따로 남아 있습니다.",
+    "difficulty": 3,
+    "tags": ["동물"],
+    "source": "제주어 '강생이'(강아지). 제주어는 유네스코 소멸위기언어 분류 대상"
+  }
+]

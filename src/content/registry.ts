@@ -1,6 +1,11 @@
 import type { Difficulty, GradeBand, GradeTable, Question } from '@/engine/types';
 import gradesJson from './grades.json';
 import gyeongsang from './dialect/gyeongsang.json';
+import jeolla from './dialect/jeolla.json';
+import chungcheong from './dialect/chungcheong.json';
+import gangwon from './dialect/gangwon.json';
+import jeju from './dialect/jeju.json';
+import seoul from './dialect/seoul.json';
 import personality from './personality.json';
 import typeNamesJson from './typeNames.json';
 import type { TypeNameEntry } from '@/engine/types';
@@ -41,6 +46,11 @@ export const IQ_DRAW: IqDrawConfig = {
  */
 export const POOLS: Record<string, readonly Question[]> = {
   'dialect:gyeongsang': gyeongsang as unknown as Question[],
+  'dialect:jeolla': jeolla as unknown as Question[],
+  'dialect:chungcheong': chungcheong as unknown as Question[],
+  'dialect:gangwon': gangwon as unknown as Question[],
+  'dialect:jeju': jeju as unknown as Question[],
+  'dialect:seoul': seoul as unknown as Question[],
   'mz:default': mz as unknown as Question[],
   'personality:default': personality as unknown as Question[],
   'psych:love': (love as unknown as { questions: Question[] }).questions,
@@ -56,6 +66,11 @@ export type PoolScoring = 'scored' | 'axis' | 'vote';
 
 export const POOL_SCORING: Record<string, PoolScoring> = {
   'dialect:gyeongsang': 'scored',
+  'dialect:jeolla': 'scored',
+  'dialect:chungcheong': 'scored',
+  'dialect:gangwon': 'scored',
+  'dialect:jeju': 'scored',
+  'dialect:seoul': 'scored',
   'mz:default': 'scored',
   'personality:default': 'axis',
   'psych:love': 'vote',

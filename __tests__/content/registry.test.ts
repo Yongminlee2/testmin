@@ -23,11 +23,18 @@ describe('available은 풀 존재 여부로 계산된다', () => {
     expect(getPool('dialect', 'gyeongsang').length).toBeGreaterThan(0);
   });
 
-  test('풀이 없는 지역은 available이 거짓이다', () => {
-    for (const r of DIALECT_REGIONS.filter((r) => r.id !== 'gyeongsang')) {
-      expect(getPool('dialect', r.id)).toHaveLength(0);
-      expect(r.available).toBe(false);
+  test('여섯 지역 모두 문항 풀이 있고 available이 참이다', () => {
+    for (const r of DIALECT_REGIONS) {
+      expect(getPool('dialect', r.id).length).toBeGreaterThan(0);
+      expect(r.available).toBe(true);
     }
+  });
+
+  // available이 계산된 값이라는 성질은 여기서 지킨다. 등록되지 않은 지역을
+  // 물으면 빈 풀이 나와야 한다 — 그래야 새 지역을 추가할 때 콘텐츠 없이
+  // available만 참으로 적어두는 실수가 막힌다.
+  test('등록되지 않은 지역은 빈 풀을 준다', () => {
+    expect(getPool('dialect', 'nowhere')).toHaveLength(0);
   });
 
   test('풀이 있는 카테고리(사투리·성격·심리)는 available이 참이다', () => {
