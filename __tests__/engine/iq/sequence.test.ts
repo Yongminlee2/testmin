@@ -184,12 +184,20 @@ describe('sequenceGenerator', () => {
   // 리뷰 #2 — 교대 규칙의 startA !== startB 가드를 빼면 인접한 두 항이 같아지는
   // 경우가 생긴다(예: 4, 4, 8, 12, 20, 32). 첫 두 항이 같은 수열은 오타처럼 보인다.
   // 특정 규칙에 매인 검사가 아니라 모든 규칙·모든 시드에 걸쳐 인접 중복이 없는지 본다.
-  test('어떤 시드에서도 인접한 두 항이 같지 않다', () => {
+  //
+  // 2차 리뷰 — 화면에 찍힌 항만 보고 끝내면 한 칸을 놓친다. 정답은 이 수열의
+  // 논리적인 다음 항이라 "인접한 두 항이 같으면 오타처럼 보인다"는 이유가 정답에도
+  // 그대로 적용된다(예: 6, 5, 11, 13, 16, 21, 정답도 21). 그래서 완성된 수열
+  // (제시된 항 + 표시된 정답)을 하나로 이어붙여서 검사한다.
+  test('어떤 시드에서도 인접한 두 항이 같지 않다(정답 포함)', () => {
     for (let seed = 1; seed <= 500; seed++) {
-      const t = termsOf(G.generate(seed).question);
-      for (let i = 1; i < t.length; i++) {
-        if (t[i] === t[i - 1]) {
-          throw new Error(`seed ${seed}: 인접한 항이 같음 — ${t.join(',')}`);
+      const { question } = G.generate(seed);
+      const t = termsOf(question);
+      const answer = Number(question.choices[question.answerIndex ?? -1]?.text);
+      const full = [...t, answer];
+      for (let i = 1; i < full.length; i++) {
+        if (full[i] === full[i - 1]) {
+          throw new Error(`seed ${seed}: 인접한 항이 같음(정답 포함) — ${full.join(',')}`);
         }
       }
     }
@@ -268,6 +276,9 @@ describe('sequenceGenerator', () => {
             const absStep = -step;
             expect(explanation).toContain(`${last} - ${absStep} = ${answer}`);
             expect(explanation).not.toContain('+ -');
+            // 2차 리뷰 — "빼집니다"(피동형, 어색함) 대신 "빠집니다"를 쓴다.
+            expect(explanation).toContain('빠집니다');
+            expect(explanation).not.toContain('빼집니다');
           }
           break;
         }

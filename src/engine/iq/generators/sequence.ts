@@ -62,12 +62,12 @@ function buildArithmetic(rand: () => number): Built {
   const answer = last + step;
 
   // step이 음수일 때 "${last} + ${step}"을 그대로 쓰면 "41 + -9 = 32"처럼 어색하게 찍힌다.
-  // size.ts가 커집니다/작아집니다로 방향을 말로 나누듯, 여기도 더해집니다/빼집니다로
-  // 나누고 빼는 쪽은 절댓값을 써서 부호가 겹치지 않게 한다.
+  // size.ts가 커집니다/작아집니다로 방향을 말로 나누듯, 여기도 더해집니다/빠집니다로
+  // 나누고 빠지는 쪽은 절댓값을 써서 부호가 겹치지 않게 한다.
   const explanation =
     step > 0
       ? `앞의 수에 ${step}씩 더해집니다. ${last} + ${step} = ${answer}.`
-      : `앞의 수에서 ${-step}씩 빼집니다. ${last} - ${-step} = ${answer}.`;
+      : `앞의 수에서 ${-step}씩 빠집니다. ${last} - ${-step} = ${answer}.`;
 
   return {
     terms,
@@ -145,6 +145,12 @@ function hasAdjacentDuplicate(values: readonly number[]): boolean {
  * 우연히 같아질 수 있다(실측: 500시드 중 18개, 예: 4,12,12,16,20,20). 그래서
  * 파라미터 조건을 더 늘어놓는 대신, 완성된 6항 배열 자체에서 "인접한 두 항이
  * 같은가"를 직접 검사해 걸리면 재시도한다 — 어떤 조합으로 충돌이 나든 다 잡힌다.
+ *
+ * 정답(7번째 항)도 검사 대상에 넣어야 한다 — 화면엔 6항까지만 찍히지만, 정답은
+ * 그 수열의 논리적인 다음 항이라 같은 "인접 중복은 오타처럼 보인다"는 이유가
+ * 그대로 적용된다. 실제로 500시드 중 5개는 6항끼리는 안 겹치는데 마지막 항(B줄)과
+ * 정답(A줄)이 우연히 같았다(예: 6,5,11,13,16,21에서 정답도 21). 그래서 재시도
+ * 조건에 정답까지 포함한 7항 배열을 넣는다.
  */
 function buildAlternating(rand: () => number): Built {
   let startA = 0;
@@ -152,6 +158,7 @@ function buildAlternating(rand: () => number): Built {
   let stepA = 0;
   let stepB = 0;
   let terms: number[] = [];
+  let answer = 0;
   do {
     startA = pickInt(rand, 2, 15);
     startB = pickInt(rand, 2, 15);
@@ -165,10 +172,10 @@ function buildAlternating(rand: () => number): Built {
       startA + 2 * stepA,
       startB + 2 * stepB,
     ];
-  } while (stepA === stepB || hasAdjacentDuplicate(terms));
+    answer = startA + 3 * stepA;
+  } while (stepA === stepB || hasAdjacentDuplicate([...terms, answer]));
 
   const last = terms[5] as number;
-  const answer = startA + 3 * stepA;
 
   return {
     terms,
