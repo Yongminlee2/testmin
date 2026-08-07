@@ -319,11 +319,236 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 각 태스크의 전체 코드는 착수 직전에 이 문서에 채워 넣는다. 지금 확정된 것은 범위와 인터페이스다.
 
-**Task 2 — `SvgFigure` 렌더러**
-- `src/ui/SvgFigure.tsx`: `FigureSpec`을 받아 `react-native-svg`로 그린다
-- 3×3 격자는 칸 사이 구분선과 빈 칸의 물음표를 그린다
-- 네오브루탈 톤에 맞춰 굵은 검정 선, 채움은 라벤더
-- 렌더 테스트는 크래시 없이 그려지는지 + 빈 칸 표시가 나오는지 수준
+### Task 2 — `SvgFigure` 렌더러
+
+**Files:** Create `src/ui/SvgFigure.tsx`, `__tests__/ui/SvgFigure.test.tsx`
+
+`FigureSpec`을 실제 그림으로 바꾸는 유일한 곳이다. 엔진은 여기를 모르고, 여기는 규칙을 모른다.
+
+**⚠️ 생성기 설계 제약 — 여기서 발견한 것이므로 Task 3 이후에 그대로 적용한다**
+
+`cellEquals`는 `rotation`이 다르면 다른 도형으로 판정한다. 그런데 **원은 아무리 돌려도 똑같이 보인다.** 마름모는 90° 돌리면 자기 자신이고, 정사각형도 90°의 배수로는 구분이 안 된다.
+
+즉 회전만으로 오답을 만드는 규칙이 원·마름모·정사각형에 적용되면 **화면상 정답과 똑같은 오답**이 나오는데, `cellEquals`는 다르다고 판정하므로 정답 유일성 테스트를 통과해버린다. 사용자는 똑같아 보이는 선택지 두 개를 보게 된다.
+
+**따라서:**
+- 회전을 구분 기준으로 쓰는 생성기는 **삼각형만** 쓴다 (삼각형은 90·180·270°가 전부 다르게 보인다)
+- 정사각형·마름모에 회전을 줄 거면 45°처럼 시각적으로 구분되는 각도만 쓴다
+- 원에는 회전을 주지 않는다
+
+이 제약을 Task 3의 회전 생성기부터 지키고, **"화면상 구분 가능한가"를 사람이 실기기에서 확인**한다 (Task 8). 기계는 스펙이 다른지만 알지 보이는 게 다른지는 모른다.
+
+**`src/ui/SvgFigure.tsx`**
+
+```tsx
+import Svg, { Circle, Line, Polygon, Rect, Text as SvgText } from 'react-native-svg';
+import { View, StyleSheet } from 'react-native';
+import { colors } from './tokens';
+import type { CellSpec, FigureSpec, ShapeSpec } from '@/engine/types';
+
+const CELL = 100;
+const STROKE = 4;
+
+interface Props {
+  readonly spec: FigureSpec;
+  /** 렌더 크기(px). 격자는 정사각형으로 그린다. */
+  readonly size?: number;
+  readonly testID?: string;
+}
+
+function renderShape(s: ShapeSpec, key: string, ox: number, oy: number) {
+  const cx = ox + s.x * CELL;
+  const cy = oy + s.y * CELL;
+  const r = (s.size * CELL) / 2;
+  const fill = s.filled ? colors.lavender : colors.white;
+  const common = { stroke: colors.ink, strokeWidth: STROKE, fill };
+  const spin = `rotate(${s.rotation} ${cx} ${cy})`;
+
+  switch (s.kind) {
+    case 'circle':
+      // 원은 회전이 보이지 않으므로 transform을 주지 않는다
+      return <Circle key={key} cx={cx} cy={cy} r={r} {...common} />;
+    case 'square':
+      return (
+        <Rect
+          key={key}
+          x={cx - r}
+          y={cy - r}
+          width={r * 2}
+          height={r * 2}
+          transform={spin}
+          {...common}
+        />
+      );
+    case 'triangle':
+      return (
+        <Polygon
+          key={key}
+          points={`${cx},${cy - r} ${cx + r},${cy + r} ${cx - r},${cy + r}`}
+          transform={spin}
+          {...common}
+        />
+      );
+    case 'diamond':
+      return (
+        <Polygon
+          key={key}
+          points={`${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}`}
+          transform={spin}
+          {...common}
+        />
+      );
+  }
+}
+
+function renderCell(cell: CellSpec, index: number, ox: number, oy: number) {
+  return cell.shapes.map((s, i) => renderShape(s, `c${index}-s${i}`, ox, oy));
+}
+
+export function SvgFigure({ spec, size = 120, testID }: Props) {
+  const isGrid = spec.kind === 'grid';
+  const span = isGrid ? CELL * 3 : CELL;
+
+  return (
+    <View style={styles.wrap} testID={testID}>
+      <Svg width={size} height={size} viewBox={`0 0 ${span} ${span}`}>
+        {isGrid ? (
+          <>
+            {/* 칸 구분선 */}
+            {[1, 2].map((i) => (
+              <Line
+                key={`v${i}`}
+                x1={i * CELL}
+                y1={0}
+                x2={i * CELL}
+                y2={span}
+                stroke={colors.ink}
+                strokeWidth={2}
+              />
+            ))}
+            {[1, 2].map((i) => (
+              <Line
+                key={`h${i}`}
+                x1={0}
+                y1={i * CELL}
+                x2={span}
+                y2={i * CELL}
+                stroke={colors.ink}
+                strokeWidth={2}
+              />
+            ))}
+          </>
+        ) : null}
+
+        {spec.cells.map((cell, i) => {
+          const ox = isGrid ? (i % 3) * CELL : 0;
+          const oy = isGrid ? Math.floor(i / 3) * CELL : 0;
+          if (isGrid && spec.blankIndex === i) {
+            return (
+              <SvgText
+                key={`blank${i}`}
+                x={ox + CELL / 2}
+                y={oy + CELL / 2 + 18}
+                fontSize={52}
+                textAnchor="middle"
+                fill={colors.ink}
+              >
+                ?
+              </SvgText>
+            );
+          }
+          return renderCell(cell, i, ox, oy);
+        })}
+
+        {/* 바깥 테두리 */}
+        <Rect
+          x={STROKE / 2}
+          y={STROKE / 2}
+          width={span - STROKE}
+          height={span - STROKE}
+          fill="none"
+          stroke={colors.ink}
+          strokeWidth={STROKE}
+        />
+      </Svg>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: { alignItems: 'center', justifyContent: 'center' },
+});
+```
+
+**Test:** `__tests__/ui/SvgFigure.test.tsx` — `render`는 async다.
+
+렌더러 테스트는 픽셀을 검증하지 않는다. 크래시 없이 그려지는지, 빈 칸 표시가 나오는지, 도형 개수만큼 요소가 나오는지 수준으로 둔다. 시각적 정확성은 실기기 확인(Task 8)의 몫이다.
+
+```tsx
+import React from 'react';
+import { render, screen } from '@testing-library/react-native';
+import { SvgFigure } from '@/ui/SvgFigure';
+import { emptyCell, shape } from '@/engine/iq/figure';
+import type { FigureSpec } from '@/engine/types';
+
+const single = (spec: Partial<FigureSpec> = {}): FigureSpec => ({
+  kind: 'single',
+  cells: [{ shapes: [shape('circle')] }],
+  ...spec,
+});
+
+const grid = (blankIndex?: number): FigureSpec => ({
+  kind: 'grid',
+  cells: Array.from({ length: 9 }, () => ({ shapes: [shape('square')] })),
+  ...(blankIndex === undefined ? {} : { blankIndex }),
+});
+
+describe('SvgFigure', () => {
+  test('낱개 도형을 크래시 없이 그린다', async () => {
+    await render(<SvgFigure spec={single()} testID="fig" />);
+    expect(screen.getByTestId('fig')).toBeTruthy();
+  });
+
+  test('3×3 격자를 크래시 없이 그린다', async () => {
+    await render(<SvgFigure spec={grid()} testID="fig" />);
+    expect(screen.getByTestId('fig')).toBeTruthy();
+  });
+
+  test('blankIndex가 있으면 물음표를 그린다', async () => {
+    await render(<SvgFigure spec={grid(8)} testID="fig" />);
+    expect(screen.getByText('?')).toBeTruthy();
+  });
+
+  test('blankIndex가 없으면 물음표가 없다', async () => {
+    await render(<SvgFigure spec={grid()} testID="fig" />);
+    expect(screen.queryByText('?')).toBeNull();
+  });
+
+  test('빈 셀만 있어도 크래시하지 않는다', async () => {
+    const spec: FigureSpec = { kind: 'grid', cells: Array.from({ length: 9 }, emptyCell) };
+    await render(<SvgFigure spec={spec} testID="fig" />);
+    expect(screen.getByTestId('fig')).toBeTruthy();
+  });
+
+  test('네 가지 도형 종류를 모두 그린다', async () => {
+    const spec: FigureSpec = {
+      kind: 'single',
+      cells: [
+        {
+          shapes: [
+            shape('circle', { x: 0.25, y: 0.25 }),
+            shape('square', { x: 0.75, y: 0.25 }),
+            shape('triangle', { x: 0.25, y: 0.75 }),
+            shape('diamond', { x: 0.75, y: 0.75 }),
+          ],
+        },
+      ],
+    };
+    await render(<SvgFigure spec={spec} testID="fig" />);
+    expect(screen.getByTestId('fig')).toBeTruthy();
+  });
+});
+```
 
 **Task 3 — 생성기 프레임워크 + 회전 규칙**
 - `Generator` 인터페이스: `generate(seed) → GeneratedQuestion`
