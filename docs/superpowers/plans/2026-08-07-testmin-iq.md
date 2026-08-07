@@ -1468,6 +1468,22 @@ describe('distributeGenerator', () => {
     }
   });
 
+  // ★ 직교성 — 위 테스트만으로는 부족하다. 구현 중에 실제로 확인됐다.
+  // 종류와 크기를 **따로** 검사하면 두 라틴 방진이 서로 직교하지 않아도 통과한다.
+  // 크기 공식을 (r+2c)에서 (r+c)로 바꾸면 종류와 크기가 완전히 상관되어
+  // 9칸에 조합이 3개밖에 안 남는데(문제가 퇴화한다), 위 테스트는 초록불이었다.
+  test('완성된 격자의 (종류, 크기) 조합 9개가 전부 다르다', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const { question } = G.generate(seed);
+      const pairs = [0, 1, 2, 3, 4, 5, 6, 7].map(
+        (i) => `${kindAt(question, i)}:${sizeAt(question, i)}`
+      );
+      const ans = question.choices[question.answerIndex ?? -1]?.figure?.cells[0]?.shapes[0];
+      pairs.push(`${ans?.kind}:${ans?.size}`);
+      expect(new Set(pairs).size).toBe(9);
+    }
+  });
+
   // ② 시각적 유효성 — 크기가 화면에서 구분되는가
   test('쓰이는 크기는 세 단계뿐이고 서로 0.12 이상 벌어져 있다', () => {
     const used = new Set<number>();
