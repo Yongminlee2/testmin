@@ -1,4 +1,5 @@
 import { mulberry32, pickInt, shuffle } from '../../rng';
+import { attachParticle } from '../../korean';
 import { shape } from '../figure';
 import { iqQuestionId } from '../questionId';
 import type { CellSpec, FigureSpec, GeneratedQuestion, Question, ShapeKind } from '../../types';
@@ -76,7 +77,7 @@ export const sizeGenerator: Generator = {
       explanation:
         `가로 줄마다 도형 종류가 정해져 있고, 오른쪽으로 갈수록 ` +
         `${ascending ? '커집니다' : '작아집니다'}. ` +
-        `마지막 줄은 ${kindNames[answer.kind]}이고, 세 번째 칸이므로 ` +
+        `마지막 줄은 ${attachParticle(kindNames[answer.kind], '이고', '고')}, 세 번째 칸이므로 ` +
         `${ascending ? '가장 큰' : '가장 작은'} 크기입니다.`,
       difficulty: 2,
     };

@@ -16,6 +16,19 @@ describe('distributeGenerator', () => {
     }
   });
 
+  // 리뷰 I-2 — rotation·count·fill은 이 검사를 갖는데 size·distribute는 없었다.
+  // blankIndex는 FigureSpec에서 선택 필드라 tsc도 안 잡는다. 이 검사가 없으면
+  // blankIndex를 8→0으로 바꿔도(왼쪽 위가 비고 오른쪽 아래 정답 칸이 그려진다 —
+  // 선택지 5개는 여전히 (2,2) 기준이라 묻는 칸과 답하는 칸이 어긋난 풀 수 없는
+  // 문항이 된다) 초록불로 남는다. `distribute.test.ts`의 행·열 검사는 cells
+  // 배열을 직접 읽어서 blankIndex와 무관하게 통과하므로 이 검사를 대신하지 못한다.
+  test('문제 도형은 9칸 격자이고 마지막 칸이 비어 있다', () => {
+    const { question } = G.generate(5);
+    expect(question.figure?.kind).toBe('grid');
+    expect(question.figure?.cells).toHaveLength(9);
+    expect(question.figure?.blankIndex).toBe(8);
+  });
+
   test('시드 500개에서 항상 검증을 통과한다', () => {
     for (let seed = 1; seed <= 500; seed++) {
       const errors = verifyGenerated(G.generate(seed));
@@ -158,6 +171,30 @@ describe('distributeGenerator', () => {
         if (i === ai || c.figure === undefined || answer === undefined) return;
         expect(figureEquals(answer, c.figure)).toBe(false);
       });
+    }
+  });
+
+  // 리뷰 I-3 — "회전은 삼각형에만"의 유일한 방어선이 fill.test.ts였다.
+  // distribute도 회전을 규칙으로 쓰지 않으므로 어떤 도형도 회전이 있으면 안
+  // 된다. 문제 격자(figure.cells)와 선택지(choices) 양쪽 경로를 다 훑는다 —
+  // M7이 정확히 이 구멍이었다: 격자에만 회전을 주입하고 선택지는 그대로
+  // 두면(화면상 정답 선택지가 패턴과 안 맞는 문항이 나온다) choices만 보는
+  // 검사로는 못 잡는다.
+  test('회전을 구분 기준으로 쓰지 않는다', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const { question } = G.generate(seed);
+      for (const cell of question.figure?.cells ?? []) {
+        for (const s of cell.shapes) {
+          expect(s.rotation).toBe(0);
+        }
+      }
+      for (const c of question.choices) {
+        for (const cell of c.figure?.cells ?? []) {
+          for (const s of cell.shapes) {
+            expect(s.rotation).toBe(0);
+          }
+        }
+      }
     }
   });
 

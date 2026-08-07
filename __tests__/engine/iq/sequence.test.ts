@@ -133,6 +133,26 @@ describe('sequenceGenerator', () => {
     }
   });
 
+  // 리뷰 I-1 — 다섯 생성기(rotation·count·fill·size·distribute)는 각자 이 형태의
+  // 테스트를 갖는데 sequence만 없었다. shuffle을 지워 answerIndex가 항상 0이
+  // 되게 만드는 뮤테이션(M1)이 이 테스트 없이는 339개 전부 통과하고 tsc·
+  // validate:content도 통과한다.
+  //
+  // assembleIq.test.ts:38의 집계 테스트("정답 위치가 다섯 자리에 고루 퍼진다",
+  // < 28%)는 이 뮤테이션을 대신 잡아주지 못한다 — sequence는 한 세트 20슬롯
+  // 중 2슬롯만 받으므로, sequence 혼자 정답을 전부 1번에 고정해도 전체 집계는
+  // 27.98%로 임계값 28% 아래에 숨는다(4000문항 중 8문항 차이). 생성기가
+  // 늘어날수록 각 생성기의 지분은 더 줄어들어 집계 임계값은 계속 무력해진다 —
+  // 그래서 집계 테스트를 조이는 것으로는 부족하고, 생성기마다 독립적으로
+  // "정답 위치가 고정되지 않는다"를 못박아야 한다.
+  test('시드 500개에서 정답 위치가 고정되어 있지 않다', () => {
+    const positions = new Set<number>();
+    for (let seed = 1; seed <= 500; seed++) {
+      positions.add(G.generate(seed).question.answerIndex ?? -1);
+    }
+    expect(positions.size).toBeGreaterThan(1);
+  });
+
   // ② 공통 요구의 "시각적 유효성"이 수열에서는 숫자 크기로 나타난다.
   test('제시된 항과 선택지가 모두 1~9999 정수다', () => {
     for (let seed = 1; seed <= 500; seed++) {
@@ -302,6 +322,14 @@ describe('sequenceGenerator', () => {
         case 'square': {
           const nextBase = Math.round(Math.sqrt(last)) + 1;
           expect(explanation).toContain(`${nextBase}² = ${answer}`);
+          // 리뷰 m-2 — 해설 도입부가 "1², 2², 3² …"로 고정돼 있으면 k가 0이
+          // 아닐 때(화면이 4², 9², 16²부터 시작) 실제 항과 어긋난다. 화면에
+          // 찍힌 첫 세 항(t[0]·t[1]·t[2])의 밑을 역산해 해설이 그 실제 항을
+          // 말하는지 확인한다 — 생성기의 k 변수를 다시 읽지 않는다.
+          const base0 = Math.round(Math.sqrt(t[0] as number));
+          const base1 = Math.round(Math.sqrt(t[1] as number));
+          const base2 = Math.round(Math.sqrt(t[2] as number));
+          expect(explanation).toContain(`${base0}², ${base1}², ${base2}² … 제곱수입니다`);
           break;
         }
         default:

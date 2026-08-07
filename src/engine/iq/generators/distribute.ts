@@ -1,4 +1,5 @@
 import { mulberry32, pickInt, shuffle } from '../../rng';
+import { attachParticle } from '../../korean';
 import { shape } from '../figure';
 import { iqQuestionId } from '../questionId';
 import { SIZES } from './size';
@@ -77,6 +78,16 @@ export const distributeGenerator: Generator = {
     const rowKinds = rowCells.map((cell) => kindNames[cell.shapes[0]?.kind as ShapeKind]);
     const rowSizes = rowCells.map((cell) => sizeName(cell.shapes[0]?.size as number));
 
+    // 리뷰 m-3 — KINDS가 원·사각형·삼각형뿐일 때는 셋 다 받침이 있어
+    // "과"·"이"를 하드코딩해도 우연히 전부 맞았다. kindNames에는 이미
+    // diamond: '마름모'(받침 없음)가 들어 있으므로, KINDS에 마름모가 들어오는
+    // 순간 하드코딩은 "마름모이 있으므로"처럼 깨진다. attachParticle로
+    // 받침 유무에 맞춰 조사를 고른다 — rowKinds[0]의 받침에 따라 와/과를,
+    // 이어붙인 구절 전체(끝 글자는 rowKinds[1]과 같다)의 받침에 따라 이/가를 고른다.
+    const rowKind0 = rowKinds[0] as string;
+    const rowKind1 = rowKinds[1] as string;
+    const rowKindsPhrase = `${attachParticle(rowKind0, '과', '와')} ${rowKind1}`;
+
     const question: Question = {
       id: iqQuestionId('distribute', seed),
       kind: 'scored',
@@ -86,7 +97,8 @@ export const distributeGenerator: Generator = {
       answerIndex,
       explanation:
         `가로 한 줄에는 원·사각형·삼각형이 한 번씩, 크기도 작은·중간·큰 것이 한 번씩 나옵니다. ` +
-        `마지막 줄에는 이미 ${rowKinds.join('과 ')}이 있으므로 빈 칸은 ${kindNames[answer.kind]}이고, ` +
+        `마지막 줄에는 이미 ${attachParticle(rowKindsPhrase, '이', '가')} 있으므로 빈 칸은 ` +
+        `${attachParticle(kindNames[answer.kind], '이고', '고')}, ` +
         `${rowSizes.join('·')} 크기가 이미 나왔으므로 ${sizeName(answer.size)} 크기입니다.`,
       difficulty: 3,
     };

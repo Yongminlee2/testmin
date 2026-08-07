@@ -8,6 +8,8 @@ import {
   validateGenerators,
   validateGeneratorCapacity,
   measureGeneratorCapacity,
+  validateIqQuestions,
+  validateIqAssembly,
 } from '../../tools/validate-content';
 import type { PoolScoring } from '../../src/content/registry';
 import type { Question, GradeTable, GeneratedQuestion } from '@/engine/types';
@@ -482,5 +484,137 @@ describe('measureGeneratorCapacity / validateGeneratorCapacity', () => {
     const count = GENERATORS.find((g) => g.id === 'count');
     expect(count).toBeDefined();
     expect(measureGeneratorCapacity(count as Generator, 1000)).toBe(6);
+  });
+});
+
+/**
+ * 리뷰 I-6 — 게이트가 IQ에 대해 실제로 도는 것은 validateGenerators(생성기
+ * 하나를 시드 하나로 돌린 결과)와 validateGeneratorCapacity(용량 대 수요)뿐
+ * 이었다. 실제 출제 함수 assembleIq의 **출력**(정답 위치 분포·격자 구조·문항
+ * id 계약)은 아무도 안 봤다 — IQ는 POOLS에 없어서 validateAllPools 순회도
+ * 이 앱의 최대 문항 공급원을 영원히 건너뛴다. validateIqQuestions가 그
+ * 세 가지를 assembleIq 출력(GeneratedQuestion[])에 대해 본다.
+ */
+describe('validateIqQuestions', () => {
+  function gridQuestion(
+    id: string,
+    generatorId: string,
+    seed: number,
+    overrides: Partial<Question> = {}
+  ): GeneratedQuestion {
+    return {
+      question: {
+        id,
+        kind: 'scored',
+        prompt: '빈 칸에 들어갈 도형은?',
+        figure: {
+          kind: 'grid',
+          cells: Array.from({ length: 9 }, () => ({ shapes: [] })),
+          blankIndex: 8,
+        },
+        choices: [{ text: 'a' }, { text: 'b' }, { text: 'c' }, { text: 'd' }, { text: 'e' }],
+        answerIndex: 0,
+        explanation: '해설',
+        difficulty: 1,
+        ...overrides,
+      },
+      generatorId,
+      seed,
+    };
+  }
+
+  test('정답 위치가 고르게 퍼진 정상 격자 문항 묶음은 오류가 없다', () => {
+    const set: GeneratedQuestion[] = Array.from({ length: 20 }, (_, i) =>
+      gridQuestion(`iq-fake-${i}`, 'fake', i, { answerIndex: i % 5 })
+    );
+    expect(validateIqQuestions(set)).toEqual([]);
+  });
+
+  // M1 대응 — sequence의 shuffle을 지워 answerIndex가 항상 0이 되게 만든 것과
+  // 같은 모양. validateAnswerDistribution을 그대로 재사용해 잡는다.
+  test('정답 위치가 한쪽으로 쏠리면 잡는다', () => {
+    const set: GeneratedQuestion[] = Array.from({ length: 20 }, (_, i) =>
+      gridQuestion(`iq-fake-${i}`, 'fake', i, { answerIndex: 0 })
+    );
+    const errors = validateIqQuestions(set);
+    expect(errors.some((e) => e.includes('0번'))).toBe(true);
+  });
+
+  // M3 대응 — size.ts에서 blankIndex를 통째로 지운 것과 같은 모양.
+  // blankIndex가 없으면 격자 9칸이 전부 그려져 정답이 그대로 인쇄된다.
+  test('격자 문항에 blankIndex가 없으면 잡는다', () => {
+    const bad = gridQuestion('iq-fake-1', 'fake', 1);
+    const withoutBlankIndex: GeneratedQuestion = {
+      ...bad,
+      question: {
+        ...bad.question,
+        figure: { kind: 'grid', cells: bad.question.figure!.cells },
+      },
+    };
+    const errors = validateIqQuestions([withoutBlankIndex]);
+    expect(errors.some((e) => e.includes('blankIndex'))).toBe(true);
+  });
+
+  test('격자 칸 수가 9개가 아니면 잡는다', () => {
+    const bad = gridQuestion('iq-fake-1', 'fake', 1);
+    const wrongCellCount: GeneratedQuestion = {
+      ...bad,
+      question: {
+        ...bad.question,
+        figure: {
+          kind: 'grid',
+          cells: bad.question.figure!.cells.slice(0, 8),
+          blankIndex: 7,
+        },
+      },
+    };
+    const errors = validateIqQuestions([wrongCellCount]);
+    expect(errors.some((e) => e.includes('9칸'))).toBe(true);
+  });
+
+  // M12 대응 — sequence의 id를 'seq2'로 바꾸면(숫자가 정규식을 깬다)
+  // parseIqQuestionId가 undefined를 준다. jest(questionId.test.ts)는 이미
+  // 잡지만 게이트는 못 잡았다.
+  test('문항 id가 iq-<generatorId>-<seed> 형식이 아니면 잡는다', () => {
+    const bad = gridQuestion('seq2-5', 'sequence', 5);
+    const errors = validateIqQuestions([bad]);
+    expect(errors.some((e) => e.includes('형식'))).toBe(true);
+  });
+
+  test('문항 id를 파싱한 값이 실제 생성기·시드와 다르면 잡는다', () => {
+    // id는 iq-other-99라고 말하는데 실제로 만든 건 fake/1이다.
+    const bad = gridQuestion('iq-other-99', 'fake', 1);
+    const errors = validateIqQuestions([bad]);
+    expect(errors.some((e) => e.includes('다릅니다'))).toBe(true);
+  });
+
+  // sequence처럼 figure가 없는 생성기는 격자 검사 대상이 아니다.
+  // (정답 위치를 5개에 고르게 둬서 answerDistribution 검사에 안 걸리게 한다 —
+  // 이 테스트가 보려는 것은 격자 검사 건너뛰기이지 분포 검사가 아니다.)
+  test('figure가 없는 문항은 격자 검사를 건너뛴다', () => {
+    const noFigure = (i: number): GeneratedQuestion => ({
+      question: {
+        id: `iq-sequence-${i}`,
+        kind: 'scored',
+        prompt: '다음 수열에서 ?에 들어갈 수는?',
+        choices: [{ text: '1' }, { text: '2' }, { text: '3' }, { text: '4' }, { text: '5' }],
+        answerIndex: i % 5,
+        explanation: '해설',
+        difficulty: 2,
+      },
+      generatorId: 'sequence',
+      seed: i,
+    });
+    const set = Array.from({ length: 5 }, (_, i) => noFigure(i));
+    expect(validateIqQuestions(set)).toEqual([]);
+  });
+});
+
+describe('validateIqAssembly', () => {
+  // POOLS에는 IQ를 추가하지 않고, assembleIq를 시드 여러 개로 직접 돌려
+  // validateIqQuestions를 적용한다는 실제 배선이 실제 등록된 생성기·설정으로도
+  // 통과하는지 확인한다.
+  test('실제 IQ_DRAW·GENERATORS 조합은 시드 30개에서 오류가 없다', () => {
+    expect(validateIqAssembly(IQ_DRAW, 30)).toEqual([]);
   });
 });

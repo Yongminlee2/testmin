@@ -74,6 +74,31 @@ describe('countGenerator', () => {
     }
   });
 
+  // 리뷰 I-3 — "회전은 삼각형에만"이 fill.test.ts에서만 검사되고 있었다.
+  // count는 점(원)만 쓰므로 회전이 전혀 나오면 안 된다. SvgFigure.tsx는 원에
+  // transform을 안 주므로, 오답 하나가 정답과 점 개수까지 같고 rotation만
+  // 다르면(예: rotation: 90) 화면에는 완전히 똑같은 선택지 두 개가 나오고
+  // 하나는 오답 처리된다 — 맞게 센 사용자가 틀렸다고 나오는, 이번 리뷰에서
+  // 가장 무거운 결함(M16)이다. 문제 격자(figure.cells)와 선택지(choices) 양쪽
+  // 경로를 다 훑는다 — 격자 생성 경로에만 회전을 주입해도 choices만 보면 못 잡는다.
+  test('회전을 구분 기준으로 쓰지 않는다', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const { question } = countGenerator.generate(seed);
+      for (const cell of question.figure?.cells ?? []) {
+        for (const s of cell.shapes) {
+          expect(s.rotation).toBe(0);
+        }
+      }
+      for (const c of question.choices) {
+        for (const cell of c.figure?.cells ?? []) {
+          for (const s of cell.shapes) {
+            expect(s.rotation).toBe(0);
+          }
+        }
+      }
+    }
+  });
+
   // 리뷰 Important #1 — DOT_POSITIONS 좌표가 겹치면 점 2개가 화면에 1개로 그려져
   // shapes.length는 정답과 일치한다고 계산되는데 실제로는 눈에 보이는 점이 하나
   // 모자란 문제가 생긴다. 개수(length) 기반 검사로는 이 오류를 못 잡으므로

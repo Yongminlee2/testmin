@@ -198,12 +198,18 @@ function buildSquare(rand: () => number): Built {
   const base = 7 + k; // 화면에 없는, 정답이 되는 다음 항의 밑
   const answer = base * base;
 
+  // 리뷰 m-2 — k가 0이 아니면(terms가 4², 9², 16²부터 시작) 해설의 도입부가
+  // "1², 2², 3² …"로 고정돼 있으면 화면에 찍힌 항과 어긋난다. 화면에 실제로
+  // 보이는 첫 세 항의 밑(k+1, k+2, k+3)을 그대로 말한다.
+  const firstBase = k + 1;
+
   return {
     terms,
     answer,
     // 마지막 제곱수 + 다음 밑 / 한 칸 덜 감 / 제곱 대신 곱셈 실수(밑을 2 더 건너뜀)
     candidates: [last + base, last, (base + 2) ** 2, answer + base],
-    explanation: `1², 2², 3² … 제곱수입니다. ${base}² = ${answer}.`,
+    explanation:
+      `${firstBase}², ${firstBase + 1}², ${firstBase + 2}² … 제곱수입니다. ${base}² = ${answer}.`,
   };
 }
 

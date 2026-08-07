@@ -1,10 +1,11 @@
 /// <reference types="node" />
-import { AXES, type GradeTable, type Question } from '../src/engine/types';
+import { AXES, type GeneratedQuestion, type GradeTable, type Question } from '../src/engine/types';
 import type { PoolScoring } from '../src/content/registry';
 import { verifyGenerated } from '../src/engine/iq/verify';
 import type { Generator } from '../src/engine/iq/generators';
-import { puzzleKey, computeGeneratorDemand } from '../src/engine/iq/assembleIq';
+import { puzzleKey, computeGeneratorDemand, assembleIq } from '../src/engine/iq/assembleIq';
 import type { IqDrawConfig } from '../src/engine/iq/assembleIq';
+import { parseIqQuestionId } from '../src/engine/iq/questionId';
 
 export interface ScoredValidationOptions {
   /** 텍스트 문항은 4, IQ 도형·수열은 5 */
@@ -405,6 +406,95 @@ export function validateGeneratorCapacity(
   return errors;
 }
 
+/**
+ * 리뷰 I-6 — 게이트가 IQ에 대해 실제로 도는 것은 validateGenerators(생성기가
+ * 시드 1~200에서 유효한 문항을 내는가)와 validateGeneratorCapacity(용량이
+ * 수요보다 큰가)뿐이다. 둘 다 생성기 **하나**를 시드 하나로 돌린 결과만 본다
+ * — 실제 출제 함수인 assembleIq의 **출력**(한 세트 20문항, 여러 세트)을 보는
+ * 검사가 없다. 그래서 다음 세 가지가 게이트를 그냥 통과한다.
+ *
+ * ① 정답 위치 분포 — validateAnswerDistribution은 이미 구현되어 있고 POOLS
+ *    풀에는 잘 동작하는데, IQ는 POOLS에 없으므로 이 앱의 최대 문항 공급원
+ *    (한 세트 20문항)에는 영원히 안 닿는다. 계획 1에서 출시 직전까지 갔던
+ *    "정답이 전부 1번"이 여기 안 걸리면 게이트가 못 잡는다(M1).
+ *
+ *    **생성기별로 나눠서 검사한다 — 전체를 하나로 합쳐서 보면 안 된다.**
+ *    I-1이 잡은 바로 그 함정이 여기서도 그대로 재현된다: sequence는 한
+ *    세트 20슬롯 중 2슬롯만 받으므로, sequence 혼자 정답을 전부 1번에
+ *    고정해도 IQ 전체를 한 풀로 합치면 그 지분이 10%대로 묻혀 40% 임계값을
+ *    영원히 못 넘는다(세트를 더 많이 모아도 지분 자체가 안 바뀌므로 시드
+ *    수를 늘리는 것으로는 해결되지 않는다). `iq:<generatorId>`별로 쪼개서
+ *    validateAnswerDistribution을 따로 불러야 이 뮤테이션이 잡힌다.
+ * ② 격자 구조 — figure.kind가 'grid'면 9칸이어야 하고 blankIndex가 있어야
+ *    한다. 없으면(M3) 격자 9칸이 전부 그려져 정답이 그대로 인쇄된 문항이
+ *    통과한다. (blankIndex가 "있는지"까지만 본다 — 그 값이 실제로 정답 칸을
+ *    가리키는지는 생성기별 jest 테스트의 몫이다(I-2). 여기서 "8번이어야
+ *    한다"고 못박으면 이 게이트 검사가 특정 관례에 결합돼 버린다. 그래서
+ *    M4(blankIndex 8→0)처럼 값이 있지만 틀린 경우는 이 검사 하나만으로는
+ *    안 잡힌다 — I-2의 jest 테스트가 그 층을 담당한다.)
+ * ③ 문항 id 계약 — iqQuestionId로 만든 id가 parseIqQuestionId로 되돌아와야
+ *    한다. 안 돌아오면(M12) 오답노트(계획 4)에서 그 문항이 조용히 사라지는데,
+ *    jest(questionId.test.ts의 100시드 왕복 테스트)는 잡아도 게이트는 못 잡았다.
+ *
+ * IQ는 POOLS에 추가하지 않는다(시드에서 생성하므로 정적 배열로 못 담는다) —
+ * 대신 assembleIq를 시드 여러 개로 직접 돌려 같은 종류의 검사를 적용한다.
+ */
+export function validateIqQuestions(generated: readonly GeneratedQuestion[]): string[] {
+  const errors: string[] = [];
+  const questionsByGenerator = new Map<string, Question[]>();
+
+  for (const gq of generated) {
+    const bucket = questionsByGenerator.get(gq.generatorId) ?? [];
+    bucket.push(gq.question);
+    questionsByGenerator.set(gq.generatorId, bucket);
+
+    const fig = gq.question.figure;
+    if (fig !== undefined && fig.kind === 'grid') {
+      if (fig.cells.length !== 9) {
+        errors.push(
+          `[${gq.question.id}] 격자 칸 수가 ${fig.cells.length}개입니다 (9칸이어야 합니다)`
+        );
+      }
+      if (fig.blankIndex === undefined) {
+        errors.push(`[${gq.question.id}] blankIndex가 없습니다 — 정답 칸이 가려지지 않습니다`);
+      }
+    }
+
+    const parsed = parseIqQuestionId(gq.question.id);
+    if (parsed === undefined) {
+      errors.push(
+        `[${gq.question.id}] 문항 id가 iq-<generatorId>-<seed> 형식이 아닙니다 — ` +
+          `오답노트가 이 문항을 복원하지 못합니다`
+      );
+    } else if (parsed.generatorId !== gq.generatorId || parsed.seed !== gq.seed) {
+      errors.push(
+        `[${gq.question.id}] 문항 id를 파싱한 값(${parsed.generatorId}, ${parsed.seed})이 ` +
+          `실제 생성기·시드(${gq.generatorId}, ${gq.seed})와 다릅니다`
+      );
+    }
+  }
+
+  for (const [generatorId, questions] of questionsByGenerator) {
+    errors.push(...validateAnswerDistribution(`iq:${generatorId}`, questions));
+  }
+
+  return errors;
+}
+
+/**
+ * validateIqQuestions를 실제 출제 함수 assembleIq의 출력에 적용한다. 시드
+ * 1..seedCount로 만든 세트를 모두 모아 한 번에 검사한다 — 정답 위치 분포는
+ * 세트 하나(20문항)로는 유의미하게 못 보고, 여러 세트를 모아야 40% 임계값이
+ * 뜻을 갖는다.
+ */
+export function validateIqAssembly(config: IqDrawConfig, seedCount = 100): string[] {
+  const generated: GeneratedQuestion[] = [];
+  for (let seed = 1; seed <= seedCount; seed++) {
+    generated.push(...assembleIq(seed, config));
+  }
+  return validateIqQuestions(generated);
+}
+
 /** CLI 진입점. 문제가 있으면 exit 1. */
 async function main(): Promise<void> {
   // registry.ts가 실제 콘텐츠 인벤토리다 — 파일 경로를 직접 나열하지 않고
@@ -417,13 +507,17 @@ async function main(): Promise<void> {
     GradeTable
   >;
 
+  const IQ_ASSEMBLY_SEED_COUNT = 100;
+
   const { errors: poolErrors, totalQuestions } = validateAllPools(POOLS, POOL_SCORING);
   const { errors: generatorErrors, totalGenerated } = validateGenerators(GENERATORS);
   const capacityErrors = validateGeneratorCapacity(GENERATORS, IQ_DRAW);
+  const iqAssemblyErrors = validateIqAssembly(IQ_DRAW, IQ_ASSEMBLY_SEED_COUNT);
   const errors = [
     ...poolErrors,
     ...generatorErrors,
     ...capacityErrors,
+    ...iqAssemblyErrors,
     ...Object.entries(grades).flatMap(([id, table]) => validateGradeTable(id, table)),
   ];
 
@@ -435,7 +529,9 @@ async function main(): Promise<void> {
 
   console.log(
     `콘텐츠 검증 통과 — 문항 ${totalQuestions}개, 생성형 검증 ${totalGenerated}건, ` +
-      `생성기 용량 검사 ${GENERATORS.length}종, 급수 테이블 ${Object.keys(grades).length}개`
+      `생성기 용량 검사 ${GENERATORS.length}종, ` +
+      `IQ 출제(assembleIq) 검증 ${IQ_DRAW.questionCount * IQ_ASSEMBLY_SEED_COUNT}건, ` +
+      `급수 테이블 ${Object.keys(grades).length}개`
   );
 }
 

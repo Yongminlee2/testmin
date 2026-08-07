@@ -1,4 +1,5 @@
 import { mulberry32, pickInt, shuffle } from '../../rng';
+import { attachParticle } from '../../korean';
 import { shape } from '../figure';
 import { iqQuestionId } from '../questionId';
 import type { CellSpec, FigureSpec, GeneratedQuestion, Question, ShapeKind } from '../../types';
@@ -75,7 +76,7 @@ export const fillGenerator: Generator = {
       answerIndex,
       explanation:
         `열마다 도형이 ${KINDS.map((k) => kindNames[k]).join('→')} 순서로 바뀌고, ` +
-        `행마다 색이 번갈아 칠해집니다. 마지막 칸은 ${kindNames[answer.kind]}이고 ` +
+        `행마다 색이 번갈아 칠해집니다. 마지막 칸은 ${attachParticle(kindNames[answer.kind], '이고', '고')} ` +
         `${answer.filled ? '색이 칠해진' : '비어 있는'} 모양입니다.`,
       difficulty: 2,
     };

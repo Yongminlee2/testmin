@@ -15,6 +15,16 @@ describe('sizeGenerator', () => {
     }
   });
 
+  // 리뷰 I-2 — rotation·count·fill은 이 검사를 갖는데 size·distribute는 없었다.
+  // blankIndex는 FigureSpec에서 선택 필드라 tsc도 안 잡는다. 이 검사가 없으면
+  // blankIndex를 통째로 지워도(격자 9칸이 전부 그려져 정답이 인쇄된다) 초록불로 남는다.
+  test('문제 도형은 9칸 격자이고 마지막 칸이 비어 있다', () => {
+    const { question } = G.generate(5);
+    expect(question.figure?.kind).toBe('grid');
+    expect(question.figure?.cells).toHaveLength(9);
+    expect(question.figure?.blankIndex).toBe(8);
+  });
+
   test('시드 500개에서 항상 검증을 통과한다', () => {
     for (let seed = 1; seed <= 500; seed++) {
       const errors = verifyGenerated(G.generate(seed));
@@ -144,6 +154,29 @@ describe('sizeGenerator', () => {
         if (i === ai || c.figure === undefined || answer === undefined) return;
         expect(figureEquals(answer, c.figure)).toBe(false);
       });
+    }
+  });
+
+  // 리뷰 I-3 — "회전은 삼각형에만"이 fill.test.ts에서만 검사되고 있었다.
+  // size는 회전을 규칙으로 쓰지 않으므로 어떤 도형도 회전이 있으면 안 된다.
+  // 문제 격자(figure.cells)와 선택지(choices) 양쪽 경로를 다 훑는다 — 격자
+  // 생성 경로에만 회전을 주입해도 choices만 보면 못 잡는다(distribute의 M7이
+  // 실제로 그 형태였다).
+  test('회전을 구분 기준으로 쓰지 않는다', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const { question } = G.generate(seed);
+      for (const cell of question.figure?.cells ?? []) {
+        for (const s of cell.shapes) {
+          expect(s.rotation).toBe(0);
+        }
+      }
+      for (const c of question.choices) {
+        for (const cell of c.figure?.cells ?? []) {
+          for (const s of cell.shapes) {
+            expect(s.rotation).toBe(0);
+          }
+        }
+      }
     }
   });
 

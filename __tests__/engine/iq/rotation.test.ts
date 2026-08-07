@@ -68,4 +68,28 @@ describe('rotationGenerator', () => {
       });
     }
   });
+
+  // 리뷰 I-5 — count·fill·size·distribute·sequence는 모두 "해설이 역산한 값을
+  // 언급한다" 계열 테스트를 갖는데, rotation(공통 요구 확정 이전에 만들어진
+  // 첫 생성기)에는 없었다. 해설의 첫 칸 각도를 start에서 start+90으로 바꿔
+  // 그럴듯하지만 틀린 값을 찍어도(M13) 다른 테스트가 못 잡는다.
+  //
+  // 생성기 내부 변수(start·step)를 다시 읽으면 동어반복이므로, "정답 선택지의
+  // 도형이 규칙이 예측하는 모양과 일치한다" 테스트와 같은 방식으로 그려진
+  // 격자(cells[0]·cells[1])에서 첫 칸 각도와 회전 폭을 독립적으로 역산한다.
+  test('해설이 격자에서 역산한 시작 각도·회전 폭을 실제로 언급한다', () => {
+    for (let seed = 1; seed <= 500; seed++) {
+      const { question } = rotationGenerator.generate(seed);
+      const cells = question.figure?.cells ?? [];
+      const first = cells[0]?.shapes[0]?.rotation ?? 0;
+      const second = cells[1]?.shapes[0]?.rotation ?? 0;
+      const step = ((second - first) % 360 + 360) % 360;
+      const answerRotation = ((first + step * 8) % 360 + 360) % 360;
+
+      const explanation = question.explanation ?? '';
+      expect(explanation).toContain(`시계방향으로 ${step}°씩 돕니다`);
+      expect(explanation).toContain(`첫 칸이 ${first}°이므로`);
+      expect(explanation).toContain(`${answerRotation}° 회전한 모양입니다`);
+    }
+  });
 });
