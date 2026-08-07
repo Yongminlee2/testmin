@@ -1715,9 +1715,13 @@ export const sizeGenerator: Generator = {
 오답 구성 `{ sizeOnly: 2, kindOnly: 1, both: 1 }`, 오답≠정답)는 `distribute.test.ts`와 같은 형태로 쓴다.
 
 **레지스트리 등록** — `GENERATORS`에 `distributeGenerator`와 `sizeGenerator`를 추가한다.
-Task 4에서 만든 `generators.test.ts`가 **모듈에서 내보내는 모든 생성기를 발견하는 방식**이면
-자동으로 커버된다. 만약 생성기 목록을 하드코딩해 열거하는 방식이라면 그건 Task 4 리뷰 지적 ④가
-되살아난 것이므로 **발견 방식으로 고칠 것.**
+
+`__tests__/engine/iq/generators.test.ts`는 이미 **디스크에서 생성기 모듈을 발견하는 방식**이다
+(Task 4 재리뷰에서 하드코딩 목록을 교체했다). 그래서 등록을 빠뜨리면 **자동으로 빨간불이 된다.**
+테스트 파일에 새 생성기를 손으로 추가할 필요가 없고, 추가해서도 안 된다.
+
+발견은 export의 **모양**(`id`·`difficulty`·`generate` 보유)으로 거르므로, `size.ts`가 `SIZES` 상수를
+함께 내보내도 문제없다. 이 케이스는 Task 4 라운드 2에서 미리 확인했다.
 
 ### Task 5 — 수열 생성기
 
