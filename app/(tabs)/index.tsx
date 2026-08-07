@@ -1,5 +1,6 @@
 import { ScrollView, Text, View, Pressable, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/ui/Card';
 import { Badge } from '@/ui/Badge';
 import { AdSlot } from '@/ui/AdSlot';
@@ -9,11 +10,14 @@ import { categoryColor, colors, font, space } from '@/ui/tokens';
 
 export default function HomeScreen() {
   const router = useRouter();
+  // 이 화면은 헤더를 끄고 브랜드 제목이 그 역할을 대신한다((tabs)/_layout.tsx 참고).
+  // 헤더가 없으면 상태바 밑으로 콘텐츠가 파고들므로 상단 안전영역을 직접 넣는다.
+  const insets = useSafeAreaInsets();
 
   return (
     <ScrollView
       style={styles.screen}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + space.md }]}
       testID="home-scroll"
     >
       <Text style={styles.brand} maxFontSizeMultiplier={font.maxScale}>
@@ -72,7 +76,7 @@ const styles = StyleSheet.create({
     fontFamily: font.family.bold,
     color: colors.muted,
     marginTop: space.xs,
-    marginBottom: space.lg,
+    marginBottom: space.md,
   },
   card: { marginBottom: space.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md },

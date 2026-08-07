@@ -120,6 +120,12 @@ export interface VoteResult {
   readonly wasTie: boolean;
 }
 
+/** 궁합 한 짝. 코드만 주지 않고 왜 그런지를 항상 같이 준다. */
+export interface CompatLink {
+  readonly code: string;
+  readonly why: string;
+}
+
 /** 16유형 별명 데이터 한 항목 */
 export interface TypeNameEntry {
   readonly code: string;
@@ -127,4 +133,8 @@ export interface TypeNameEntry {
   readonly nickname: string;
   readonly description: string;
   readonly emoji: string;
+  /** 잘 맞는 유형 2개. 가운데 두 글자가 같고 나머지가 다른 쪽에서 뽑는다. */
+  readonly goodWith: readonly CompatLink[];
+  /** 네 축이 모두 반대인 유형 */
+  readonly hardWith: CompatLink;
 }

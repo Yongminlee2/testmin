@@ -5,6 +5,7 @@ import { fillGenerator } from './fill';
 import { distributeGenerator } from './distribute';
 import { sizeGenerator } from './size';
 import { sequenceGenerator } from './sequence';
+import { logicGenerator } from './logic';
 
 export interface Generator {
   readonly id: string;
@@ -13,7 +14,7 @@ export interface Generator {
   generate(seed: number): GeneratedQuestion;
 }
 
-/** 여섯 번째이자 마지막 생성기(sequence)까지 다 채워졌다. */
+/** 도형 6종 + 수열 1종. logic은 두 칸을 겹쳐 읽어야 하는 상위 난이도 규칙이다. */
 export const GENERATORS: readonly Generator[] = [
   rotationGenerator,
   countGenerator,
@@ -21,4 +22,5 @@ export const GENERATORS: readonly Generator[] = [
   distributeGenerator,
   sizeGenerator,
   sequenceGenerator,
+  logicGenerator,
 ];

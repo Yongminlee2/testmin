@@ -4,25 +4,23 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
-import { BlackHanSans_400Regular } from '@expo-google-fonts/black-han-sans';
-// noto-sans-kr의 index.js는 배럴 모듈이라 require()로 9개 굵기를 전부 불러온다.
-// Metro는 require를 트리쉐이킹하지 못하므로 index에서 import하면 안 쓰는
-// 6개 굵기(약 41MB)까지 APK에 그대로 실린다. 실제로 쓰는 3개만 굵기별
-// 서브패스(패키지가 문서로 안내하는 방식)로 가져와 나머지를 배제한다.
-import { NotoSansKR_500Medium } from '@expo-google-fonts/noto-sans-kr/500Medium';
-import { NotoSansKR_700Bold } from '@expo-google-fonts/noto-sans-kr/700Bold';
-import { NotoSansKR_900Black } from '@expo-google-fonts/noto-sans-kr/900Black';
 import { useHistory } from '@/store/history';
 import { colors, font } from '@/ui/tokens';
 
 void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  // 원본 Noto Sans KR은 한자 약 2만 자까지 담은 전체 CJK 폰트라 굵기당 5.9MB다.
+  // 세 굵기를 시작할 때 다 파싱하는 동안 아래 `return null`이 화면을 안 그려서
+  // 앱이 눈에 띄게 늦게 떴다. tools/subset-fonts.py로 한자·가나를 걷어낸
+  // 서브셋(굵기당 2.7MB)을 assets/fonts에 두고 그것만 싣는다.
+  // 폰트를 다시 만들려면 그 스크립트를 실행할 것 — node_modules에서 직접
+  // import하면 18.6MB짜리 원본으로 되돌아간다.
   const [fontsLoaded, fontError] = useFonts({
-    BlackHanSans_400Regular,
-    NotoSansKR_500Medium,
-    NotoSansKR_700Bold,
-    NotoSansKR_900Black,
+    BlackHanSans_400Regular: require('../assets/fonts/BlackHanSans_400Regular.ttf'),
+    NotoSansKR_500Medium: require('../assets/fonts/NotoSansKR_500Medium.ttf'),
+    NotoSansKR_700Bold: require('../assets/fonts/NotoSansKR_700Bold.ttf'),
+    NotoSansKR_900Black: require('../assets/fonts/NotoSansKR_900Black.ttf'),
   });
 
   useEffect(() => {

@@ -3,6 +3,7 @@ import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TypeCard } from '@/ui/TypeCard';
+import { CompatCard } from '@/ui/CompatCard';
 import { Button } from '@/ui/Button';
 import { ShareButton } from '@/ui/ShareButton';
 import { AdSlot } from '@/ui/AdSlot';
@@ -81,6 +82,24 @@ export default function PersonalityResultScreen() {
         </View>
 
         <ShareButton targetRef={cardRef} dialogTitle="성격 16유형 고사" />
+
+        <CompatCard
+          goodWith={(entry?.goodWith ?? []).map((g) => ({
+            label: g.code,
+            sub: getTypeName(g.code)?.nickname,
+            why: g.why,
+          }))}
+          hardWith={
+            entry
+              ? {
+                  label: entry.hardWith.code,
+                  sub: getTypeName(entry.hardWith.code)?.nickname,
+                  why: entry.hardWith.why,
+                }
+              : undefined
+          }
+          rule="가운데 두 글자(정보를 받아들이는 방식·판단 기준)가 같으면 말이 통하고, 나머지 두 글자가 다르면 서로 없는 쪽을 채운다고 봤습니다."
+        />
 
         <Button
           label="✎ 문항별 해설 보기"
