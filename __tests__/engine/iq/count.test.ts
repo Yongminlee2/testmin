@@ -126,9 +126,10 @@ describe('countGenerator', () => {
       }
     }
 
-    // 이 테스트 자체가 인덱스 0~8을 전부 관측했는지 확인한다 —
+    // 이 테스트 자체가 인덱스 0~11을 전부 관측했는지 확인한다 —
     // 못 봤다면 아래 거리 검사가 일부 좌표를 놓친 채 통과해버릴 수 있다.
-    expect(positionsByIndex.size).toBe(9);
+    // (Task 1에서 배치표가 9칸→12칸으로 늘었다.)
+    expect(positionsByIndex.size).toBe(12);
     if (diameter === undefined) {
       throw new Error('점 크기를 하나도 관측하지 못했다 — 테스트 커버리지 부족');
     }
@@ -199,15 +200,46 @@ describe('countGenerator', () => {
     expect(sawDecreasing).toBe(true);
   });
 
-  // 리뷰 Important #4 증거 — 넓힌 뒤 실측 용량이 6이어야 한다(증가 3종 + 감소 3종).
+  // Task 1(용량 넓히기) 증거 — 넓힌 뒤 실측 용량이 13이어야 한다
+  // (증가·보폭1 3종 + 증가·보폭2 2종 + 감소·보폭1 6종 + 감소·보폭2 2종 = 13).
   // tools/validate-content.ts의 용량 검사(measureGeneratorCapacity)가 재는
   // 것과 같은 키(puzzleKey)로 세, 릴리스 게이트가 보는 값과 여기 값이 어긋나지
   // 않게 한다.
-  test('실측 퍼즐 용량이 6이다 (증가 3종 + 감소 3종)', () => {
+  test('실측 퍼즐 용량이 13이다 (증가 5종 + 감소 8종)', () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 1000; seed++) {
       seen.add(puzzleKey(countGenerator.generate(seed)));
     }
-    expect(seen.size).toBe(6);
+    expect(seen.size).toBe(13);
+  });
+
+  // Task 1 — 보폭(한 칸마다 점이 몇 개씩 느는/주는지)도 1과 2 둘 다 나와야
+  // "항상 1개씩"이라는 지름길이 막힌다. 첫 두 칸 개수 차이의 절댓값이 보폭이다.
+  test('시드 500개에서 보폭 1과 2가 모두 나온다', () => {
+    const steps = new Set<number>();
+    for (let seed = 1; seed <= 500; seed++) {
+      const { question } = countGenerator.generate(seed);
+      const cells = question.figure?.cells ?? [];
+      const c00 = cells[0]?.shapes.length ?? 0;
+      const c01 = cells[1]?.shapes.length ?? 0;
+      steps.add(Math.abs(c01 - c00));
+    }
+    expect(steps).toEqual(new Set([1, 2]));
+  });
+
+  // Task 1 증거 — puzzleKey(JSON 전체 비교, 위 테스트)와는 다른 방식으로 같은
+  // 수를 다시 잰다. (첫 칸 개수, 두 번째 칸과의 차이)로 퍼즐을 식별한다 —
+  // 이 쌍이 곧 (start, delta)이므로 서로 다른 (start, delta) 조합 수와
+  // 정확히 대응한다.
+  test('서로 다른 퍼즐이 13가지다', () => {
+    const puzzles = new Set<string>();
+    for (let seed = 1; seed <= 1000; seed++) {
+      const { question } = countGenerator.generate(seed);
+      const cells = question.figure?.cells ?? [];
+      const c00 = cells[0]?.shapes.length ?? 0;
+      const c01 = cells[1]?.shapes.length ?? 0;
+      puzzles.add(`${c00},${c01 - c00}`);
+    }
+    expect(puzzles.size).toBe(13);
   });
 });

@@ -479,11 +479,13 @@ describe('measureGeneratorCapacity / validateGeneratorCapacity', () => {
   });
 
   // 리뷰 항목4 증거 — count를 넓히기 전엔 용량 3 == 수요 3으로 이 테스트가
-  // 실패했어야 한다. 지금은 용량이 6(증가3+감소3)이라 통과한다.
-  test('count 생성기의 실측 용량은 6이다 (증가 3종 + 감소 3종)', () => {
+  // 실패했어야 한다. Task 1에서 배치표를 12칸으로 늘리고 보폭 1·2를 섞어
+  // 용량이 13(증가·보폭1 3 + 증가·보폭2 2 + 감소·보폭1 6 + 감소·보폭2 2)이
+  // 되었다.
+  test('count 생성기의 실측 용량은 13이다 (증가 5종 + 감소 8종)', () => {
     const count = GENERATORS.find((g) => g.id === 'count');
     expect(count).toBeDefined();
-    expect(measureGeneratorCapacity(count as Generator, 1000)).toBe(6);
+    expect(measureGeneratorCapacity(count as Generator, 1000)).toBe(13);
   });
 });
 

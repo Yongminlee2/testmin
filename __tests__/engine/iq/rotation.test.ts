@@ -92,4 +92,34 @@ describe('rotationGenerator', () => {
       expect(explanation).toContain(`${answerRotation}° 회전한 모양입니다`);
     }
   });
+
+  // Task 1(용량 넓히기) — start를 STEPS(90/180/270)에서 뽑던 시절엔 0°가
+  // 시작 각도로 전혀 나오지 않았다. STARTS(45° 배수 8가지)로 바꾼 뒤
+  // 0°를 포함한 8가지가 실제로 다 나오는지 확인한다.
+  test('시드 500개에서 시작 각도 8가지가 모두 나온다', () => {
+    const starts = new Set<number>();
+    for (let seed = 1; seed <= 500; seed++) {
+      const { question } = rotationGenerator.generate(seed);
+      const first = question.figure?.cells[0]?.shapes[0]?.rotation ?? -1;
+      starts.add(first);
+    }
+    expect(starts.size).toBe(8);
+  });
+
+  // Task 1 증거 — 넓힌 뒤 실측 퍼즐 가짓수가 24(step 3가지 × start 8가지)여야
+  // 한다. puzzleKey(JSON 전체 비교)를 쓰지 않고, 격자에서 직접 역산한
+  // (첫 칸 각도, 두 번째 칸과의 차이)로 퍼즐을 식별한다 — 이 쌍이 곧
+  // (start, step)이므로 서로 다른 (start, step) 조합 수와 정확히 대응한다.
+  test('서로 다른 퍼즐이 24가지다', () => {
+    const puzzles = new Set<string>();
+    for (let seed = 1; seed <= 1000; seed++) {
+      const { question } = rotationGenerator.generate(seed);
+      const cells = question.figure?.cells ?? [];
+      const first = cells[0]?.shapes[0]?.rotation ?? 0;
+      const second = cells[1]?.shapes[0]?.rotation ?? 0;
+      const step = ((second - first) % 360 + 360) % 360;
+      puzzles.add(`${first},${step}`);
+    }
+    expect(puzzles.size).toBe(24);
+  });
 });
