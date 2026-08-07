@@ -1,0 +1,61 @@
+name: 웹 배포 (GitHub Pages)
+
+# main에 올라갈 때마다 정적 웹을 새로 내보내 Pages로 배포한다.
+# 저장소 Settings → Pages → Source를 "GitHub Actions"로 한 번 바꿔둬야 동작한다.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 배포는 한 번에 하나만. 진행 중인 배포를 취소하지는 않는다.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # 배포 전에 앱과 같은 기준으로 한 번 거른다. 콘텐츠가 깨진 채로 웹에
+      # 올라가면 앱보다 눈에 더 잘 띈다.
+      - run: npm run typecheck
+      - run: npm run validate:content
+      - run: npm test
+
+      - run: npx expo export --platform web
+
+      # Pages는 Jekyll을 거치는데, Jekyll은 밑줄로 시작하는 폴더를 무시한다.
+      # expo가 번들을 _expo/에 넣으므로 이 파일이 없으면 배포본이 빈 화면이 된다.
+      - run: touch dist/.nojekyll
+
+      # 없는 주소로 들어오면 GitHub의 기본 404 대신 앱의 안내 화면을 보여준다.
+      # Pages는 404.html만 그 용도로 쓰므로 expo가 만든 파일을 그 이름으로 복사한다.
+      - run: cp dist/+not-found.html dist/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

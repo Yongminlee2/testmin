@@ -2,7 +2,8 @@ import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/ui/Button';
-import { getPool, getScoredTest } from '@/content/registry';
+import { PageTitle } from '@/ui/PageTitle';
+import { SCORED_TESTS, getPool, getScoredTest } from '@/content/registry';
 import { useSession } from '@/store/session';
 import { assemble } from '@/engine/assemble';
 import { hashSeed } from '@/engine/rng';
@@ -45,6 +46,7 @@ export default function ScoredIntroScreen() {
   return (
     <>
       <Stack.Screen options={{ title: meta.title }} />
+      <PageTitle title={meta.title} />
       <ScrollView
         style={styles.screen}
         contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
@@ -102,3 +104,11 @@ const styles = StyleSheet.create({
   },
   emptyText: { fontSize: font.size.body, fontFamily: font.family.bold, color: colors.muted },
 });
+
+/**
+ * 정적 웹 내보내기(GitHub Pages)에서 이 동적 경로를 실제 페이지로 만들어 준다.
+ * 없으면 [testId] 자리가 그대로 남아, 링크를 직접 열거나 새로고침할 때 404가 난다.
+ */
+export function generateStaticParams(): Array<Record<string, string>> {
+  return SCORED_TESTS.map((t) => ({ testId: t.id }));
+}

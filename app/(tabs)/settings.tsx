@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import Constants from 'expo-constants';
+import { PageTitle } from '@/ui/PageTitle';
 import { colors, font, space } from '@/ui/tokens';
 
 const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -7,6 +8,7 @@ const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 export default function SettingsScreen() {
   return (
     <View style={styles.wrap}>
+      <PageTitle title="설정" />
       <Text style={styles.version} maxFontSizeMultiplier={font.maxScale}>
         테스트의 민족 v{appVersion}
       </Text>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, Text, View, Pressable, StyleSheet, Alert } from 'react-native';
+import { ScrollView, Text, View, Pressable, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/ui/Card';
@@ -8,6 +8,7 @@ import { PSYCH_TESTS, getPsychTest } from '@/content/registry';
 import { useSession } from '@/store/session';
 import { hashSeed } from '@/engine/rng';
 import { attachParticle } from '@/engine/korean';
+import { notify } from '@/ui/dialog';
 import { colors, font, space } from '@/ui/tokens';
 
 export default function PsychIntroScreen() {
@@ -19,7 +20,7 @@ export default function PsychIntroScreen() {
   const begin = () => {
     const test = getPsychTest(selected);
     if (test === undefined) {
-      Alert.alert('준비 중입니다', '이 테스트는 다음 업데이트에 열립니다.');
+      notify('준비 중입니다', '이 테스트는 다음 업데이트에 열립니다.');
       return;
     }
     // 섞지 않고 순서 그대로 — 득표 균형과 동점 규칙이 문항 순서에 의존한다
@@ -47,7 +48,7 @@ export default function PsychIntroScreen() {
             accessibilityState={{ selected: selected === t.id }}
             onPress={() => {
               if (!t.available) {
-                Alert.alert('준비 중입니다', `${attachParticle(t.title, '은', '는')} 다음 업데이트에 열립니다.`);
+                notify('준비 중입니다', `${attachParticle(t.title, '은', '는')} 다음 업데이트에 열립니다.`);
                 return;
               }
               setSelected(t.id);

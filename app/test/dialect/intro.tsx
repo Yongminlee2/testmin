@@ -1,4 +1,4 @@
-import { ScrollView, Text, View, Pressable, StyleSheet, Alert } from 'react-native';
+import { ScrollView, Text, View, Pressable, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/ui/Card';
@@ -7,6 +7,7 @@ import { DIALECT_DRAW, DIALECT_REGIONS, getPool } from '@/content/registry';
 import { useSession } from '@/store/session';
 import { assemble } from '@/engine/assemble';
 import { hashSeed } from '@/engine/rng';
+import { notify } from '@/ui/dialog';
 import { colors, font, space } from '@/ui/tokens';
 import { useState } from 'react';
 
@@ -19,7 +20,7 @@ export default function DialectIntroScreen() {
   const begin = () => {
     const pool = getPool('dialect', selected);
     if (pool.length === 0) {
-      Alert.alert('준비 중입니다', '이 지역 문항은 다음 업데이트에 열립니다.');
+      notify('준비 중입니다', '이 지역 문항은 다음 업데이트에 열립니다.');
       return;
     }
     const seed = hashSeed(`dialect:${selected}:${Date.now()}`);
@@ -55,7 +56,7 @@ export default function DialectIntroScreen() {
               style={styles.cell}
               onPress={() => {
                 if (!r.available) {
-                  Alert.alert('준비 중입니다', `${r.title} 문항은 다음 업데이트에 열립니다.`);
+                  notify('준비 중입니다', `${r.title} 문항은 다음 업데이트에 열립니다.`);
                   return;
                 }
                 setSelected(r.id);

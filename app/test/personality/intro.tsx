@@ -1,4 +1,4 @@
-import { ScrollView, Text, StyleSheet, Alert } from 'react-native';
+import { ScrollView, Text, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/ui/Button';
@@ -6,6 +6,7 @@ import { getPool, PERSONALITY_DRAW } from '@/content/registry';
 import { useSession } from '@/store/session';
 import { assembleByAxis } from '@/engine/assembleTyped';
 import { hashSeed } from '@/engine/rng';
+import { notify } from '@/ui/dialog';
 import { colors, font, space } from '@/ui/tokens';
 
 export default function PersonalityIntroScreen() {
@@ -16,7 +17,7 @@ export default function PersonalityIntroScreen() {
   const begin = () => {
     const pool = getPool('personality', 'default');
     if (pool.length === 0) {
-      Alert.alert('준비 중입니다', '성격 16유형 고사는 다음 업데이트에 열립니다.');
+      notify('준비 중입니다', '성격 16유형 고사는 다음 업데이트에 열립니다.');
       return;
     }
     const seed = hashSeed(`personality:${Date.now()}`);

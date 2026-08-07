@@ -8,6 +8,7 @@ import { useHistory, restoreQuestion } from '@/store/history';
 import type { WrongNote } from '@/engine/notes';
 import type { Choice, Question } from '@/engine/types';
 import { CATEGORIES } from '@/content/registry';
+import { PageTitle } from '@/ui/PageTitle';
 import { colors, font, space } from '@/ui/tokens';
 
 interface Entry {
@@ -149,6 +150,7 @@ export default function NotesScreen() {
   if (entries.length === 0) {
     return (
       <View style={styles.wrap}>
+        <PageTitle title="오답노트" />
         <Text style={styles.text} maxFontSizeMultiplier={font.maxScale}>
           틀린 문제가 없습니다.{'\n'}응시하면 여기에 모입니다.
         </Text>
@@ -163,6 +165,7 @@ export default function NotesScreen() {
       style={styles.screen}
       contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
     >
+      <PageTitle title="오답노트" />
       {groups.map((group) => (
         <View key={group.testId} style={styles.group}>
           <Text style={styles.groupTitle} maxFontSizeMultiplier={font.maxScale}>

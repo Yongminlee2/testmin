@@ -5,6 +5,7 @@
   "dependencies": {
     "@expo-google-fonts/black-han-sans": "^0.4.1",
     "@expo-google-fonts/noto-sans-kr": "^0.4.3",
+    "@expo/metro-runtime": "~57.0.8",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~57.0.10",
     "expo-build-properties": "~57.0.8",
@@ -17,12 +18,14 @@
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.2",
     "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-native": "0.86.2",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
     "react-native-svg": "15.15.4",
     "react-native-view-shot": "5.1.0",
+    "react-native-web": "^0.21.2",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
@@ -40,7 +43,10 @@
     "android": "expo run:android",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "validate:content": "tsx tools/validate-content.ts"
+    "validate:content": "tsx tools/validate-content.ts",
+    "web": "expo start --web",
+    "build:web": "expo export --platform web",
+    "serve:web": "python tools/serve-web.py"
   },
   "private": true
 }

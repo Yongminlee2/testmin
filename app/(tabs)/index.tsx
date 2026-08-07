@@ -1,11 +1,13 @@
-import { ScrollView, Text, View, Pressable, StyleSheet, Alert } from 'react-native';
+import { ScrollView, Text, View, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/ui/Card';
 import { Badge } from '@/ui/Badge';
 import { AdSlot } from '@/ui/AdSlot';
+import { PageTitle } from '@/ui/PageTitle';
 import { CATEGORIES } from '@/content/registry';
 import { attachParticle } from '@/engine/korean';
+import { notify } from '@/ui/dialog';
 import { categoryColor, colors, font, space } from '@/ui/tokens';
 
 export default function HomeScreen() {
@@ -20,6 +22,7 @@ export default function HomeScreen() {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + space.md }]}
       testID="home-scroll"
     >
+      <PageTitle />
       <Text style={styles.brand} maxFontSizeMultiplier={font.maxScale}>
         테스트의 민족
       </Text>
@@ -34,7 +37,7 @@ export default function HomeScreen() {
           accessibilityRole="button"
           onPress={() => {
             if (!c.available) {
-              Alert.alert('준비 중입니다', `${attachParticle(c.title, '은', '는')} 다음 업데이트에 열립니다.`);
+              notify('준비 중입니다', `${attachParticle(c.title, '은', '는')} 다음 업데이트에 열립니다.`);
               return;
             }
             router.push(c.route);

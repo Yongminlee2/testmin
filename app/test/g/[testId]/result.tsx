@@ -11,7 +11,7 @@ import { useHistory } from '@/store/history';
 import { scoreTest } from '@/engine/score';
 import { assemble } from '@/engine/assemble';
 import { hashSeed } from '@/engine/rng';
-import { getGradeBands, getPool, getScoredTest, gradeTableId } from '@/content/registry';
+import { SCORED_TESTS, getGradeBands, getPool, getScoredTest, gradeTableId } from '@/content/registry';
 import { colors, font, space } from '@/ui/tokens';
 
 export default function ScoredResultScreen() {
@@ -117,3 +117,11 @@ const styles = StyleSheet.create({
   },
   emptyText: { fontSize: font.size.body, fontFamily: font.family.bold, color: colors.muted },
 });
+
+/**
+ * 정적 웹 내보내기(GitHub Pages)에서 이 동적 경로를 실제 페이지로 만들어 준다.
+ * 없으면 [testId] 자리가 그대로 남아, 링크를 직접 열거나 새로고침할 때 404가 난다.
+ */
+export function generateStaticParams(): Array<Record<string, string>> {
+  return SCORED_TESTS.map((t) => ({ testId: t.id }));
+}

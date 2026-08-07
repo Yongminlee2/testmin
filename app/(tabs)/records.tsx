@@ -1,4 +1,4 @@
-import { Alert, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RecordRow } from '@/ui/RecordRow';
 import { Button } from '@/ui/Button';
@@ -7,6 +7,8 @@ import { useHistory } from '@/store/history';
 import type { RecordResult, TestRecord } from '@/engine/records';
 import { IQ_DISCLAIMER } from '@/engine/iq/iqScore';
 import { CATEGORIES, DIALECT_REGIONS, PSYCH_TESTS } from '@/content/registry';
+import { confirmDestructive } from '@/ui/dialog';
+import { PageTitle } from '@/ui/PageTitle';
 import { colors, font, space } from '@/ui/tokens';
 
 function pad2(n: number): string {
@@ -63,6 +65,7 @@ export default function RecordsScreen() {
   if (records.length === 0) {
     return (
       <View style={styles.wrap}>
+        <PageTitle title="성적표" />
         <Text style={styles.text} maxFontSizeMultiplier={font.maxScale}>
           아직 기록이 없습니다.{'\n'}응시하면 여기에 쌓입니다.
         </Text>
@@ -79,16 +82,9 @@ export default function RecordsScreen() {
   );
 
   const confirmClear = () => {
-    Alert.alert('기록을 지울까요?', '삭제하면 되돌릴 수 없습니다.', [
-      { text: '취소', style: 'cancel' },
-      {
-        text: '지우기',
-        style: 'destructive',
-        onPress: () => {
-          void useHistory.getState().clearAll();
-        },
-      },
-    ]);
+    confirmDestructive('기록을 지울까요?', '삭제하면 되돌릴 수 없습니다.', '지우기', () => {
+      void useHistory.getState().clearAll();
+    });
   };
 
   return (
@@ -96,6 +92,7 @@ export default function RecordsScreen() {
       style={styles.screen}
       contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
     >
+      <PageTitle title="성적표" />
       {groups.map((group) => (
         <View key={group.testId} style={styles.group}>
           <Text style={styles.groupTitle} maxFontSizeMultiplier={font.maxScale}>
