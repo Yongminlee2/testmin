@@ -12,7 +12,12 @@
       "package": "com.testmin.app",
       "versionCode": 1,
       "edgeToEdgeEnabled": true,
-      "allowBackup": false
+      "allowBackup": false,
+      "adaptiveIcon": {
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      }
     },
     "ios": {
       "bundleIdentifier": "com.testmin.app",
@@ -33,7 +38,16 @@
         }
       ],
       "expo-font",
-      "expo-splash-screen"
-    ]
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#FFF8E1"
+        }
+      ]
+    ],
+    "icon": "./assets/images/icon.png"
   }
 }
