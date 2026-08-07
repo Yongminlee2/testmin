@@ -368,7 +368,7 @@ TestMin/
   tools/
     validate-content.ts    문항 데이터 검증 (커밋 전·CI에서 실행)
   docs/
-    superpowers/specs/     이 문서
+    specs/                 이 문서
     licenses/              폰트·라이브러리 라이선스 원문
 ```
 

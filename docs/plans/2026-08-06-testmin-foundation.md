@@ -1,6 +1,5 @@
 # 테스트의 민족 — 계획 1: 기반 + 사투리 고사 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 폰에 설치해서 경상도 사투리 고사를 실제로 풀고 급수·합격증·문항별 해설까지 볼 수 있는 앱을 만든다. 이 과정에서 채점 엔진, 디자인 시스템, 네이티브 빌드 파이프라인, 권한 0개 제약을 전부 실물로 검증한다.
 
@@ -10,7 +9,7 @@
 
 > 태스크 1 실행 시점에 `create-expo-app@latest`가 SDK 57을 설치했다. 계획 작성 시점 기준은 56이었으나 SDK 57의 `minSdkVersion` 기본값도 24라 안드로이드 8 지원 요건은 그대로 충족되며, targetSdk 36 요건에도 더 잘 맞는다. 57로 진행한다.
 
-**설계 문서:** `docs/superpowers/specs/2026-08-06-testmin-design.md`
+**설계 문서:** `docs/specs/2026-08-06-testmin-design.md`
 
 ## Global Constraints
 
@@ -32,7 +31,7 @@
 - 프로젝트 경로는 ASCII만 (`C:\workAndroid\TestMin`)
 - 색상 토큰: ink `#111111` / cream `#FFF8E1` / white `#FFFFFF` / yellow `#FFD43B` / coral `#FF8A5B` / mint `#4ECDC4` / lavender `#B197FC` / sky `#74C0FC`
 - 텍스트 문항은 4지선다 고정
-- 커밋 메시지는 한국어, 마지막 줄에 `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`
+- 커밋 메시지는 한국어
 
 ---
 
@@ -263,7 +262,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "Expo SDK 56 프로젝�
 TypeScript strict, Expo Router, jest-expo 프리셋 구성.
 app.json에 패키지명 com.testmin.app, minSdk 24 / targetSdk 36 고정.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -413,7 +412,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "네이티브 빌드 �
 expo prebuild로 android/ 생성, config plugin으로 INTERNET을
 tools:node=remove 처리. release APK에서 aapt2로 권한 0개 검증.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -594,7 +593,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "엔진: 시드 기반 
 mulberry32 + Fisher-Yates 셔플 + FNV-1a 문자열 해시.
 같은 시드가 항상 같은 출제를 만들어내는 기반.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -817,7 +816,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "엔진: 데이터 타�
 Question/Choice/GradeBand 타입과 gradeFor 구현.
 경상도 사투리 급수 테이블에 코믹 칭호 9종 포함.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -1040,7 +1039,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "엔진: 정답형 채�
 미응답은 -1로 오답 처리, 유형형 문항이 섞여도 제외하고 채점.
 오답 목록에 고른 답과 정답을 함께 담아 해설 화면이 바로 쓰게 함.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -1260,7 +1259,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "엔진: 시드 기반 
 난이도 분포 강제, 최근 출제 문항 후순위, 풀 부족 시 중복 허용 폴백.
 크래시 대신 경고를 남기고 항상 요청한 개수를 채운다.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -1574,7 +1573,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "도구: 문항·급수
 정답 인덱스 범위, 해설 누락, ID 중복, 선택지 개수·중복,
 급수 테이블 커버리지를 검사한다. 오답 해설이 출시되는 걸 막는 방어선.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -1903,7 +1902,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "콘텐츠: 경상도 �
 난이도 1/2/3 각 5개, 전 문항에 정답 해설과 검증 근거 포함.
 전부 자체 창작이며 기존 문제집을 옮기지 않았다.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -2317,7 +2316,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "UI: 네오브루탈 �
 하드 섀도우는 elevation 대신 뒤에 검정 View를 깔아 구현해
 안드로이드 8부터 iOS까지 같은 모양이 나오게 했다.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -2826,7 +2825,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "화면: 4탭 셸 + 홈
 응시 세션 Zustand 스토어와 콘텐츠 레지스트리 추가.
 계획 1에서는 사투리만 진입 가능하고 나머지는 준비 중 안내.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -3176,7 +3175,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "화면: 지역 선택 
 시드로 12문항을 뽑아 세션에 담고 한 문항씩 진행한다.
 난이도 분포는 쉬움4/보통5/어려움3으로 강제.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -3607,7 +3606,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "화면: 급수 합격�
 Certificate 컴포넌트는 계획 3에서 그대로 이미지 캡처 대상이 된다.
 다시 응시하면 직전 문항을 후순위로 밀어 새 문제가 나온다.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -3707,7 +3706,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "빌드 절차 문서�
 
 release APK에서 권한 0개, minSdk 24, targetSdk 36, 패키지명 확인.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---

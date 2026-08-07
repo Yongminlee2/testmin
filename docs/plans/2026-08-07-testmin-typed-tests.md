@@ -1,6 +1,5 @@
 # 테스트의 민족 — 계획 2: 유형형 테스트 (성격 16유형 · 심리) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 폰에서 성격 16유형 고사와 심리 테스트를 실제로 풀고, 4글자 코드 + 자체 별명이 담긴 유형 카드와 문항별 해설을 받는 상태까지 만든다.
 
@@ -8,8 +7,8 @@
 
 **Tech Stack:** 계획 1과 동일 — Expo SDK 57 (RN 0.86.2), TypeScript strict, Expo Router, Zustand, Jest + jest-expo + @testing-library/react-native
 
-**선행 계획:** `docs/superpowers/plans/2026-08-06-testmin-foundation.md` (완료)
-**설계 문서:** `docs/superpowers/specs/2026-08-06-testmin-design.md`
+**선행 계획:** `docs/plans/2026-08-06-testmin-foundation.md` (완료)
+**설계 문서:** `docs/specs/2026-08-06-testmin-design.md`
 
 ## Global Constraints
 
@@ -25,7 +24,7 @@
 - 큰 글자(`family.display`, `family.black` at ≥19px)에는 **반드시 `lineHeight`를 준다.** 안 주면 안드로이드에서 글자 위가 잘린다
 - 화면에 `SafeAreaView`를 넣지 않는다. `useSafeAreaInsets()`로 하단 여백만 더한다 (Android 15+ edge-to-edge 대응)
 - **"MBTI"를 어디에도 쓰지 않는다.** 16Personalities의 유형 별명(옹호자·중재자 등)도 쓰지 않는다. 실제 검사지 문항을 인용하지 않는다
-- 커밋 메시지는 한국어, 마지막 줄 정확히 `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`
+- 커밋 메시지는 한국어
 - 프로젝트 경로 ASCII 유지 (`C:\workAndroid\TestMin`)
 
 ## 개발 환경 (계획 1에서 확정, 재조사 금지)
@@ -185,7 +184,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "엔진: 유형형 채�
 축 방식(성격 16유형)과 득표 방식(심리)의 결과 타입,
 축별 글자 매핑, 동점 여부 플래그를 정의한다.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -422,7 +421,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "엔진: 축 합계 방
 결과 화면이 '거의 반반'임을 알릴 수 있게 한다.
 16개 코드가 전부 도달 가능함을 테스트로 고정.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -613,7 +612,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "엔진: 최다 득표 
 선택지마다 유형에 1표. 동점이면 뒤쪽 문항 득표 우선.
 tally에 0표 유형도 담아 결과 화면이 분포를 보여줄 수 있게 한다.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -823,7 +822,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "엔진: 축 균형 출
 선택지는 섞지 않는다 - 리커트 척도는 순서가 의미를 갖는다.
 반환 순서만 섞어 같은 축이 연속으로 나오지 않게 한다.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
@@ -941,7 +940,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "콘텐츠: 16유형 �
 16Personalities 유형명을 쓰지 않고 전부 새로 지었다.
 금지어 목록을 테스트로 고정해 나중에 실수로 섞여 들어가는 걸 막는다.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---

@@ -1,6 +1,5 @@
 # 테스트의 민족 — 계획 3: IQ 고사 (도형 생성기) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 폰에서 IQ 고사를 실제로 풀고, 급수와 추정 점수, 그리고 문항마다 "왜 이게 답인가"를 규칙에서 자동 도출된 해설로 받는 상태까지 만든다.
 
@@ -9,7 +8,7 @@
 **Tech Stack:** 계획 1·2와 동일 + `react-native-svg`(이미 설치됨)
 
 **선행 계획:** 계획 1(기반+사투리), 계획 2(유형형) — 둘 다 완료, 실기기 검증 완료
-**설계 문서:** `docs/superpowers/specs/2026-08-06-testmin-design.md`
+**설계 문서:** `docs/specs/2026-08-06-testmin-design.md`
 
 ## Global Constraints
 
@@ -26,7 +25,7 @@
 - 한글 조사는 `attachParticle`로 붙인다. `은(는)` 같은 임시방편 금지
 - **레이븐 누진행렬(Raven's Progressive Matrices)·WAIS 등 표준화 검사의 문항을 인용하거나 변형하지 않는다.** 규칙 자체(회전·증감·합성·분배)는 보호 대상이 아니므로 우리가 직접 구현한다
 - **IQ 점수를 단정하지 않는다.** 결과에 오락용 추정치임을 명시한다
-- 커밋 메시지는 한국어, 마지막 줄 정확히 `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`
+- 커밋 메시지는 한국어
 
 ## 개발 환경 / 테스트 함정
 
@@ -310,7 +309,7 @@ cd /c/workAndroid/TestMin && git add -A && git commit -m "엔진: IQ 도형 스�
 렌더링은 SvgFigure가 따로 맡아 생성기가 순수 TS로 남는다.
 셀 비교는 도형 나열 순서를 무시한다 - 정답 유일성 판정의 기준이 된다.
 
-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
+"
 ```
 
 ---
