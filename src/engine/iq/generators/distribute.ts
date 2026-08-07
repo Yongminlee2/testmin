@@ -69,8 +69,12 @@ export const distributeGenerator: Generator = {
     const sizeName = (s: number): string =>
       s === SIZES[0] ? '작은' : s === SIZES[1] ? '중간' : '큰';
 
-    const rowKinds = [comboAt(2, 0), comboAt(2, 1)].map((c) => kindNames[c.kind]);
-    const rowSizes = [comboAt(2, 0), comboAt(2, 1)].map((c) => sizeName(c.size));
+    // 해설은 이미 채운 cells 배열(6번·7번 칸)에서 직접 읽는다. comboAt(2,0)/comboAt(2,1)을
+    // 다시 불러 별도로 계산하면 그리는 격자와 해설이 서로 다른 셀을 가리킬 위험이 생긴다 —
+    // ★ 예측 대조 테스트와 같은 원칙("그려진 격자에서 역산").
+    const rowCells = [cells[6] as CellSpec, cells[7] as CellSpec];
+    const rowKinds = rowCells.map((cell) => kindNames[cell.shapes[0]?.kind as ShapeKind]);
+    const rowSizes = rowCells.map((cell) => sizeName(cell.shapes[0]?.size as number));
 
     const question: Question = {
       id: `iq-distribute-${seed}`,

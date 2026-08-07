@@ -160,4 +160,23 @@ describe('distributeGenerator', () => {
       });
     }
   });
+
+  // filled은 이 문제의 변별 속성이 아니다. 격자 안에서도, 선택지 사이에서도 값이 하나로
+  // 통일돼야 한다 — 부분적으로만 바뀌면 filled가 의도치 않은 여분의 구분 속성이 되어
+  // 정답과 filled만 다른 오답이 생길 수 있다. 전역적으로 어떤 값을 쓰는지는 고정하지 않는다.
+  test('filled은 격자와 선택지 전체에서 하나로 통일되어 있다', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const { question } = G.generate(seed);
+      const filledValues = new Set<boolean>();
+      for (const cell of question.figure?.cells ?? []) {
+        const f = cell.shapes[0]?.filled;
+        if (f !== undefined) filledValues.add(f);
+      }
+      for (const c of question.choices) {
+        const f = c.figure?.cells[0]?.shapes[0]?.filled;
+        if (f !== undefined) filledValues.add(f);
+      }
+      expect(filledValues.size).toBe(1);
+    }
+  });
 });
