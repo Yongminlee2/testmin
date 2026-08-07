@@ -874,9 +874,355 @@ describe('rotationGenerator', () => {
 
 **마지막 테스트 두 개가 이 태스크의 핵심이다.** "검증을 통과한다"만으로는 부족하다 — 정답이 **규칙이 예측하는 그 모양**인지까지 봐야 한다. 검증기는 선택지가 서로 다른지만 알지, 정답으로 표시된 게 실제로 규칙에 맞는 답인지는 모른다.
 
-**Task 4 — 규칙 4종 추가**
-- `count.ts`(개수 증감), `fill.ts`(채움 교대), `distribute.ts`(3분배), `size.ts`(크기 진행)
-- 각 규칙마다 오답 생성 전략이 다르다 — 규칙을 어긴 지점이 서로 달라야 매력적인 오답이 된다
+### Task 4 — 개수 증감 · 채움 교대 생성기
+
+**재분할 안내:** 원래 4종을 한 태스크로 묶었으나 생성기 하나가 구현+테스트 120줄이라 480줄짜리 리뷰가 된다. 규칙마다 오답 전략이 달라 한 리뷰어가 다 보기 어렵다. **Task 4는 2종, Task 4b가 나머지 2종**(3분배·크기 진행)을 맡는다.
+
+**Files:**
+- Create: `src/engine/iq/generators/count.ts`, `src/engine/iq/generators/fill.ts`
+- Modify: `src/engine/iq/generators/index.ts` (레지스트리에 등록)
+- Test: `__tests__/engine/iq/count.test.ts`, `__tests__/engine/iq/fill.test.ts`
+
+**모든 생성기가 반드시 갖춰야 하는 테스트 — Task 3 리뷰에서 확정**
+
+`verifyGenerated`는 선택지 5개가 서로 다른지만 안다. **정답 표시가 엉뚱한 선택지에 붙어도 통과한다.** "오답은 모두 정답과 다르다" 테스트도 마찬가지 — 생성값들이 항상 서로 다르므로 표시가 어디에 붙든 통과한다.
+
+따라서 각 생성기는 **"예측 대조" 테스트**를 반드시 가진다:
+
+> 문제 도형(관찰 가능한 출력)에서 규칙을 역산해 정답을 **독립적으로** 계산하고, 생성기가 표시한 정답과 대조한다.
+
+생성기 내부 변수를 다시 읽으면 동어반복이라 아무것도 증명하지 못한다. 격자에 실제로 그려진 칸들에서 역산할 것.
+
+---
+
+**`src/engine/iq/generators/count.ts`**
+
+규칙: 격자의 행·열을 따라 오른쪽·아래로 갈수록 점 개수가 일정하게 늘어난다. 칸 (r,c)의 개수는 `start + (r + c) * step`.
+
+```ts
+import { mulberry32, pickInt, shuffle } from '../../rng';
+import { shape } from '../figure';
+import type { CellSpec, FigureSpec, GeneratedQuestion, Question } from '../../types';
+import type { Generator } from './index';
+
+/** 점 개수별 배치. 최대 9개까지 겹치지 않게 놓는다. */
+const DOT_POSITIONS: ReadonlyArray<readonly [number, number]> = [
+  [0.5, 0.5],
+  [0.28, 0.28],
+  [0.72, 0.72],
+  [0.72, 0.28],
+  [0.28, 0.72],
+  [0.5, 0.22],
+  [0.5, 0.78],
+  [0.22, 0.5],
+  [0.78, 0.5],
+];
+
+function dots(n: number): CellSpec {
+  const count = Math.max(0, Math.min(n, DOT_POSITIONS.length));
+  return {
+    shapes: DOT_POSITIONS.slice(0, count).map(([x, y]) =>
+      shape('circle', { x, y, size: 0.2, filled: true })
+    ),
+  };
+}
+
+function single(n: number): FigureSpec {
+  return { kind: 'single', cells: [dots(n)] };
+}
+
+export const countGenerator: Generator = {
+  id: 'count',
+  difficulty: 1,
+
+  generate(seed: number): GeneratedQuestion {
+    const rand = mulberry32(seed);
+    const start = pickInt(rand, 1, 3);
+    const step = 1;
+
+    const cells: CellSpec[] = [];
+    for (let i = 0; i < 9; i++) {
+      const r = Math.floor(i / 3);
+      const c = i % 3;
+      cells.push(dots(start + (r + c) * step));
+    }
+
+    const answer = start + 4 * step; // (2,2)칸
+
+    // 오답은 개수만 어긋난 것. ±1, ±2 — 전부 1 이상이고 서로 다르다.
+    const options = shuffle([answer, answer - 2, answer - 1, answer + 1, answer + 2], rand);
+    const answerIndex = options.indexOf(answer);
+
+    const question: Question = {
+      id: `iq-count-${seed}`,
+      kind: 'scored',
+      prompt: '빈 칸에 들어갈 도형은?',
+      figure: { kind: 'grid', cells, blankIndex: 8 },
+      choices: options.map((n) => ({ figure: single(n) })),
+      answerIndex,
+      explanation:
+        `오른쪽으로 한 칸, 아래로 한 칸 갈 때마다 점이 ${step}개씩 늘어납니다. ` +
+        `첫 칸이 ${start}개이므로 마지막 칸은 ${answer}개입니다.`,
+      difficulty: 1,
+    };
+
+    return { question, generatorId: 'count', seed };
+  },
+};
+```
+
+**Test:** `__tests__/engine/iq/count.test.ts`
+
+```ts
+import { countGenerator } from '@/engine/iq/generators/count';
+import { verifyGenerated } from '@/engine/iq/verify';
+import { figureEquals } from '@/engine/iq/figure';
+
+describe('countGenerator', () => {
+  test('같은 시드는 같은 문항을 만든다', () => {
+    expect(JSON.stringify(countGenerator.generate(77))).toBe(
+      JSON.stringify(countGenerator.generate(77))
+    );
+  });
+
+  test('문제 도형은 9칸 격자이고 마지막 칸이 비어 있다', () => {
+    const { question } = countGenerator.generate(5);
+    expect(question.figure?.kind).toBe('grid');
+    expect(question.figure?.cells).toHaveLength(9);
+    expect(question.figure?.blankIndex).toBe(8);
+  });
+
+  test('시드 500개에서 항상 검증을 통과한다', () => {
+    for (let seed = 1; seed <= 500; seed++) {
+      const errors = verifyGenerated(countGenerator.generate(seed));
+      if (errors.length > 0) throw new Error(`seed ${seed}: ${errors.join(' / ')}`);
+    }
+  });
+
+  test('시드 500개에서 정답 위치가 고정되어 있지 않다', () => {
+    const positions = new Set<number>();
+    for (let seed = 1; seed <= 500; seed++) {
+      positions.add(countGenerator.generate(seed).question.answerIndex ?? -1);
+    }
+    expect(positions.size).toBeGreaterThan(1);
+  });
+
+  test('모든 선택지의 점 개수가 1개 이상이다', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const { question } = countGenerator.generate(seed);
+      for (const c of question.choices) {
+        expect(c.figure?.cells[0]?.shapes.length ?? 0).toBeGreaterThanOrEqual(1);
+      }
+    }
+  });
+
+  // ★ 예측 대조 — 이 생성기의 정답 오표시를 잡는 유일한 테스트
+  test('표시된 정답이 격자에서 역산한 개수와 일치한다', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const { question } = countGenerator.generate(seed);
+      const cells = question.figure?.cells ?? [];
+      const c00 = cells[0]?.shapes.length ?? 0;   // (0,0)
+      const c01 = cells[1]?.shapes.length ?? 0;   // (0,1)
+      const step = c01 - c00;
+      const expected = c00 + 4 * step;            // (2,2)
+
+      const marked = question.choices[question.answerIndex ?? -1]?.figure;
+      expect(marked).toBeDefined();
+      expect(marked!.cells[0]?.shapes.length).toBe(expected);
+    }
+  });
+
+  test('오답은 모두 정답과 다르다', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const { question } = countGenerator.generate(seed);
+      const ai = question.answerIndex ?? 0;
+      const answer = question.choices[ai]?.figure;
+      question.choices.forEach((c, i) => {
+        if (i === ai || c.figure === undefined || answer === undefined) return;
+        expect(figureEquals(answer, c.figure)).toBe(false);
+      });
+    }
+  });
+});
+```
+
+---
+
+**`src/engine/iq/generators/fill.ts`**
+
+규칙: **열마다 도형 종류가 바뀌고, 행마다 채움이 번갈아 나온다.** 두 축이 독립적이라 마지막 칸을 맞히려면 둘 다 읽어야 한다.
+
+채움만으로는 상태가 둘뿐이라 5지선다를 못 만든다. 그래서 종류와 채움의 **조합**을 선택지로 쓴다.
+
+**회전은 쓰지 않는다** — 이 생성기는 원·사각형도 쓰므로 회전을 구분 기준으로 삼으면 화면상 같은 오답이 나온다.
+
+```ts
+import { mulberry32, pickInt, shuffle } from '../../rng';
+import { shape } from '../figure';
+import type { CellSpec, FigureSpec, GeneratedQuestion, Question, ShapeKind } from '../../types';
+import type { Generator } from './index';
+
+const KINDS: readonly ShapeKind[] = ['circle', 'square', 'triangle'];
+
+interface Combo {
+  readonly kind: ShapeKind;
+  readonly filled: boolean;
+}
+
+function cellOf(combo: Combo): CellSpec {
+  return { shapes: [shape(combo.kind, { filled: combo.filled, size: 0.62 })] };
+}
+
+function single(combo: Combo): FigureSpec {
+  return { kind: 'single', cells: [cellOf(combo)] };
+}
+
+function comboKey(c: Combo): string {
+  return `${c.kind}:${c.filled ? 1 : 0}`;
+}
+
+export const fillGenerator: Generator = {
+  id: 'fill',
+  difficulty: 2,
+
+  generate(seed: number): GeneratedQuestion {
+    const rand = mulberry32(seed);
+    const kindOffset = pickInt(rand, 0, KINDS.length - 1);
+    const startFilled = rand() < 0.5;
+
+    const comboAt = (r: number, c: number): Combo => ({
+      kind: KINDS[(kindOffset + c) % KINDS.length] as ShapeKind,
+      filled: (r % 2 === 0) === startFilled,
+    });
+
+    const cells: CellSpec[] = [];
+    for (let i = 0; i < 9; i++) {
+      cells.push(cellOf(comboAt(Math.floor(i / 3), i % 3)));
+    }
+
+    const answer = comboAt(2, 2);
+
+    // 오답: 종류만 틀린 것 2개, 채움만 틀린 것 1개, 둘 다 틀린 것 1개.
+    // 서로 다른 방식으로 규칙을 어겨야 매력적인 오답이 된다.
+    const pool: Combo[] = [];
+    for (const kind of KINDS) {
+      for (const filled of [true, false]) {
+        const cand = { kind, filled };
+        if (comboKey(cand) !== comboKey(answer)) pool.push(cand);
+      }
+    }
+    const wrong = shuffle(pool, rand).slice(0, 4);
+    const options = shuffle([answer, ...wrong], rand);
+    const answerIndex = options.findIndex((o) => comboKey(o) === comboKey(answer));
+
+    const kindNames: Record<ShapeKind, string> = {
+      circle: '원',
+      square: '사각형',
+      triangle: '삼각형',
+      diamond: '마름모',
+    };
+
+    const question: Question = {
+      id: `iq-fill-${seed}`,
+      kind: 'scored',
+      prompt: '빈 칸에 들어갈 도형은?',
+      figure: { kind: 'grid', cells, blankIndex: 8 },
+      choices: options.map((o) => ({ figure: single(o) })),
+      answerIndex,
+      explanation:
+        `열마다 도형이 ${KINDS.map((k) => kindNames[k]).join('→')} 순서로 바뀌고, ` +
+        `행마다 색이 번갈아 칠해집니다. 마지막 칸은 ${kindNames[answer.kind]}이고 ` +
+        `${answer.filled ? '색이 칠해진' : '비어 있는'} 모양입니다.`,
+      difficulty: 2,
+    };
+
+    return { question, generatorId: 'fill', seed };
+  },
+};
+```
+
+**Test:** `__tests__/engine/iq/fill.test.ts` — `count.test.ts`와 같은 일곱 가지를 갖추되, 예측 대조는 이 규칙에 맞게 쓴다.
+
+```ts
+import { fillGenerator } from '@/engine/iq/generators/fill';
+import { verifyGenerated } from '@/engine/iq/verify';
+import { figureEquals } from '@/engine/iq/figure';
+
+describe('fillGenerator', () => {
+  test('같은 시드는 같은 문항을 만든다', () => {
+    expect(JSON.stringify(fillGenerator.generate(31))).toBe(
+      JSON.stringify(fillGenerator.generate(31))
+    );
+  });
+
+  test('문제 도형은 9칸 격자이고 마지막 칸이 비어 있다', () => {
+    const { question } = fillGenerator.generate(9);
+    expect(question.figure?.kind).toBe('grid');
+    expect(question.figure?.cells).toHaveLength(9);
+    expect(question.figure?.blankIndex).toBe(8);
+  });
+
+  test('시드 500개에서 항상 검증을 통과한다', () => {
+    for (let seed = 1; seed <= 500; seed++) {
+      const errors = verifyGenerated(fillGenerator.generate(seed));
+      if (errors.length > 0) throw new Error(`seed ${seed}: ${errors.join(' / ')}`);
+    }
+  });
+
+  test('시드 500개에서 정답 위치가 고정되어 있지 않다', () => {
+    const positions = new Set<number>();
+    for (let seed = 1; seed <= 500; seed++) {
+      positions.add(fillGenerator.generate(seed).question.answerIndex ?? -1);
+    }
+    expect(positions.size).toBeGreaterThan(1);
+  });
+
+  test('회전을 구분 기준으로 쓰지 않는다', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const { question } = fillGenerator.generate(seed);
+      for (const c of question.choices) {
+        for (const s of c.figure?.cells[0]?.shapes ?? []) {
+          expect(s.rotation).toBe(0);
+        }
+      }
+    }
+  });
+
+  // ★ 예측 대조 — 열의 종류 주기와 행의 채움 교대를 격자에서 역산한다
+  test('표시된 정답이 격자에서 역산한 종류·채움과 일치한다', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const { question } = fillGenerator.generate(seed);
+      const cells = question.figure?.cells ?? [];
+      // (2,2)의 종류는 (0,2)와 같은 열이므로 같다. 채움은 (0,2)와 (1,2)의 교대에서 역산한다.
+      const kindAtCol2 = cells[2]?.shapes[0]?.kind;
+      const fillRow0 = cells[2]?.shapes[0]?.filled;
+      const fillRow1 = cells[5]?.shapes[0]?.filled;
+      expect(fillRow0).not.toBe(fillRow1); // 행마다 교대라는 전제 확인
+      const expectedFilled = fillRow0; // 행 0과 행 2는 같은 상태
+
+      const marked = question.choices[question.answerIndex ?? -1]?.figure;
+      expect(marked).toBeDefined();
+      const s = marked!.cells[0]?.shapes[0];
+      expect(s?.kind).toBe(kindAtCol2);
+      expect(s?.filled).toBe(expectedFilled);
+    }
+  });
+
+  test('오답은 모두 정답과 다르다', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const { question } = fillGenerator.generate(seed);
+      const ai = question.answerIndex ?? 0;
+      const answer = question.choices[ai]?.figure;
+      question.choices.forEach((c, i) => {
+        if (i === ai || c.figure === undefined || answer === undefined) return;
+        expect(figureEquals(answer, c.figure)).toBe(false);
+      });
+    }
+  });
+});
+```
+
+**레지스트리 등록** — `src/engine/iq/generators/index.ts`의 `GENERATORS`에 `rotationGenerator`, `countGenerator`, `fillGenerator`를 넣는다. 순환 참조를 피하기 위해 `Generator` 인터페이스 선언과 레지스트리를 같은 파일에 두되, 각 생성기가 `./index`에서 타입만 import하는 현재 구조를 유지한다. 타입 전용 import이므로 런타임 순환은 생기지 않는다 — `import type { Generator } from './index'`인지 확인할 것.
 
 **Task 5 — 수열 생성기**
 - `sequence.ts`: 등차·등비·피보나치·교대·제곱. 도형이 아니라 숫자이므로 `figure` 없이 텍스트 선택지
