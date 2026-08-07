@@ -1,5 +1,6 @@
 import { mulberry32, pickInt, shuffle } from '../../rng';
 import { shape } from '../figure';
+import { iqQuestionId } from '../questionId';
 import type { CellSpec, FigureSpec, GeneratedQuestion, Question, ShapeKind } from '../../types';
 import type { Generator } from './index';
 
@@ -66,7 +67,7 @@ export const sizeGenerator: Generator = {
     };
 
     const question: Question = {
-      id: `iq-size-${seed}`,
+      id: iqQuestionId('size', seed),
       kind: 'scored',
       prompt: '빈 칸에 들어갈 도형은?',
       figure: { kind: 'grid', cells, blankIndex: 8 },

@@ -1,4 +1,5 @@
 import { mulberry32, pickInt, shuffle } from '../../rng';
+import { iqQuestionId } from '../questionId';
 import type { GeneratedQuestion, Question } from '../../types';
 import type { Generator } from './index';
 
@@ -234,7 +235,7 @@ export const sequenceGenerator: Generator = {
     const answerIndex = options.indexOf(answer);
 
     const question: Question = {
-      id: `iq-sequence-${seed}`,
+      id: iqQuestionId('sequence', seed),
       kind: 'scored',
       prompt: `다음 수열에서 ?에 들어갈 수는?\n\n${terms.join(', ')}, ?`,
       choices: options.map((n) => ({ text: String(n) })),

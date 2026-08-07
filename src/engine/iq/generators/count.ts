@@ -1,5 +1,6 @@
 import { mulberry32, pickInt, shuffle } from '../../rng';
 import { shape } from '../figure';
+import { iqQuestionId } from '../questionId';
 import type { CellSpec, FigureSpec, GeneratedQuestion, Question } from '../../types';
 import type { Generator } from './index';
 
@@ -71,7 +72,7 @@ export const countGenerator: Generator = {
         `첫 칸이 ${start}개이므로 마지막 칸은 ${answer}개입니다.`;
 
     const question: Question = {
-      id: `iq-count-${seed}`,
+      id: iqQuestionId('count', seed),
       kind: 'scored',
       prompt: '빈 칸에 들어갈 도형은?',
       figure: { kind: 'grid', cells, blankIndex: 8 },
