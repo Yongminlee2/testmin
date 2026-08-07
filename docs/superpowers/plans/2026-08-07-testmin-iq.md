@@ -550,10 +550,329 @@ describe('SvgFigure', () => {
 });
 ```
 
-**Task 3 — 생성기 프레임워크 + 회전 규칙**
-- `Generator` 인터페이스: `generate(seed) → GeneratedQuestion`
-- `rotation.ts`: 행마다 일정 각도 회전. 오답은 각도만 어긋나게 만든다
-- **정답 유일성 속성 테스트**(시드 500개)를 여기서 확립하고, 이후 생성기가 전부 같은 테스트를 재사용한다
+### Task 3 — 생성기 프레임워크 + 회전 규칙
+
+**Files:**
+- Create: `src/engine/iq/verify.ts`, `src/engine/iq/generators/rotation.ts`, `src/engine/iq/generators/index.ts`
+- Test: `__tests__/engine/iq/verify.test.ts`, `__tests__/engine/iq/rotation.test.ts`
+
+이 태스크가 계획 3의 뼈대다. 이후 생성기 5종이 전부 여기서 정한 계약과 검증기를 재사용한다.
+
+**`verifyGenerated`가 왜 테스트 헬퍼가 아니라 엔진 모듈인가**
+
+"생성된 문항이 유효한가"는 테스트만의 관심사가 아니라 **제품 규칙**이다. 콘텐츠 검증기(`tools/validate-content.ts`)가 저장된 문항에 대해 하는 일을, 이쪽은 생성된 문항에 대해 한다. 그래서 `src/engine/iq/verify.ts`에 둔다 — 테스트에서 부르고, 나중에 필요하면 런타임에서도 부를 수 있다.
+
+**`src/engine/iq/verify.ts`**
+
+```ts
+import { figureEquals } from './figure';
+import type { GeneratedQuestion } from '../types';
+
+/**
+ * 생성된 문항이 출제 가능한 상태인지 검사한다.
+ * 사람이 읽을 수 있는 문제 목록을 돌려주고, 비어 있으면 통과.
+ *
+ * 가장 중요한 검사는 정답 유일성이다. 생성기는 규칙을 어긋나게 해서
+ * 오답을 만드는데, 우연히 정답과 같은 그림이 나오면 정답이 둘인 문제가
+ * 출제되고 사용자는 맞는 답을 골랐는데 틀렸다고 나온다.
+ */
+export function verifyGenerated(gq: GeneratedQuestion): string[] {
+  const errors: string[] = [];
+  const q = gq.question;
+  const at = `[${gq.generatorId}/${gq.seed}]`;
+
+  if (q.choices.length !== 5) {
+    errors.push(`${at} IQ 도형·수열 문항은 5지선다여야 하는데 ${q.choices.length}개입니다`);
+  }
+
+  if (typeof q.answerIndex !== 'number') {
+    errors.push(`${at} answerIndex가 없습니다`);
+  } else if (q.answerIndex < 0 || q.answerIndex >= q.choices.length) {
+    errors.push(`${at} answerIndex ${q.answerIndex}가 선택지 범위를 벗어납니다`);
+  }
+
+  if (!q.explanation || q.explanation.trim().length === 0) {
+    errors.push(`${at} 해설이 비어 있습니다`);
+  }
+
+  if (!q.prompt || q.prompt.trim().length === 0) {
+    errors.push(`${at} 질문이 비어 있습니다`);
+  }
+
+  // 선택지끼리 서로 달라야 한다. 도형 문항은 figure로, 수열 문항은 text로 비교한다.
+  for (let i = 0; i < q.choices.length; i++) {
+    for (let j = i + 1; j < q.choices.length; j++) {
+      const a = q.choices[i];
+      const b = q.choices[j];
+      if (a === undefined || b === undefined) continue;
+
+      if (a.figure !== undefined && b.figure !== undefined) {
+        if (figureEquals(a.figure, b.figure)) {
+          errors.push(`${at} 선택지 ${i}번과 ${j}번의 도형이 같습니다`);
+        }
+      } else if (a.text !== undefined && b.text !== undefined) {
+        if (a.text === b.text) {
+          errors.push(`${at} 선택지 ${i}번과 ${j}번의 값이 같습니다 ("${a.text}")`);
+        }
+      }
+    }
+  }
+
+  return errors;
+}
+```
+
+**Test:** `__tests__/engine/iq/verify.test.ts` — 검증기 자체가 제 일을 하는지 확인한다. 이 테스트가 허술하면 이후 생성기 5종의 안전망이 통째로 가짜가 된다.
+
+```ts
+import { verifyGenerated } from '@/engine/iq/verify';
+import { shape } from '@/engine/iq/figure';
+import type { FigureSpec, GeneratedQuestion, Question } from '@/engine/types';
+
+const fig = (size: number): FigureSpec => ({
+  kind: 'single',
+  cells: [{ shapes: [shape('circle', { size })] }],
+});
+
+function make(overrides: Partial<Question> = {}): GeneratedQuestion {
+  const question: Question = {
+    id: 'iq-test-1',
+    kind: 'scored',
+    prompt: '다음에 올 도형은?',
+    choices: [0.2, 0.4, 0.6, 0.8, 1.0].map((s) => ({ figure: fig(s) })),
+    answerIndex: 0,
+    explanation: '규칙 설명',
+    difficulty: 1,
+    ...overrides,
+  };
+  return { question, generatorId: 'test', seed: 1 };
+}
+
+describe('verifyGenerated', () => {
+  test('올바른 문항은 오류가 없다', () => {
+    expect(verifyGenerated(make())).toEqual([]);
+  });
+
+  test('선택지가 5개가 아니면 잡는다', () => {
+    const gq = make({ choices: [{ figure: fig(0.2) }, { figure: fig(0.4) }] });
+    expect(verifyGenerated(gq).some((e) => e.includes('5지선다'))).toBe(true);
+  });
+
+  test('answerIndex가 없으면 잡는다', () => {
+    const gq = make();
+    const q = { ...gq.question };
+    delete (q as { answerIndex?: number }).answerIndex;
+    expect(verifyGenerated({ ...gq, question: q }).some((e) => e.includes('answerIndex'))).toBe(true);
+  });
+
+  test('answerIndex가 범위를 벗어나면 잡는다', () => {
+    expect(verifyGenerated(make({ answerIndex: 5 })).some((e) => e.includes('범위'))).toBe(true);
+  });
+
+  test('해설이 비면 잡는다', () => {
+    expect(verifyGenerated(make({ explanation: '  ' })).some((e) => e.includes('해설'))).toBe(true);
+  });
+
+  test('질문이 비면 잡는다', () => {
+    expect(verifyGenerated(make({ prompt: '' })).some((e) => e.includes('질문'))).toBe(true);
+  });
+
+  test('도형이 같은 선택지 두 개를 잡는다', () => {
+    const gq = make({
+      choices: [fig(0.2), fig(0.4), fig(0.6), fig(0.8), fig(0.2)].map((f) => ({ figure: f })),
+    });
+    expect(verifyGenerated(gq).some((e) => e.includes('도형이 같습니다'))).toBe(true);
+  });
+
+  test('값이 같은 텍스트 선택지 두 개를 잡는다', () => {
+    const gq = make({
+      choices: [{ text: '3' }, { text: '6' }, { text: '12' }, { text: '24' }, { text: '6' }],
+    });
+    expect(verifyGenerated(gq).some((e) => e.includes('값이 같습니다'))).toBe(true);
+  });
+
+  test('오류 메시지에 생성기 id와 시드가 들어간다', () => {
+    const gq = { ...make({ explanation: '' }), generatorId: 'rotation', seed: 4242 };
+    const errors = verifyGenerated(gq);
+    expect(errors.some((e) => e.includes('rotation') && e.includes('4242'))).toBe(true);
+  });
+});
+```
+
+**`src/engine/iq/generators/index.ts`**
+
+```ts
+import type { Difficulty, GeneratedQuestion } from '../../types';
+
+export interface Generator {
+  readonly id: string;
+  readonly difficulty: Difficulty;
+  /** 같은 시드는 항상 같은 문항을 만든다. 정답 유일성은 생성기가 보장한다. */
+  generate(seed: number): GeneratedQuestion;
+}
+
+/** Task 4·5에서 채워진다. */
+export const GENERATORS: readonly Generator[] = [];
+```
+
+**`src/engine/iq/generators/rotation.ts`**
+
+규칙: 3×3 격자를 **왼쪽 위에서 오른쪽 아래로 읽는 순서**로 훑으면서 삼각형이 매 칸 일정 각도씩 시계방향으로 돈다. 마지막 칸이 빈 칸이다.
+
+**삼각형만 쓴다.** 원은 회전이 안 보이고, 마름모·정사각형은 90° 배수에서 자기 자신이 되어 화면상 정답과 같은 오답이 만들어진다.
+
+```ts
+import { mulberry32, pickInt } from '../../rng';
+import { shape } from '../figure';
+import type { CellSpec, FigureSpec, GeneratedQuestion, Question } from '../../types';
+import type { Generator } from './index';
+
+const STEPS = [90, 180, 270] as const;
+
+function cellAt(rotation: number): CellSpec {
+  // 회전이 보이는 도형은 삼각형뿐이다. 원·마름모·정사각형은
+  // 90° 배수에서 자기 자신이 되어 정답과 구분 불가능한 오답을 만든다.
+  return { shapes: [shape('triangle', { rotation: ((rotation % 360) + 360) % 360 })] };
+}
+
+function single(rotation: number): FigureSpec {
+  return { kind: 'single', cells: [cellAt(rotation)] };
+}
+
+export const rotationGenerator: Generator = {
+  id: 'rotation',
+  difficulty: 1,
+
+  generate(seed: number): GeneratedQuestion {
+    const rand = mulberry32(seed);
+    const step = STEPS[pickInt(rand, 0, STEPS.length - 1)] ?? 90;
+    const start = STEPS[pickInt(rand, 0, STEPS.length - 1)] ?? 0;
+
+    const cells: CellSpec[] = [];
+    for (let i = 0; i < 9; i++) {
+      cells.push(cellAt(start + step * i));
+    }
+
+    const answerRotation = ((start + step * 8) % 360 + 360) % 360;
+
+    // 오답은 정답에서 90·180·270° 어긋난 것. 삼각형이라 넷 다 다르게 보인다.
+    const wrongRotations = [90, 180, 270].map((d) => (answerRotation + d) % 360);
+    const options = [answerRotation, ...wrongRotations];
+
+    // 선택지 순서를 시드로 섞는다. 정답이 항상 1번이면 안 된다(계획 1의 교훈).
+    const order = [0, 1, 2, 3].sort(() => rand() - 0.5);
+    // sort의 비교 함수는 안정성이 보장되지 않으므로 명시적으로 섞는다
+    const shuffled: number[] = [];
+    const pool = [...options];
+    while (pool.length > 0) {
+      const idx = pickInt(rand, 0, pool.length - 1);
+      const [taken] = pool.splice(idx, 1);
+      if (taken !== undefined) shuffled.push(taken);
+    }
+    // 5지선다를 채우기 위해 한 각도를 더 넣는다 — 45° 어긋난 것(삼각형에서 명확히 다름)
+    const extra = (answerRotation + 45) % 360;
+    const finalOptions = [...shuffled];
+    finalOptions.splice(pickInt(rand, 0, finalOptions.length), 0, extra);
+
+    const answerIndex = finalOptions.indexOf(answerRotation);
+
+    const question: Question = {
+      id: `iq-rotation-${seed}`,
+      kind: 'scored',
+      prompt: '빈 칸에 들어갈 도형은?',
+      figure: { kind: 'grid', cells, blankIndex: 8 },
+      choices: finalOptions.map((r) => ({ figure: single(r) })),
+      answerIndex,
+      explanation:
+        `왼쪽 위에서 오른쪽 아래로 한 칸씩 갈 때마다 삼각형이 시계방향으로 ${step}°씩 돕니다. ` +
+        `첫 칸이 ${((start % 360) + 360) % 360}°이므로 아홉 번째 칸은 ${answerRotation}° 회전한 모양입니다.`,
+      difficulty: 1,
+    };
+
+    return { question, generatorId: 'rotation', seed };
+  },
+};
+```
+
+> **구현자 주의:** 위 코드의 `order` 변수와 `sort(() => rand() - 0.5)` 줄은 **의도적으로 남겨둔 잘못된 접근**이다. 비교 함수가 무작위를 돌려주는 `sort`는 균등한 셔플이 아니고 엔진마다 결과가 다르다. **그 두 줄을 지우고** 아래의 명시적 셔플만 쓸 것. 이미 `src/engine/rng.ts`에 `shuffle`이 있으니 그걸 쓰는 게 더 낫다 — 직접 판단해서 정리하고, 무엇을 왜 바꿨는지 보고할 것.
+
+**Test:** `__tests__/engine/iq/rotation.test.ts`
+
+```ts
+import { rotationGenerator } from '@/engine/iq/generators/rotation';
+import { verifyGenerated } from '@/engine/iq/verify';
+import { figureEquals } from '@/engine/iq/figure';
+
+describe('rotationGenerator', () => {
+  test('같은 시드는 같은 문항을 만든다', () => {
+    const a = rotationGenerator.generate(1234);
+    const b = rotationGenerator.generate(1234);
+    expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+  });
+
+  test('다른 시드는 다른 문항을 만든다', () => {
+    const a = rotationGenerator.generate(1);
+    const b = rotationGenerator.generate(2);
+    expect(JSON.stringify(a)).not.toBe(JSON.stringify(b));
+  });
+
+  test('문제 도형은 9칸 격자이고 마지막 칸이 비어 있다', () => {
+    const { question } = rotationGenerator.generate(7);
+    expect(question.figure?.kind).toBe('grid');
+    expect(question.figure?.cells).toHaveLength(9);
+    expect(question.figure?.blankIndex).toBe(8);
+  });
+
+  test('시드 500개에서 항상 검증을 통과한다', () => {
+    for (let seed = 1; seed <= 500; seed++) {
+      const gq = rotationGenerator.generate(seed);
+      const errors = verifyGenerated(gq);
+      if (errors.length > 0) {
+        throw new Error(`seed ${seed}: ${errors.join(' / ')}`);
+      }
+    }
+  });
+
+  test('시드 500개에서 정답이 항상 1번에 오지는 않는다', () => {
+    const positions = new Set<number>();
+    for (let seed = 1; seed <= 500; seed++) {
+      positions.add(rotationGenerator.generate(seed).question.answerIndex ?? -1);
+    }
+    expect(positions.size).toBeGreaterThan(1);
+  });
+
+  test('정답 선택지의 도형이 규칙이 예측하는 모양과 일치한다', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const { question } = rotationGenerator.generate(seed);
+      const cells = question.figure?.cells ?? [];
+      // 여덟 번째 칸(index 7)과 아홉 번째 칸의 관계가 나머지 칸 간격과 같아야 한다
+      const first = cells[0]?.shapes[0]?.rotation ?? 0;
+      const second = cells[1]?.shapes[0]?.rotation ?? 0;
+      const step = ((second - first) % 360 + 360) % 360;
+      const expected = ((first + step * 8) % 360 + 360) % 360;
+      const answer = question.choices[question.answerIndex ?? 0]?.figure;
+      expect(answer).toBeDefined();
+      expect(
+        figureEquals(answer!, { kind: 'single', cells: [{ shapes: [{ ...cells[0]!.shapes[0]!, rotation: expected }] }] })
+      ).toBe(true);
+    }
+  });
+
+  test('오답은 모두 정답과 다르다', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const { question } = rotationGenerator.generate(seed);
+      const ai = question.answerIndex ?? 0;
+      const answer = question.choices[ai]?.figure;
+      question.choices.forEach((c, i) => {
+        if (i === ai || c.figure === undefined || answer === undefined) return;
+        expect(figureEquals(answer, c.figure)).toBe(false);
+      });
+    }
+  });
+});
+```
+
+**마지막 테스트 두 개가 이 태스크의 핵심이다.** "검증을 통과한다"만으로는 부족하다 — 정답이 **규칙이 예측하는 그 모양**인지까지 봐야 한다. 검증기는 선택지가 서로 다른지만 알지, 정답으로 표시된 게 실제로 규칙에 맞는 답인지는 모른다.
 
 **Task 4 — 규칙 4종 추가**
 - `count.ts`(개수 증감), `fill.ts`(채움 교대), `distribute.ts`(3분배), `size.ts`(크기 진행)
