@@ -37,8 +37,17 @@ export const countGenerator: Generator = {
 
   generate(seed: number): GeneratedQuestion {
     const rand = mulberry32(seed);
-    const start = pickInt(rand, 1, 3);
-    const step = 1;
+    // 증가만 있으면 "오른쪽 아래로 갈수록 늘어난다"를 외워서 풀 수 있다.
+    // size.ts(커짐/작아짐)와 수열의 등차 규칙(증가/감소)처럼 두 방향 다
+    // 나와야 그 지름길이 막힌다.
+    const ascending = rand() < 0.5;
+    // 감소 쪽 start 하한이 7인 이유(리뷰에서 지정): 오답이 answer ±1·±2이고,
+    // 감소 쪽 최소 answer는 start=7일 때 3이다. answer-2=1로 정확히 맞아야
+    // 하는데, 이 하한을 [5,9]처럼 낮추면 answer가 1까지 내려가 answer-2=-1인
+    // 오답이 생긴다. dots()는 음수를 0으로 접어버리므로 점이 하나도 없는
+    // 선택지가 나오게 된다 — "모든 선택지의 점 개수가 1개 이상" 불변식이 깨진다.
+    const start = ascending ? pickInt(rand, 1, 3) : pickInt(rand, 7, 9);
+    const step = ascending ? 1 : -1;
 
     const cells: CellSpec[] = [];
     for (let i = 0; i < 9; i++) {
@@ -53,6 +62,14 @@ export const countGenerator: Generator = {
     const options = shuffle([answer, answer - 2, answer - 1, answer + 1, answer + 2], rand);
     const answerIndex = options.indexOf(answer);
 
+    // 방향에 맞는 낱말을 쓴다 — size.ts·등차수열처럼 음수 단계를 그대로
+    // 찍지 않는다("점이 -1개씩 늘어납니다"처럼 어색해지는 걸 막는다).
+    const explanation = ascending
+      ? `오른쪽으로 한 칸, 아래로 한 칸 갈 때마다 점이 1개씩 늘어납니다. ` +
+        `첫 칸이 ${start}개이므로 마지막 칸은 ${answer}개입니다.`
+      : `오른쪽으로 한 칸, 아래로 한 칸 갈 때마다 점이 1개씩 줄어듭니다. ` +
+        `첫 칸이 ${start}개이므로 마지막 칸은 ${answer}개입니다.`;
+
     const question: Question = {
       id: `iq-count-${seed}`,
       kind: 'scored',
@@ -60,9 +77,7 @@ export const countGenerator: Generator = {
       figure: { kind: 'grid', cells, blankIndex: 8 },
       choices: options.map((n) => ({ figure: single(n) })),
       answerIndex,
-      explanation:
-        `오른쪽으로 한 칸, 아래로 한 칸 갈 때마다 점이 ${step}개씩 늘어납니다. ` +
-        `첫 칸이 ${start}개이므로 마지막 칸은 ${answer}개입니다.`,
+      explanation,
       difficulty: 1,
     };
 

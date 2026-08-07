@@ -1,6 +1,7 @@
 import { countGenerator } from '@/engine/iq/generators/count';
 import { verifyGenerated } from '@/engine/iq/verify';
 import { figureEquals } from '@/engine/iq/figure';
+import { puzzleKey } from '@/engine/iq/assembleIq';
 import type { FigureSpec } from '@/engine/types';
 
 describe('countGenerator', () => {
@@ -140,5 +141,48 @@ describe('countGenerator', () => {
       expect(explanation).toContain(String(c00));
       expect(explanation).toContain(String(expected));
     }
+  });
+
+  // 리뷰 Important #4 — 증가만 만들면 "항상 늘어난다"를 외워서 풀 수 있다.
+  // size.ts·수열의 등차 규칙처럼 두 방향 다 나와야 그 지름길이 막힌다.
+  // 이 테스트는 count를 증가 전용으로 되돌리면 반드시 빨간불이 되어야 한다.
+  test('시드 500개에서 증가·감소 두 방향이 다 나온다', () => {
+    const directions = new Set<'up' | 'down'>();
+    for (let seed = 1; seed <= 500; seed++) {
+      const { question } = countGenerator.generate(seed);
+      const cells = question.figure?.cells ?? [];
+      const c00 = cells[0]?.shapes.length ?? 0;
+      const c01 = cells[1]?.shapes.length ?? 0;
+      directions.add(c01 >= c00 ? 'up' : 'down');
+    }
+    expect(directions).toEqual(new Set(['up', 'down']));
+  });
+
+  // 리뷰 Important #4 — 해설이 방향에 맞는 낱말을 쓰고, 음수 단계를 그대로
+  // 찍지 않는지 확인한다("점이 -1개씩 늘어납니다"처럼 어색해지면 안 된다).
+  test('해설이 감소 쪽에서는 "줄어듭니다"를 쓰고 음수 단계를 찍지 않는다', () => {
+    let sawIncreasing = false;
+    let sawDecreasing = false;
+    for (let seed = 1; seed <= 500; seed++) {
+      const { question } = countGenerator.generate(seed);
+      const explanation = question.explanation ?? '';
+      expect(explanation).not.toContain('-1개');
+      if (explanation.includes('늘어납니다')) sawIncreasing = true;
+      if (explanation.includes('줄어듭니다')) sawDecreasing = true;
+    }
+    expect(sawIncreasing).toBe(true);
+    expect(sawDecreasing).toBe(true);
+  });
+
+  // 리뷰 Important #4 증거 — 넓힌 뒤 실측 용량이 6이어야 한다(증가 3종 + 감소 3종).
+  // tools/validate-content.ts의 용량 검사(measureGeneratorCapacity)가 재는
+  // 것과 같은 키(puzzleKey)로 세, 릴리스 게이트가 보는 값과 여기 값이 어긋나지
+  // 않게 한다.
+  test('실측 퍼즐 용량이 6이다 (증가 3종 + 감소 3종)', () => {
+    const seen = new Set<string>();
+    for (let seed = 1; seed <= 1000; seed++) {
+      seen.add(puzzleKey(countGenerator.generate(seed)));
+    }
+    expect(seen.size).toBe(6);
   });
 });

@@ -1,7 +1,10 @@
-import { assembleIq } from '@/engine/iq/assembleIq';
+import { assembleIq, planSlots } from '@/engine/iq/assembleIq';
+import type { IqDrawConfig } from '@/engine/iq/assembleIq';
 import { verifyGenerated } from '@/engine/iq/verify';
 import { GENERATORS } from '@/engine/iq/generators';
+import type { Generator } from '@/engine/iq/generators';
 import { IQ_DRAW } from '@/content/registry';
+import type { Difficulty, GeneratedQuestion } from '@/engine/types';
 
 describe('assembleIq', () => {
   test('같은 시드는 같은 세트를 만든다', () => {
@@ -86,5 +89,52 @@ describe('assembleIq', () => {
         expect(JSON.stringify(gen!.generate(gq.seed))).toBe(JSON.stringify(gq));
       }
     }
+  });
+});
+
+/**
+ * 리뷰 Important #2 — difficultyMix 합이 questionCount에 못 미치면(assembleIq.ts의
+ * planSlots) "남으면 생성기가 있는 난이도에서만 채운다"는 폴백 분기가 도는데,
+ * 실제 등록된 GENERATORS는 세 난이도 모두에 생성기가 있어서 이 분기가 잘못돼도
+ * (예: 생성기 유무를 무시하고 [1,2,3]을 그대로 채워도) 눈에 안 띈다.
+ * 그래서 가짜 생성기 목록으로 "생성기가 없는 난이도"를 직접 만들어 그 분기를 돈다.
+ */
+describe('planSlots (difficultyMix 합 < questionCount 폴백)', () => {
+  function fakeGenerate(id: string): (seed: number) => GeneratedQuestion {
+    return (seed) => ({
+      question: {
+        id: `${id}-${seed}`,
+        kind: 'scored',
+        prompt: `${id} 문항 ${seed}`,
+        choices: [{ text: 'a' }, { text: 'b' }, { text: 'c' }, { text: 'd' }, { text: 'e' }],
+        answerIndex: 0,
+        explanation: '해설',
+        difficulty: 1,
+      },
+      generatorId: id,
+      seed,
+    });
+  }
+
+  test('부족분은 생성기가 있는 난이도에서만 채운다 — 생성기 없는 난이도는 절대 안 나온다', () => {
+    // 난이도 3에는 생성기를 하나도 안 준다.
+    const fakeGenerators: Generator[] = [
+      { id: 'g1', difficulty: 1, generate: fakeGenerate('g1') },
+      { id: 'g2', difficulty: 2, generate: fakeGenerate('g2') },
+    ];
+    // 합 4 < questionCount 8 — while 폴백 루프가 반드시 돈다.
+    const config: IqDrawConfig = { questionCount: 8, difficultyMix: { 1: 2, 2: 2 } };
+
+    const slots = planSlots(config, fakeGenerators);
+
+    expect(slots).toHaveLength(8);
+    expect(slots.every((d) => d === 1 || d === 2)).toBe(true);
+    expect(slots.some((d) => (d as Difficulty) === 3)).toBe(false);
+  });
+
+  test('생성기가 하나도 없으면 questionCount에 못 미친 채로 멈춘다(무한루프 대신)', () => {
+    const config: IqDrawConfig = { questionCount: 5, difficultyMix: {} };
+    const slots = planSlots(config, []);
+    expect(slots).toEqual([]);
   });
 });

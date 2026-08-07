@@ -6,11 +6,15 @@ import {
   validateVoteQuestions,
   validateAllPools,
   validateGenerators,
+  validateGeneratorCapacity,
+  measureGeneratorCapacity,
 } from '../../tools/validate-content';
 import type { PoolScoring } from '../../src/content/registry';
 import type { Question, GradeTable, GeneratedQuestion } from '@/engine/types';
 import type { Generator } from '@/engine/iq/generators';
 import { GENERATORS } from '@/engine/iq/generators';
+import type { IqDrawConfig } from '@/engine/iq/assembleIq';
+import { IQ_DRAW } from '@/content/registry';
 
 function ok(id: string): Question {
   return {
@@ -397,5 +401,86 @@ describe('validateGenerators', () => {
     const { errors, totalGenerated } = validateGenerators(GENERATORS, 200);
     expect(errors).toEqual([]);
     expect(totalGenerated).toBe(GENERATORS.length * 200);
+  });
+});
+
+/**
+ * validateGenerators(생성기 각각이 유효한 문항을 내는가)는 통과하는데도
+ * IQ_DRAW가 요구하는 슬롯 수가 어떤 생성기의 실측 퍼즐 용량 이상이면
+ * assembleIq가 실제 출제에서만 예외를 던진다. 그 사각지대를 잡는 검사라
+ * validateGenerators와는 별도로 테스트한다.
+ */
+describe('measureGeneratorCapacity / validateGeneratorCapacity', () => {
+  /** values의 서로 다른 개수만큼만 퍼즐을 낼 수 있는 가짜 생성기. figure가 없어
+   * puzzleKey가 prompt로 구분하므로, prompt에 값을 그대로 박아 용량을 통제한다. */
+  function makeGen(id: string, values: readonly number[]): Generator {
+    return {
+      id,
+      difficulty: 1,
+      generate: (seed) => ({
+        question: {
+          id: `${id}-${seed}`,
+          kind: 'scored',
+          prompt: `문항 ${values[seed % values.length]}`,
+          choices: [{ text: 'a' }, { text: 'b' }, { text: 'c' }, { text: 'd' }, { text: 'e' }],
+          answerIndex: 0,
+          explanation: '해설',
+          difficulty: 1,
+        },
+        generatorId: id,
+        seed,
+      }),
+    };
+  }
+
+  test('measureGeneratorCapacity는 서로 다른 퍼즐 개수를 센다', () => {
+    const gen = makeGen('wide', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(measureGeneratorCapacity(gen, 50)).toBe(10);
+  });
+
+  test('용량이 수요보다 크면 통과한다', () => {
+    const gen = makeGen('wide', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]); // 용량 10
+    const config: IqDrawConfig = { questionCount: 3, difficultyMix: { 1: 3 } }; // 수요 3
+    expect(validateGeneratorCapacity([gen], config, 50)).toEqual([]);
+  });
+
+  // 등호도 실패시켜야 한다 — "용량 == 수요"가 바로 count 생성기(넓히기 전)가
+  // 실제로 걸렸던 상태다. 여유(capacity > demand)가 없으면 언젠가 막힌다.
+  test('용량이 수요와 정확히 같으면 잡는다 (등호도 실패)', () => {
+    const gen = makeGen('narrow', [1, 2, 3]); // 용량 3
+    const config: IqDrawConfig = { questionCount: 3, difficultyMix: { 1: 3 } }; // 수요 3
+    const errors = validateGeneratorCapacity([gen], config, 50);
+    expect(errors.some((e) => e.includes('narrow'))).toBe(true);
+    expect(errors.some((e) => e.includes('3') && e.includes('3'))).toBe(true);
+  });
+
+  test('용량이 수요보다 작으면 잡는다', () => {
+    const gen = makeGen('tiny', [1, 2]); // 용량 2
+    const config: IqDrawConfig = { questionCount: 3, difficultyMix: { 1: 3 } }; // 수요 3
+    const errors = validateGeneratorCapacity([gen], config, 50);
+    expect(errors.some((e) => e.includes('tiny'))).toBe(true);
+  });
+
+  test('그 난이도에서 실제로 쓰이지 않는 생성기(수요 0)는 검사하지 않는다', () => {
+    const unused = makeGen('unused', [1]); // 용량 1
+    const used = makeGen('used', [1, 2, 3, 4]);
+    // 둘 다 난이도를 1로 두면 라운드로빈상 unused도 슬롯을 받아버리므로,
+    // "수요 0"인 생성기를 확실히 만들기 위해 unused만 다른 난이도로 옮긴다.
+    const unusedAtDifficulty2: Generator = { ...unused, difficulty: 2 };
+    const config: IqDrawConfig = { questionCount: 2, difficultyMix: { 1: 2 } }; // 난이도2는 수요 0
+    const errors = validateGeneratorCapacity([used, unusedAtDifficulty2], config, 50);
+    expect(errors).toEqual([]);
+  });
+
+  test('실제 등록된 생성기 6종과 IQ_DRAW 조합은 용량이 수요보다 넉넉하다', () => {
+    expect(validateGeneratorCapacity(GENERATORS, IQ_DRAW, 1000)).toEqual([]);
+  });
+
+  // 리뷰 항목4 증거 — count를 넓히기 전엔 용량 3 == 수요 3으로 이 테스트가
+  // 실패했어야 한다. 지금은 용량이 6(증가3+감소3)이라 통과한다.
+  test('count 생성기의 실측 용량은 6이다 (증가 3종 + 감소 3종)', () => {
+    const count = GENERATORS.find((g) => g.id === 'count');
+    expect(count).toBeDefined();
+    expect(measureGeneratorCapacity(count as Generator, 1000)).toBe(6);
   });
 });

@@ -3,6 +3,8 @@ import { AXES, type GradeTable, type Question } from '../src/engine/types';
 import type { PoolScoring } from '../src/content/registry';
 import { verifyGenerated } from '../src/engine/iq/verify';
 import type { Generator } from '../src/engine/iq/generators';
+import { puzzleKey, computeGeneratorDemand } from '../src/engine/iq/assembleIq';
+import type { IqDrawConfig } from '../src/engine/iq/assembleIq';
 
 export interface ScoredValidationOptions {
   /** 텍스트 문항은 4, IQ 도형·수열은 5 */
@@ -351,12 +353,64 @@ export function validateGenerators(
   return { errors, totalGenerated };
 }
 
+/**
+ * 생성기 하나가 실제로 만들어낼 수 있는 서로 다른 퍼즐이 몇 개인지 시드
+ * seedCount개로 추정한다. puzzleKey는 assembleIq의 중복 방지와 같은 기준을
+ * 쓴다 — 여기서 "다르다"고 세는 기준이 실제 출제에서 "다르다"고 인정하는
+ * 기준과 어긋나면 이 용량 수치 자체가 무의미해진다.
+ */
+export function measureGeneratorCapacity(gen: Generator, seedCount = 1000): number {
+  const seen = new Set<string>();
+  for (let seed = 1; seed <= seedCount; seed++) {
+    seen.add(puzzleKey(gen.generate(seed)));
+  }
+  return seen.size;
+}
+
+/**
+ * validateGenerators(생성기 각각이 유효한 문항을 내는가)와는 다른 종류의
+ * 구멍을 잡는다: 생성기 각각은 멀쩡해도, IQ_DRAW 같은 출제 설정이 한 세트당
+ * 요구하는 슬롯 수(수요)가 그 생성기의 실측 퍼즐 용량 이상이면 assembleIq는
+ * 재시도를 다 써도 새 퍼즐을 못 찾아 예외를 던진다 — count 생성기가 원래
+ * 퍼즐 3종뿐이고 IQ_DRAW가 정확히 3슬롯을 요구해서(용량==수요, 여유 0)
+ * 실제로 벌어졌던 결함이다.
+ *
+ * 그래서 등호가 아니라 **엄격히 큼(capacity > demand)**을 요구한다 — 용량이
+ * 수요와 같기만 해도 재시도로 새 퍼즐을 못 찾는 시드가 반드시 나온다.
+ * 이 검사가 없으면 IQ_DRAW를 바꾸는 순간(질문 수↑, 특정 난이도 배분↑)
+ * validate:content는 여전히 통과한 채로 실제 출제에서만 assembleIq가
+ * 터진다 — 릴리스 게이트가 못 보는 사각지대였다.
+ */
+export function validateGeneratorCapacity(
+  generators: readonly Generator[],
+  config: IqDrawConfig,
+  seedCount = 1000
+): string[] {
+  const errors: string[] = [];
+  const demand = computeGeneratorDemand(config, generators);
+
+  for (const gen of generators) {
+    const need = demand.get(gen.id) ?? 0;
+    if (need === 0) continue;
+
+    const capacity = measureGeneratorCapacity(gen, seedCount);
+    if (capacity <= need) {
+      errors.push(
+        `[생성기 ${gen.id}] 용량(서로 다른 퍼즐 ${capacity}개)이 한 세트당 필요한 ` +
+          `슬롯 수(${need}개)보다 크지 않습니다 — 용량이 수요보다 반드시 커야 합니다`
+      );
+    }
+  }
+
+  return errors;
+}
+
 /** CLI 진입점. 문제가 있으면 exit 1. */
 async function main(): Promise<void> {
   // registry.ts가 실제 콘텐츠 인벤토리다 — 파일 경로를 직접 나열하지 않고
   // 여기 등록된 풀을 그대로 순회한다. 새 지역/카테고리가 POOLS에 추가되면
   // 이 스크립트를 고치지 않아도 자동으로 검증 대상이 된다.
-  const { POOLS, POOL_SCORING } = await import('../src/content/registry');
+  const { POOLS, POOL_SCORING, IQ_DRAW } = await import('../src/content/registry');
   const { GENERATORS } = await import('../src/engine/iq/generators');
   const grades = (await import('../src/content/grades.json')).default as unknown as Record<
     string,
@@ -365,9 +419,11 @@ async function main(): Promise<void> {
 
   const { errors: poolErrors, totalQuestions } = validateAllPools(POOLS, POOL_SCORING);
   const { errors: generatorErrors, totalGenerated } = validateGenerators(GENERATORS);
+  const capacityErrors = validateGeneratorCapacity(GENERATORS, IQ_DRAW);
   const errors = [
     ...poolErrors,
     ...generatorErrors,
+    ...capacityErrors,
     ...Object.entries(grades).flatMap(([id, table]) => validateGradeTable(id, table)),
   ];
 
@@ -379,7 +435,7 @@ async function main(): Promise<void> {
 
   console.log(
     `콘텐츠 검증 통과 — 문항 ${totalQuestions}개, 생성형 검증 ${totalGenerated}건, ` +
-      `급수 테이블 ${Object.keys(grades).length}개`
+      `생성기 용량 검사 ${GENERATORS.length}종, 급수 테이블 ${Object.keys(grades).length}개`
   );
 }
 
