@@ -68,8 +68,11 @@ export default function IqReviewScreen() {
           const wrong = wrongIds.has(q.id);
           const answerIndex = q.answerIndex ?? 0;
           const chosenIndex = chosenByQuestion.get(q.id) ?? -1;
-          // 미응답(-1)이거나, 세션이 깨져 선택지 범위를 벗어난 값이면
-          // choice를 못 찾은 것으로 취급한다 — ChoiceCell이 "응답 없음"으로 그린다.
+          // noUncheckedIndexedAccess 덕에 범위를 벗어난 인덱스여도 q.choices[chosenIndex]는
+          // 그냥 undefined를 준다 — 이 가드가 없어도 크래시하지 않는다. 가드를 남겨두는 건
+          // "미응답(-1)과 범위 밖 인덱스는 둘 다 choice가 없는 것"이라는 의도를 코드에
+          // 그대로 적어두기 위해서다 — 없어도 동작은 같지만, 있으면 다음 사람이 그 사실을
+          // 확인하려고 타입 시스템을 다시 추적할 필요가 없다.
           const chosenChoice =
             chosenIndex >= 0 && chosenIndex < q.choices.length ? q.choices[chosenIndex] : undefined;
           const answerChoice = q.choices[answerIndex];

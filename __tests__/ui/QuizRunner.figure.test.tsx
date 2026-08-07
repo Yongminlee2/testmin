@@ -68,6 +68,8 @@ describe('QuizRunner 도형 지원', () => {
     useSession.getState().start('iq', 'default', 1, [figureQuestion('a')]);
     await render(<QuizRunner resultRoute="/test/iq/result" />);
     expect(screen.getByTestId('question-figure')).toBeTruthy();
+    // 문제 도형에도 접근성 이름이 있어야 한다 — 선택지 도형과 같은 이유.
+    expect(screen.getByLabelText('문제 도형')).toBeTruthy();
   });
 
   test('문제에 figure가 없으면 문제 도형을 그리지 않는다(회귀 방지)', async () => {

@@ -13,6 +13,12 @@ export function iqQuestionId(generatorId: string, seed: number): string {
 export function parseIqQuestionId(
   id: string
 ): { generatorId: string; seed: number } | undefined {
+  // generatorId를 [a-z]+로 좁혀둔다 — 숫자나 하이픈이 들어간 generatorId(예: 'rotate2')를
+  // 등록하면 이 정규식이 그 문항의 id를 파싱하지 못해 오답노트에서 조용히 사라진다.
+  // 그래도 이 범위를 넓히지 않는 이유는, questionId.test.ts의 100-seed round-trip
+  // 테스트가 GENERATORS를 직접 순회하며 "만든 id를 파싱해 원래 문항을 복원할 수 있는가"를
+  // 검사하고 있어서다 — 그런 generatorId가 등록되는 순간 그 테스트가 즉시 실패한다.
+  // 정규식을 느슨하게 "고치거나" 그 round-trip 테스트를 지우면 이 안전망이 없어진다.
   const m = /^iq-([a-z]+)-(\d+)$/.exec(id);
   if (m === null) return undefined;
   return { generatorId: m[1] as string, seed: Number(m[2]) };
