@@ -4,6 +4,7 @@ import { countGenerator } from './count';
 import { fillGenerator } from './fill';
 import { distributeGenerator } from './distribute';
 import { sizeGenerator } from './size';
+import { sequenceGenerator } from './sequence';
 
 export interface Generator {
   readonly id: string;
@@ -12,11 +13,12 @@ export interface Generator {
   generate(seed: number): GeneratedQuestion;
 }
 
-/** Task 5에서 나머지가 채워진다. */
+/** 여섯 번째이자 마지막 생성기(sequence)까지 다 채워졌다. */
 export const GENERATORS: readonly Generator[] = [
   rotationGenerator,
   countGenerator,
   fillGenerator,
   distributeGenerator,
   sizeGenerator,
+  sequenceGenerator,
 ];
