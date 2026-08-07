@@ -6,6 +6,8 @@ import type { Generator } from '../src/engine/iq/generators';
 import { puzzleKey, computeGeneratorDemand, assembleIq } from '../src/engine/iq/assembleIq';
 import type { IqDrawConfig } from '../src/engine/iq/assembleIq';
 import { parseIqQuestionId } from '../src/engine/iq/questionId';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 export interface ScoredValidationOptions {
   /** 텍스트 문항은 4, IQ 도형·수열은 5 */
@@ -496,6 +498,99 @@ export function validateIqAssembly(config: IqDrawConfig, seedCount = 100): strin
 }
 
 /** CLI 진입점. 문제가 있으면 exit 1. */
+
+/**
+ * 번들 폰트가 콘텐츠의 모든 글자를 갖고 있는지 확인한다.
+ *
+ * 폰트를 서브셋해서 한자·가나를 걷어냈기 때문에(tools/subset-fonts.py),
+ * 새 문항에 폰트에 없는 글자를 넣으면 화면에 두부(□)로 뜬다. 자동 검사로
+ * 잡지 않으면 실기기에서 눈으로 보기 전까지 아무도 모른다.
+ *
+ * 폰트 파일의 cmap을 직접 읽어 대조하므로, 서브셋 스크립트를 다시 안 돌린
+ * 경우도 여기서 걸린다.
+ */
+export function validateFontCoverage(
+  pools: Record<string, readonly Question[]>,
+  fontPath: string
+): string[] {
+  const buf = readFileSync(fontPath);
+  const covered = readCmap(buf);
+  if (covered.size === 0) return [`[폰트] ${fontPath}에서 글자표(cmap)를 읽지 못했습니다`];
+
+  const missing = new Map<string, string>();
+  for (const [poolId, questions] of Object.entries(pools)) {
+    for (const q of questions) {
+      const texts = [q.prompt, q.explanation ?? '', ...q.choices.map((c) => c.text ?? '')];
+      for (const t of texts) {
+        for (const ch of t) {
+          const cp = ch.codePointAt(0) ?? 0;
+          // 이모지는 시스템 이모지 폰트가 그리므로 번들 폰트에 없어도 된다.
+          if (cp >= 0x1f000 || cp === 0x20 || cp === 0x0a) continue;
+          if (!covered.has(cp) && !missing.has(ch)) missing.set(ch, poolId);
+        }
+      }
+    }
+  }
+
+  return [...missing.entries()].map(
+    ([ch, poolId]) =>
+      `[폰트] '${ch}'(U+${(ch.codePointAt(0) ?? 0).toString(16).toUpperCase()})가 번들 폰트에 없습니다 ` +
+      `— ${poolId}에서 쓰였습니다. python tools/subset-fonts.py를 다시 실행하세요`
+  );
+}
+
+/** TrueType cmap에서 지원 코드포인트를 모은다. format 4와 12만 다룬다. */
+function readCmap(buf: Buffer): Set<number> {
+  const out = new Set<number>();
+  const numTables = buf.readUInt16BE(4);
+  let cmapOff = 0;
+  for (let i = 0; i < numTables; i++) {
+    const rec = 12 + i * 16;
+    if (buf.toString('ascii', rec, rec + 4) === 'cmap') cmapOff = buf.readUInt32BE(rec + 8);
+  }
+  if (cmapOff === 0) return out;
+
+  const n = buf.readUInt16BE(cmapOff + 2);
+  for (let i = 0; i < n; i++) {
+    const sub = cmapOff + buf.readUInt32BE(cmapOff + 4 + i * 8 + 4);
+    const format = buf.readUInt16BE(sub);
+    if (format === 4) {
+      const segX2 = buf.readUInt16BE(sub + 6);
+      const ends = sub + 14;
+      const starts = ends + segX2 + 2;
+      const deltas = starts + segX2;
+      const ranges = deltas + segX2;
+      for (let s = 0; s < segX2 / 2; s++) {
+        const end = buf.readUInt16BE(ends + s * 2);
+        const start = buf.readUInt16BE(starts + s * 2);
+        if (start === 0xffff) continue;
+        const delta = buf.readInt16BE(deltas + s * 2);
+        const rangeOff = buf.readUInt16BE(ranges + s * 2);
+        for (let c = start; c <= end && c !== 0x10000; c++) {
+          let gid: number;
+          if (rangeOff === 0) gid = (c + delta) & 0xffff;
+          else {
+            const gi = ranges + s * 2 + rangeOff + (c - start) * 2;
+            if (gi + 1 >= buf.length) continue;
+            const g = buf.readUInt16BE(gi);
+            gid = g === 0 ? 0 : (g + delta) & 0xffff;
+          }
+          if (gid !== 0) out.add(c);
+        }
+      }
+    } else if (format === 12) {
+      const groups = buf.readUInt32BE(sub + 12);
+      for (let g = 0; g < groups; g++) {
+        const go = sub + 16 + g * 12;
+        const start = buf.readUInt32BE(go);
+        const end = buf.readUInt32BE(go + 4);
+        for (let c = start; c <= end; c++) out.add(c);
+      }
+    }
+  }
+  return out;
+}
+
 async function main(): Promise<void> {
   // registry.ts가 실제 콘텐츠 인벤토리다 — 파일 경로를 직접 나열하지 않고
   // 여기 등록된 풀을 그대로 순회한다. 새 지역/카테고리가 POOLS에 추가되면
@@ -513,11 +608,16 @@ async function main(): Promise<void> {
   const { errors: generatorErrors, totalGenerated } = validateGenerators(GENERATORS);
   const capacityErrors = validateGeneratorCapacity(GENERATORS, IQ_DRAW);
   const iqAssemblyErrors = validateIqAssembly(IQ_DRAW, IQ_ASSEMBLY_SEED_COUNT);
+  const fontErrors = validateFontCoverage(
+    POOLS,
+    join(__dirname, '..', 'assets', 'fonts', 'NotoSansKR_500Medium.ttf')
+  );
   const errors = [
     ...poolErrors,
     ...generatorErrors,
     ...capacityErrors,
     ...iqAssemblyErrors,
+    ...fontErrors,
     ...Object.entries(grades).flatMap(([id, table]) => validateGradeTable(id, table)),
   ];
 
@@ -531,7 +631,7 @@ async function main(): Promise<void> {
     `콘텐츠 검증 통과 — 문항 ${totalQuestions}개, 생성형 검증 ${totalGenerated}건, ` +
       `생성기 용량 검사 ${GENERATORS.length}종, ` +
       `IQ 출제(assembleIq) 검증 ${IQ_DRAW.questionCount * IQ_ASSEMBLY_SEED_COUNT}건, ` +
-      `급수 테이블 ${Object.keys(grades).length}개`
+      `급수 테이블 ${Object.keys(grades).length}개, 폰트 글자 커버리지 확인`
   );
 }
 

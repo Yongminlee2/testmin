@@ -54,11 +54,11 @@ describe('IqResultScreen', () => {
     useSession.getState().answer('d', 3);
 
     await render(<IqResultScreen />);
-    expect(screen.getByTestId('iq-score')).toBeTruthy();
+    expect(screen.getByTestId('iq-score-number')).toBeTruthy();
     expect(screen.getByTestId('iq-disclaimer')).toBeTruthy();
   });
 
-  test('만점이면 추정 점수가 145다', async () => {
+  test('만점이면 추정 아이큐가 145다', async () => {
     useSession.getState().start('iq', 'default', 1, questions);
     useSession.getState().answer('a', 0);
     useSession.getState().answer('b', 1);
@@ -66,7 +66,9 @@ describe('IqResultScreen', () => {
     useSession.getState().answer('d', 3);
 
     await render(<IqResultScreen />);
-    expect(screen.getByTestId('iq-score').props.children.join('')).toContain('145');
+    expect(screen.getByTestId('iq-score-number').props.children).toBe(145);
+    // 숫자만 크게 띄우면 실제 검사 점수로 읽힌다. 어떻게 나온 값인지도 같은 화면에 있어야 한다.
+    expect(screen.getByTestId('iq-score-basis')).toBeTruthy();
   });
 
   test('세션이 비어 있으면 크래시하지 않는다', async () => {

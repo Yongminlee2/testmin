@@ -390,5 +390,152 @@
         "title": "서울은 여행만 왔다"
       }
     ]
+  },
+  "spelling-default": {
+    "bands": [
+      {
+        "min": 100,
+        "grade": 1,
+        "title": "국어사전 편찬 위원"
+      },
+      {
+        "min": 93,
+        "grade": 2,
+        "title": "교정 담당자 인정"
+      },
+      {
+        "min": 86,
+        "grade": 3,
+        "title": "맞춤법 잔소리꾼"
+      },
+      {
+        "min": 73,
+        "grade": 4,
+        "title": "웬만하면 안 틀린다"
+      },
+      {
+        "min": 60,
+        "grade": 5,
+        "title": "절반은 감으로"
+      },
+      {
+        "min": 46,
+        "grade": 6,
+        "title": "되/돼는 늘 헷갈린다"
+      },
+      {
+        "min": 33,
+        "grade": 7,
+        "title": "맞춤법 검사기가 필수"
+      },
+      {
+        "min": 20,
+        "grade": 8,
+        "title": "띄어쓰기는 포기했다"
+      },
+      {
+        "min": 0,
+        "grade": 9,
+        "title": "소리 나는 대로 적는다"
+      }
+    ]
+  },
+  "purekorean-default": {
+    "bands": [
+      {
+        "min": 100,
+        "grade": 1,
+        "title": "우리말 지킴이"
+      },
+      {
+        "min": 93,
+        "grade": 2,
+        "title": "사전을 통째로 읽었다"
+      },
+      {
+        "min": 86,
+        "grade": 3,
+        "title": "시인이 될 상"
+      },
+      {
+        "min": 73,
+        "grade": 4,
+        "title": "은근히 많이 안다"
+      },
+      {
+        "min": 60,
+        "grade": 5,
+        "title": "들어본 적은 있다"
+      },
+      {
+        "min": 46,
+        "grade": 6,
+        "title": "절반은 찍었다"
+      },
+      {
+        "min": 33,
+        "grade": 7,
+        "title": "이름에서만 봤다"
+      },
+      {
+        "min": 20,
+        "grade": 8,
+        "title": "전부 처음 듣는다"
+      },
+      {
+        "min": 0,
+        "grade": 9,
+        "title": "한글은 읽을 줄 안다"
+      }
+    ]
+  },
+  "idiom-default": {
+    "bands": [
+      {
+        "min": 100,
+        "grade": 1,
+        "title": "사자성어 사전"
+      },
+      {
+        "min": 93,
+        "grade": 2,
+        "title": "한문 선생님"
+      },
+      {
+        "min": 86,
+        "grade": 3,
+        "title": "신문 사설이 읽힌다"
+      },
+      {
+        "min": 73,
+        "grade": 4,
+        "title": "웬만한 건 안다"
+      },
+      {
+        "min": 60,
+        "grade": 5,
+        "title": "절반은 안다"
+      },
+      {
+        "min": 46,
+        "grade": 6,
+        "title": "들어는 봤다"
+      },
+      {
+        "min": 33,
+        "grade": 7,
+        "title": "뜻은 모르고 소리만"
+      },
+      {
+        "min": 20,
+        "grade": 8,
+        "title": "한자는 어렵다"
+      },
+      {
+        "min": 0,
+        "grade": 9,
+        "title": "네 글자면 다 같아 보인다"
+      }
+    ]
   }
 }

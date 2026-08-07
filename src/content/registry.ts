@@ -13,6 +13,9 @@ import love from './psych/love.json';
 import stress from './psych/stress.json';
 import comm from './psych/comm.json';
 import mz from './mz.json';
+import spelling from './scored/spelling.json';
+import purekorean from './scored/purekorean.json';
+import idiom from './scored/idiom.json';
 import { GENERATORS } from '@/engine/iq/generators';
 import type { IqDrawConfig } from '@/engine/iq/assembleIq';
 
@@ -22,6 +25,61 @@ const grades = gradesJson as unknown as Record<string, GradeTable>;
 export interface DrawConfig {
   readonly questionCount: number;
   readonly difficultyMix: Partial<Record<Difficulty, number>>;
+}
+
+/**
+ * 고정 문항 고사들의 설정. 화면을 시험마다 복사하지 않고
+ * app/test/g/[testId]/ 한 벌이 이 표를 읽어 동작한다.
+ * 새 고사를 추가하려면 여기 한 줄과 문항 JSON만 있으면 된다.
+ */
+export interface ScoredTestMeta {
+  readonly id: string;
+  readonly title: string;
+  /** 홈 카드 두 번째 줄 */
+  readonly subtitle: string;
+  readonly emoji: string;
+  readonly colorKey: CategoryMeta['colorKey'];
+  readonly draw: DrawConfig;
+  /** 인트로 화면 문구 */
+  readonly heading: string;
+  readonly note: string;
+}
+
+export const SCORED_TESTS: readonly ScoredTestMeta[] = [
+  {
+    id: 'spelling',
+    title: '맞춤법 고사',
+    subtitle: '되/돼 · 안/않 · 띄어쓰기',
+    emoji: '📗',
+    colorKey: 'dialect',
+    draw: { questionCount: 15, difficultyMix: { 1: 5, 2: 5, 3: 5 } },
+    heading: '헷갈리는 맞춤법,\n얼마나 아시나요?',
+    note: '문항마다 왜 그렇게 적는지 규칙을 함께 적어뒀습니다.',
+  },
+  {
+    id: 'purekorean',
+    title: '순우리말 고사',
+    subtitle: '사전 속 잊혀진 우리말',
+    emoji: '🌿',
+    colorKey: 'psych',
+    draw: { questionCount: 15, difficultyMix: { 1: 5, 2: 5, 3: 5 } },
+    heading: '잊혀진 우리말,\n뜻을 아시겠어요?',
+    note: '사전에 실린 말만 골랐습니다. 해설에 출처를 적어뒀습니다.',
+  },
+  {
+    id: 'idiom',
+    title: '고사성어 고사',
+    subtitle: '네 글자에 담긴 옛이야기',
+    emoji: '📜',
+    colorKey: 'personality',
+    draw: { questionCount: 15, difficultyMix: { 1: 5, 2: 5, 3: 5 } },
+    heading: '고사성어,\n뜻을 정확히 아시나요?',
+    note: '한자 한 글자씩 풀어서 왜 그런 뜻이 되는지 설명합니다.',
+  },
+];
+
+export function getScoredTest(id: string): ScoredTestMeta | undefined {
+  return SCORED_TESTS.find((t) => t.id === id);
 }
 
 /** MZ 고사 출제 설정. 풀 15개에서 15문항 — 전부 낸다. */
@@ -35,10 +93,14 @@ export const DIALECT_DRAW: DrawConfig = {
   difficultyMix: { 1: 4, 2: 5, 3: 3 },
 };
 
-/** IQ 고사 출제 설정. 난이도별 목표 개수의 합이 questionCount와 같아야 한다. */
+/**
+ * IQ 고사 출제 설정. 난이도별 목표 개수의 합이 questionCount와 같아야 한다.
+ * 상위 난이도 생성기가 4종(distribute·logic·sum·hardsequence)으로 늘면서
+ * 어려운 문항 비중을 6→9로 올렸다 — "쉬운 것만 나온다"는 지적에 대한 답이다.
+ */
 export const IQ_DRAW: IqDrawConfig = {
   questionCount: 20,
-  difficultyMix: { 1: 7, 2: 7, 3: 6 },
+  difficultyMix: { 1: 4, 2: 7, 3: 9 },
 };
 
 /**
@@ -54,6 +116,9 @@ export const POOLS: Record<string, readonly Question[]> = {
   'dialect:jeju': jeju as unknown as Question[],
   'dialect:seoul': seoul as unknown as Question[],
   'mz:default': mz as unknown as Question[],
+  'spelling:default': spelling as unknown as Question[],
+  'purekorean:default': purekorean as unknown as Question[],
+  'idiom:default': idiom as unknown as Question[],
   'personality:default': personality as unknown as Question[],
   'psych:love': (love as unknown as { questions: Question[] }).questions,
   'psych:stress': (stress as unknown as { questions: Question[] }).questions,
@@ -76,6 +141,9 @@ export const POOL_SCORING: Record<string, PoolScoring> = {
   'dialect:jeju': 'scored',
   'dialect:seoul': 'scored',
   'mz:default': 'scored',
+  'spelling:default': 'scored',
+  'purekorean:default': 'scored',
+  'idiom:default': 'scored',
   'personality:default': 'axis',
   'psych:love': 'vote',
   'psych:stress': 'vote',
@@ -216,6 +284,20 @@ export const CATEGORIES: readonly CategoryMeta[] = [
     route: '/test/psych/intro',
     available: categoryHasPool('psych'),
   },
+  // 고정 문항 고사들은 SCORED_TESTS 한 곳에서 파생시킨다. 새 고사를 추가할 때
+  // 홈 카드를 따로 손보면 두 표가 어긋나므로, 여기서 손으로 나열하지 않는다.
+  ...SCORED_TESTS.map(
+    (t): CategoryMeta => ({
+      id: t.id,
+      title: t.title,
+      subtitle: t.subtitle,
+      emoji: t.emoji,
+      colorKey: t.colorKey,
+      questionCount: t.draw.questionCount,
+      route: `/test/g/${t.id}/intro`,
+      available: categoryHasPool(t.id),
+    })
+  ),
 ];
 
 export interface RegionMeta {

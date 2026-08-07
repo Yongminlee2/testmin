@@ -21,6 +21,7 @@ Noto Sans KR은 한글뿐 아니라 한자 약 2만 자와 가나까지 담은 �
 실행: python tools/subset-fonts.py
 """
 
+import io
 import shutil
 import subprocess
 import sys
@@ -52,9 +53,40 @@ UNICODES = ",".join([
 ])
 
 
+def extra_chars() -> str:
+    """콘텐츠에 실제로 쓰인, 위 범위 밖의 글자를 모은다.
+
+    고사성어 고사는 한자를 그대로 보여준다(過猶不及처럼). 범위만으로 자르면
+    그 글자들이 두부(□)로 뜨므로, 콘텐츠 JSON을 훑어 쓰이는 글자만 골라 넣는다.
+    한자 2만 자를 다 넣는 게 아니라 실제 등장하는 수십 자만 들어간다.
+
+    이 목록이 폰트와 어긋나면 tools/validate-content.ts가 릴리스 게이트에서
+    잡아낸다 — 새 한자를 문항에 넣고 이 스크립트를 다시 안 돌리면 실패한다.
+    """
+    keep: set[str] = set()
+    for path in (ROOT / "src" / "content").rglob("*.json"):
+        for ch in path.read_text(encoding="utf-8"):
+            cp = ord(ch)
+            in_base = (
+                0x20 <= cp <= 0x7E or 0xA0 <= cp <= 0xFF
+                or 0x2010 <= cp <= 0x2015 or 0x2018 <= cp <= 0x201F
+                or cp in (0x2026, 0x2030, 0x20A9)
+                or 0x2190 <= cp <= 0x21FF or 0x2700 <= cp <= 0x27BF
+                or 0x1100 <= cp <= 0x11FF or 0x3130 <= cp <= 0x318F
+                or 0xAC00 <= cp <= 0xD7A3
+            )
+            # 이모지(0x1F000 위)는 시스템 이모지 폰트가 그리므로 넣지 않는다.
+            if not in_base and cp > 0x2FF and cp < 0x1F000:
+                keep.add(ch)
+    return "".join(sorted(keep))
+
+
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     total_before = total_after = 0
+
+    extra = extra_chars()
+    print(f"콘텐츠에서 찾은 범위 밖 글자 {len(extra)}자: {extra}\n")
 
     for name, rel in SOURCES.items():
         src = ROOT / "node_modules" / "@expo-google-fonts" / rel
@@ -68,6 +100,7 @@ def main() -> int:
             [
                 sys.executable, "-m", "fontTools.subset", str(src),
                 f"--unicodes={UNICODES}",
+                f"--text={extra}",
                 f"--output-file={dst}",
                 "--layout-features=*",   # 자모 합성 등 한글 조판 기능은 남긴다
                 "--name-IDs=*",

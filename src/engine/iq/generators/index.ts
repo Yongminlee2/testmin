@@ -6,6 +6,8 @@ import { distributeGenerator } from './distribute';
 import { sizeGenerator } from './size';
 import { sequenceGenerator } from './sequence';
 import { logicGenerator } from './logic';
+import { hardsequenceGenerator } from './hardsequence';
+import { sumGenerator } from './sum';
 
 export interface Generator {
   readonly id: string;
@@ -14,7 +16,10 @@ export interface Generator {
   generate(seed: number): GeneratedQuestion;
 }
 
-/** 도형 6종 + 수열 1종. logic은 두 칸을 겹쳐 읽어야 하는 상위 난이도 규칙이다. */
+/**
+ * 도형 7종 + 수열 2종. 뒤의 셋(logic·sum·hardsequence)은 규칙을 두 번 읽어야
+ * 풀리는 상위 난이도다 — 쉬운 문제만 나온다는 지적을 여기서 받는다.
+ */
 export const GENERATORS: readonly Generator[] = [
   rotationGenerator,
   countGenerator,
@@ -23,4 +28,6 @@ export const GENERATORS: readonly Generator[] = [
   sizeGenerator,
   sequenceGenerator,
   logicGenerator,
+  sumGenerator,
+  hardsequenceGenerator,
 ];

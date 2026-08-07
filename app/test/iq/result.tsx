@@ -3,6 +3,7 @@ import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Certificate } from '@/ui/Certificate';
+import { IqScoreCard } from '@/ui/IqScoreCard';
 import { Button } from '@/ui/Button';
 import { ShareButton } from '@/ui/ShareButton';
 import { AdSlot } from '@/ui/AdSlot';
@@ -87,9 +88,7 @@ export default function IqResultScreen() {
             나가는 새로운 표시 자리이고, 점수가 보이는 곳엔 안내 문구도 함께
             보여야 한다는 규칙이 여기도 그대로 적용된다. */}
         <View ref={cardRef} collapsable={false}>
-          <Text testID="iq-score" style={styles.score} maxFontSizeMultiplier={font.maxScale}>
-            추정 점수 {result.estimatedScore}
-          </Text>
+          <IqScoreCard score={result.estimatedScore} percent={result.percent} />
 
           <Certificate
             label="IQ 고사"
@@ -143,13 +142,6 @@ export default function IqResultScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream },
   content: { padding: space.lg, paddingBottom: space.xxl },
-  score: {
-    textAlign: 'center',
-    fontSize: font.size.lead,
-    fontFamily: font.family.black,
-    color: colors.ink,
-    marginBottom: space.sm,
-  },
   disclaimer: {
     fontSize: font.size.caption,
     fontFamily: font.family.body,
