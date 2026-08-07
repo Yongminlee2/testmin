@@ -1976,10 +1976,348 @@ choices: options.map((n) => ({ text: String(n) })),
 이 목록을 순서대로 훑는 얇은 함수가 된다. 위 테스트가 통과하면 **순서가 무의미해지므로**
 판정 순서를 잘못 잡는 실수 자체가 사라진다.
 
-**Task 6 — IQ 출제·채점·급수**
-- `assembleIq.ts`: 난이도 분포에 따라 생성기를 골라 20문항 생성
-- `grades.json`에 `iq` 급수 테이블
-- 추정 점수: 정답률을 평균 100·표준편차 15 구간에 선형 대응(하한 70·상한 145). **규준 표본 근거가 아님을 결과에 명시**
+### Task 6 — IQ 출제·채점·급수
+
+**Files:**
+- Create: `src/engine/iq/assembleIq.ts`, `src/engine/iq/iqScore.ts`
+- Modify: `src/content/grades.json` (`iq-default` 테이블), `src/content/registry.ts` (`IQ_DRAW`, 가용성 계산), `tools/validate-content.ts` (생성형 풀 검증)
+- Test: `__tests__/engine/iq/assembleIq.test.ts`, `__tests__/engine/iq/iqScore.test.ts`
+
+**Interfaces:**
+- Consumes: `GENERATORS`(`./generators`), `verifyGenerated`(`./verify`), `hashSeed`·`mulberry32`(`../rng`), `gradeFor`(`../grade`), `getGradeBands`(`@/content/registry`)
+- Produces: `assembleIq(seed, config): GeneratedQuestion[]`, `IQ_DRAW: IqDrawConfig`, `scoreIq(questions, answers, bands): IqResult`
+
+---
+
+**IQ는 정적 풀이 없다 — 여기서 배선 두 곳이 조용히 빠진다**
+
+다른 시험은 `POOLS`에 JSON 배열로 들어 있는데 IQ는 시드에서 생성한다. 그래서 `registry.ts`의
+기존 배선 두 개가 **IQ만 건너뛴다.** 둘 다 고칠 것:
+
+1. `CATEGORIES`의 `available: categoryHasPool('iq')`는 `POOLS`를 보므로 **영원히 false**다.
+   홈 화면에서 IQ 카드가 계속 잠겨 있게 된다. → `available: GENERATORS.length > 0`으로 바꾼다.
+   손으로 뒤집는 `true`가 아니라 **계산된 값**이어야 한다는 기존 원칙은 그대로다.
+2. `tools/validate-content.ts`는 `POOLS`를 순회한다. IQ는 거기 없으므로 **릴리스 게이트가
+   가장 큰 문항 공급원을 전혀 검사하지 않는다.** → CLI에 생성형 검증을 추가한다:
+   각 생성기를 시드 1~200으로 돌려 `verifyGenerated`가 빈 배열을 주는지 본다.
+   실패하면 생성기 id와 시드를 찍고 종료 코드 1.
+
+`POOLS`에 IQ를 넣지는 않는다. 20문항이 시드마다 달라서 정적 배열로 표현할 수 없고,
+억지로 넣으면 `POOL_SCORING`·`getPool` 계약이 다 흐려진다.
+
+---
+
+**`src/engine/iq/assembleIq.ts`**
+
+```ts
+import { hashSeed, mulberry32, shuffle } from '../rng';
+import { GENERATORS } from './generators';
+import type { Difficulty, GeneratedQuestion } from '../types';
+
+export interface IqDrawConfig {
+  readonly questionCount: number;
+  /** 난이도별 목표 개수. 합이 questionCount와 다르면 questionCount가 우선한다. */
+  readonly difficultyMix: Partial<Record<Difficulty, number>>;
+}
+
+/** 같은 퍼즐이 한 세트에 두 번 나오지 않게 하기 위한 재시도 한도. */
+const MAX_ATTEMPTS_PER_SLOT = 40;
+
+/** 문항을 "같은 퍼즐인가"로 비교하는 키. 선택지 순서는 무시한다. */
+function puzzleKey(gq: GeneratedQuestion): string {
+  const q = gq.question;
+  return q.figure ? `${gq.generatorId}|${JSON.stringify(q.figure)}` : `${gq.generatorId}|${q.prompt}`;
+}
+
+/**
+ * 시드에서 IQ 한 세트를 만든다. 같은 시드는 항상 같은 세트를 준다.
+ *
+ * 선택지는 **여기서 섞지 않는다** — 생성기가 이미 자기 rng로 섞는다.
+ * (`assemble()`이 정적 풀에 대해 하는 일을 생성기가 대신하고 있다.)
+ */
+export function assembleIq(seed: number, config: IqDrawConfig): GeneratedQuestion[] {
+  if (GENERATORS.length === 0) {
+    throw new Error('등록된 생성기가 없습니다');
+  }
+
+  const rand = mulberry32(seed);
+  const byDifficulty = new Map<Difficulty, typeof GENERATORS>();
+  for (const d of [1, 2, 3] as const) {
+    byDifficulty.set(d, GENERATORS.filter((g) => g.difficulty === d));
+  }
+
+  // 난이도별 목표를 먼저 채우고, 남으면 전체에서 채운다.
+  const slots: Difficulty[] = [];
+  for (const d of [1, 2, 3] as const) {
+    const want = config.difficultyMix[d] ?? 0;
+    // 그 난이도에 생성기가 하나도 없으면 자리를 만들지 않는다.
+    // 만들면 아래 루프가 영원히 못 채운다.
+    if ((byDifficulty.get(d) ?? []).length === 0) continue;
+    for (let i = 0; i < want && slots.length < config.questionCount; i++) slots.push(d);
+  }
+  const anyDifficulty = [1, 2, 3].filter(
+    (d) => (byDifficulty.get(d as Difficulty) ?? []).length > 0
+  ) as Difficulty[];
+  while (slots.length < config.questionCount) {
+    slots.push(anyDifficulty[slots.length % anyDifficulty.length] as Difficulty);
+  }
+
+  const out: GeneratedQuestion[] = [];
+  const seen = new Set<string>();
+
+  shuffle(slots, rand).forEach((difficulty, i) => {
+    const pool = byDifficulty.get(difficulty) as typeof GENERATORS;
+    // 같은 난이도 안에서는 생성기를 돌아가며 쓴다. 그 난이도에 생성기가 하나뿐이면
+    // 그 하나가 전부를 맡는다 — 시드가 달라 문항은 서로 다르다.
+    const gen = pool[i % pool.length] as (typeof GENERATORS)[number];
+
+    // 같은 퍼즐이 두 번 나오면 앱이 고장난 것처럼 보인다.
+    // 생성기의 파라미터 공간이 좁아서(회전은 9가지뿐) 실제로 자주 부딪힌다.
+    for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_SLOT; attempt++) {
+      const gq = gen.generate(hashSeed(`${seed}:${gen.id}:${i}:${attempt}`));
+      const key = puzzleKey(gq);
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.push(gq);
+        return;
+      }
+    }
+    throw new Error(
+      `생성기 ${gen.id}가 ${MAX_ATTEMPTS_PER_SLOT}번 시도에도 새 퍼즐을 못 만들었습니다 ` +
+        `(seed=${seed}, slot=${i}). 파라미터 공간이 출제 수보다 좁습니다.`
+    );
+  });
+
+  return out;
+}
+```
+
+> **왜 중복 방지가 필요한가:** `rotation`은 step 3가지 × start 3가지 = **서로 다른 퍼즐이 9개뿐**이다.
+> 20문항 중 여러 개가 난이도 1을 맡으면 시드만 달리해서는 같은 퍼즐이 반복된다.
+> 사용자에게는 앱이 고장난 것으로 보인다. 자동 검사가 안 잡는 종류가 아니라 **안 짜면 안 잡히는** 종류다.
+
+> **왜 그 난이도에 생성기가 없으면 자리를 안 만드는가:** 만들면 채울 방법이 없어
+> `while` 루프가 끝나지 않거나 잘못된 난이도로 채워진다. 지금은 세 난이도에 다 생성기가 있지만,
+> 생성기를 하나 지우는 순간 무한 루프가 되는 코드는 남기지 않는다.
+
+**`registry.ts`에 추가**
+
+```ts
+/** IQ 고사 출제 설정. 난이도별 목표 개수의 합이 questionCount와 같아야 한다. */
+export const IQ_DRAW: IqDrawConfig = {
+  questionCount: 20,
+  difficultyMix: { 1: 7, 2: 7, 3: 6 },
+};
+```
+
+`CATEGORIES`의 iq 항목에서 `questionCount: 20`을 `IQ_DRAW.questionCount`로 바꾼다 —
+두 곳에 20을 적어두면 갈라진다.
+
+---
+
+**`src/engine/iq/iqScore.ts`**
+
+```ts
+import { gradeFor } from '../grade';
+import { scoreTest } from '../score';
+import type { Answer, ScoredResult } from '../score';
+import type { GradeBand, Question } from '../types';
+
+/**
+ * 이 문구는 결과 타입의 **필수 필드**다. 선택 필드로 두면 화면이 빼먹어도 타입이 통과한다.
+ * 실제 지능검사가 아닌 것을 점수처럼 보여주는 이상, 문구가 빠진 화면은 그 자체로 결함이다.
+ */
+export const IQ_DISCLAIMER =
+  '이 점수는 실제 지능검사 결과가 아닙니다. 표준화된 규준 표본 없이 정답률을 ' +
+  '점수 구간에 그대로 대응시킨 값이라, 재미로만 봐주세요.';
+
+/** 정답률 0%가 70, 100%가 145. 사이는 선형. */
+export const IQ_SCORE_MIN = 70;
+export const IQ_SCORE_MAX = 145;
+
+export interface IqResult extends ScoredResult {
+  /** 추정 점수. 규준 표본 근거 없음 — IQ_DISCLAIMER를 함께 보여줄 것. */
+  readonly estimatedScore: number;
+  /** 화면이 반드시 함께 표시해야 하는 문구. 필수 필드다. */
+  readonly disclaimer: string;
+}
+
+export function estimateIqScore(percent: number): number {
+  const clamped = Math.max(0, Math.min(100, percent));
+  return Math.round(IQ_SCORE_MIN + (clamped / 100) * (IQ_SCORE_MAX - IQ_SCORE_MIN));
+}
+
+export function scoreIq(
+  questions: readonly Question[],
+  answers: readonly Answer[],
+  bands: readonly GradeBand[]
+): IqResult {
+  const base = scoreTest(questions, answers, bands);
+  return {
+    ...base,
+    estimatedScore: estimateIqScore(base.percent),
+    disclaimer: IQ_DISCLAIMER,
+  };
+}
+```
+
+> **`disclaimer`를 왜 결과에 넣는가:** 화면에서 문자열 상수를 import해 쓰게 하면
+> 새 화면(공유 카드, 오답노트 헤더)이 그걸 빼먹어도 아무것도 실패하지 않는다.
+> 결과 객체가 들고 다니면 점수를 꺼낼 때 문구도 같이 손에 들어온다.
+> **Task 7은 점수를 표시하는 모든 자리에 이 문구를 함께 표시한다.**
+
+**`grades.json`에 추가할 `iq-default`**
+
+```json
+"iq-default": {
+  "bands": [
+    { "min": 95, "grade": 1, "title": "머리에 CPU 들었나" },
+    { "min": 85, "grade": 2, "title": "패턴이 그냥 보인다" },
+    { "min": 75, "grade": 3, "title": "눈치가 남다르다" },
+    { "min": 65, "grade": 4, "title": "평균 위는 확실하다" },
+    { "min": 55, "grade": 5, "title": "딱 중간, 안정적" },
+    { "min": 45, "grade": 6, "title": "절반은 감으로" },
+    { "min": 35, "grade": 7, "title": "도형은 원래 어렵다" },
+    { "min": 20, "grade": 8, "title": "찍기의 장인" },
+    { "min": 0, "grade": 9, "title": "다음 판이 진짜다" }
+  ]
+}
+```
+
+`gradeTableId('iq', 'default')`가 `'iq-default'`를 주므로 키 형식은 기존 것과 같다.
+
+---
+
+**Test: `__tests__/engine/iq/assembleIq.test.ts`**
+
+```ts
+  test('같은 시드는 같은 세트를 만든다', () => {
+    for (let seed = 1; seed <= 30; seed++) {
+      expect(JSON.stringify(assembleIq(seed, IQ_DRAW)))
+        .toBe(JSON.stringify(assembleIq(seed, IQ_DRAW)));
+    }
+  });
+
+  test('요청한 개수만큼 나온다', () => {
+    for (let seed = 1; seed <= 100; seed++) {
+      expect(assembleIq(seed, IQ_DRAW)).toHaveLength(IQ_DRAW.questionCount);
+    }
+  });
+
+  // ★ 한 세트에 같은 퍼즐이 두 번 나오면 앱이 고장난 것처럼 보인다
+  test('시드 200개에서 한 세트 안에 같은 퍼즐이 두 번 나오지 않는다', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const set = assembleIq(seed, IQ_DRAW);
+      const keys = set.map((gq) =>
+        gq.question.figure
+          ? `${gq.generatorId}|${JSON.stringify(gq.question.figure)}`
+          : `${gq.generatorId}|${gq.question.prompt}`
+      );
+      expect(new Set(keys).size).toBe(keys.length);
+    }
+  });
+
+  // ★★ 계획 1에서 출시 직전까지 갔던 결함: 정답이 전부 1번
+  test('시드 200개에서 정답 위치가 다섯 자리에 고루 퍼진다', () => {
+    const counts = [0, 0, 0, 0, 0];
+    for (let seed = 1; seed <= 200; seed++) {
+      for (const gq of assembleIq(seed, IQ_DRAW)) {
+        counts[gq.question.answerIndex as number] =
+          (counts[gq.question.answerIndex as number] as number) + 1;
+      }
+    }
+    const total = counts.reduce((a, b) => a + b, 0);
+    for (const c of counts) {
+      // 균등이면 20%. 12%~28%면 충분히 고르다.
+      expect(c / total).toBeGreaterThan(0.12);
+      expect(c / total).toBeLessThan(0.28);
+    }
+  });
+
+  test('모든 문항이 verifyGenerated를 통과한다', () => {
+    for (let seed = 1; seed <= 100; seed++) {
+      for (const gq of assembleIq(seed, IQ_DRAW)) {
+        const errors = verifyGenerated(gq);
+        if (errors.length > 0) throw new Error(`seed ${seed}: ${errors.join(' / ')}`);
+      }
+    }
+  });
+
+  test('난이도 분포가 설정과 일치한다', () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      const set = assembleIq(seed, IQ_DRAW);
+      for (const d of [1, 2, 3] as const) {
+        expect(set.filter((gq) => gq.question.difficulty === d)).toHaveLength(
+          IQ_DRAW.difficultyMix[d] as number
+        );
+      }
+    }
+  });
+
+  test('모든 생성기가 출제에 실제로 쓰인다', () => {
+    const used = new Set<string>();
+    for (let seed = 1; seed <= 200; seed++) {
+      for (const gq of assembleIq(seed, IQ_DRAW)) used.add(gq.generatorId);
+    }
+    expect(used.size).toBe(GENERATORS.length);
+  });
+
+  // 오답노트가 (generatorId, seed)만 저장하고 나중에 문항을 복원한다.
+  // 그 전제가 성립하는지 여기서 못박는다.
+  test('generatorId와 seed로 같은 문항을 복원할 수 있다', () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      for (const gq of assembleIq(seed, IQ_DRAW)) {
+        const gen = GENERATORS.find((g) => g.id === gq.generatorId);
+        expect(gen).toBeDefined();
+        expect(JSON.stringify(gen!.generate(gq.seed))).toBe(JSON.stringify(gq));
+      }
+    }
+  });
+```
+
+**Test: `__tests__/engine/iq/iqScore.test.ts`**
+
+```ts
+  test('정답률 0%는 70점, 100%는 145점이다', () => {
+    expect(estimateIqScore(0)).toBe(70);
+    expect(estimateIqScore(100)).toBe(145);
+  });
+
+  test('정답률이 오르면 점수도 오른다', () => {
+    for (let p = 1; p <= 100; p++) {
+      expect(estimateIqScore(p)).toBeGreaterThanOrEqual(estimateIqScore(p - 1));
+    }
+  });
+
+  test('범위를 벗어난 정답률도 70~145에 갇힌다', () => {
+    expect(estimateIqScore(-50)).toBe(70);
+    expect(estimateIqScore(500)).toBe(145);
+    expect(estimateIqScore(Number.NaN)).toBeGreaterThanOrEqual(70);
+  });
+
+  // ★ 점수만 있고 문구가 없는 결과는 만들 수 없어야 한다
+  test('결과에 항상 안내 문구가 들어 있다', () => {
+    const r = scoreIq([], [], getGradeBands('iq-default'));
+    expect(r.disclaimer).toBe(IQ_DISCLAIMER);
+    expect(r.disclaimer.length).toBeGreaterThan(0);
+  });
+
+  test('안내 문구가 실제 지능검사가 아님을 밝힌다', () => {
+    // 문구를 마케팅 문장으로 바꿔치기하는 걸 막는다
+    expect(IQ_DISCLAIMER).toContain('실제 지능검사');
+    expect(IQ_DISCLAIMER).toContain('규준 표본');
+  });
+
+  test('빈 응답이어도 크래시하지 않고 최하 급수를 준다', () => {
+    const r = scoreIq([], [], getGradeBands('iq-default'));
+    expect(r.total).toBe(0);
+    expect(r.grade).toBe(9);
+    expect(r.estimatedScore).toBe(70);
+  });
+```
+
+`NaN` 케이스 주의: `Math.max(0, Math.min(100, NaN))`은 `NaN`이다. `estimateIqScore`가
+`Number.isFinite`로 먼저 걸러 0으로 취급하도록 쓸 것 — 위 테스트가 그걸 요구한다.
 
 **Task 7 — IQ 화면 4종 + `QuizRunner` 도형 지원**
 - `QuizRunner`가 선택지의 `figure`를 감지해 `SvgFigure`를 그리도록 확장. 기존 텍스트 경로는 그대로
