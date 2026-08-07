@@ -2321,10 +2321,159 @@ export function scoreIq(
 `NaN` 케이스 주의: `Math.max(0, Math.min(100, NaN))`은 `NaN`이다. `estimateIqScore`가
 `Number.isFinite`로 먼저 걸러 0으로 취급하도록 쓸 것 — 위 테스트가 그걸 요구한다.
 
-**Task 7 — IQ 화면 4종 + `QuizRunner` 도형 지원**
-- `QuizRunner`가 선택지의 `figure`를 감지해 `SvgFigure`를 그리도록 확장. 기존 텍스트 경로는 그대로
-- `app/test/iq/{intro,quiz,result,review}.tsx`
-- 해설 화면에 문제 도형과 정답 도형을 나란히 보여준다
+### Task 7 — IQ 화면 4종 + `QuizRunner` 도형 지원
+
+**Files:**
+- Modify: `src/ui/QuizRunner.tsx` (도형 지원 추가, 기존 텍스트 경로는 그대로)
+- Create: `app/test/iq/intro.tsx`, `quiz.tsx`, `result.tsx`, `review.tsx`
+- Create: `src/engine/iq/questionId.ts`
+- Test: `__tests__/ui/QuizRunner.figure.test.tsx`, `__tests__/engine/iq/questionId.test.ts`
+
+**기존 화면을 먼저 읽을 것:** `app/test/dialect/{intro,quiz,result,review}.tsx`가 정답형 시험의
+표준 형태다. IQ도 정답형이므로 구조가 거의 같다. 색만 `colors.iq` 계열로 바꾸고
+출제 호출을 `assembleIq`로 바꾼다. `app/test/dialect/quiz.tsx`는 6줄짜리 껍데기다 —
+IQ도 그만큼 얇아야 한다.
+
+---
+
+**1. `QuizRunner` 도형 지원**
+
+지금은 `<Text>{c.text ?? ''}</Text>`만 그린다. 두 곳을 넓힌다:
+
+- 문제 도형: `current.figure`가 있으면 프롬프트 아래에 `<SvgFigure spec={current.figure} size={280} testID="question-figure" />`
+- 선택지: `c.figure`가 있으면 텍스트 대신 `<SvgFigure spec={c.figure} size={96} testID={`choice-figure-${i}`} />`
+
+**기존 텍스트 경로를 건드리지 말 것.** 사투리·성격·심리 화면이 전부 이 컴포넌트를 쓰고 있고,
+그 세 시험에는 `figure`가 없다. `figure`가 없으면 지금과 완전히 같게 동작해야 한다.
+
+> **접근성 — 이게 이 태스크에서 제일 빠뜨리기 쉬운 것.**
+> 도형 선택지에는 글자가 하나도 없다. 지금 코드는 `<Text>`의 내용이 스크린리더가 읽을 거리인데,
+> 도형 선택지는 그게 빈 문자열이 된다. **TalkBack 사용자에게는 버튼 다섯 개가 전부 무명이 된다.**
+> → 도형 선택지 `Pressable`에 `accessibilityLabel={`${i + 1}번 보기`}`를 준다.
+> → 문제 도형에는 `accessibilityLabel="문제 도형"`. 도형 자체를 말로 설명할 수는 없지만
+>    "여기 그림이 있다"는 것은 알려야 한다.
+> 자동 검사로는 안 잡히고 실기기에서도 TalkBack을 켜야 보인다. Task 8 검증 항목에 넣는다.
+
+**Test: `__tests__/ui/QuizRunner.figure.test.tsx`**
+
+```tsx
+  test('figure가 있는 선택지는 도형을 그린다', () => { /* getByTestId('choice-figure-0') */ });
+  test('figure가 없는 선택지는 지금처럼 텍스트를 그린다', () => { /* 회귀 방지 */ });
+  test('도형 선택지에도 접근성 이름이 붙는다', () => {
+    // getByLabelText('1번 보기') — 이름 없는 버튼이 나가는 걸 막는다
+  });
+  test('문제에 figure가 있으면 문제 도형을 그린다', () => { /* question-figure */ });
+```
+
+> **SVG 안의 글자는 `getByText`로 못 찾는다.** RNTL 14.0.1의 `HOST_TEXT_NAMES`가
+> `['Text','RCTText']`로 하드코딩돼 있어 `react-native-svg`의 텍스트는 구조적으로 검색 대상이 아니다.
+> **`testID`로 단언한다.** `UNSAFE_getByProps`는 라이브러리 내부 prop 이름에 의존하므로 쓰지 않는다.
+> 계획 3 Task 2에서 이미 부딪혔던 벽이다.
+
+---
+
+**2. `src/engine/iq/questionId.ts` — 오답노트를 위한 계약**
+
+세션 저장소는 `Question[]`만 들고 있고 `generatorId`·`seed`는 버린다. 그런데 오답노트(계획 4)는
+문항 전체가 아니라 **그 두 값만 저장해서 나중에 복원**하는 설계다. 지금 그 계약을 못박아둔다.
+
+```ts
+/** 생성기가 만드는 문항 id 형식: `iq-<generatorId>-<seed>` */
+export function iqQuestionId(generatorId: string, seed: number): string {
+  return `iq-${generatorId}-${seed}`;
+}
+
+/** 형식에 안 맞으면 undefined. 호출부가 폴백을 준비한다. */
+export function parseIqQuestionId(
+  id: string
+): { generatorId: string; seed: number } | undefined {
+  const m = /^iq-([a-z]+)-(\d+)$/.exec(id);
+  if (m === null) return undefined;
+  return { generatorId: m[1] as string, seed: Number(m[2]) };
+}
+```
+
+**여섯 생성기가 전부 `iqQuestionId()`를 쓰도록 고친다.** 지금은 각자 템플릿 문자열을 쓰고 있어서
+형식이 갈라질 수 있다. 파싱하는 쪽과 만드는 쪽이 같은 함수를 보게 만든다 —
+Task 4b에서 배운 "재계산하지 말고 만들어진 것에서 읽는다"와 같은 원리다.
+
+**Test:**
+```ts
+  test('만든 id를 다시 파싱하면 원래 값이 나온다', () => { /* 왕복 */ });
+  test('형식에 안 맞는 id는 undefined를 준다', () => {
+    expect(parseIqQuestionId('dialect-gs-01')).toBeUndefined();
+    expect(parseIqQuestionId('iq-rotation-')).toBeUndefined();
+    expect(parseIqQuestionId('iq--123')).toBeUndefined();
+  });
+
+  // ★ 실제 출제된 문항 전부가 이 계약을 지키는가.
+  // 생성기 하나가 형식을 벗어나면 그 문항만 오답노트에서 조용히 사라진다.
+  test('assembleIq가 내는 모든 문항 id를 파싱해 원래 문항을 복원할 수 있다', () => {
+    for (let seed = 1; seed <= 100; seed++) {
+      for (const gq of assembleIq(seed, IQ_DRAW)) {
+        const parsed = parseIqQuestionId(gq.question.id);
+        expect(parsed).toBeDefined();
+        expect(parsed!.generatorId).toBe(gq.generatorId);
+        expect(parsed!.seed).toBe(gq.seed);
+        const gen = GENERATORS.find((g) => g.id === parsed!.generatorId);
+        expect(JSON.stringify(gen!.generate(parsed!.seed))).toBe(JSON.stringify(gq));
+      }
+    }
+  });
+```
+
+---
+
+**3. 화면 4종**
+
+**`intro.tsx`** — `dialect/intro.tsx`와 같은 형태지만 지역 선택이 없다. 안내 문구 + 응시 버튼.
+
+```ts
+const begin = () => {
+  const seed = hashSeed(`iq:${Date.now()}`);
+  const generated = assembleIq(seed, IQ_DRAW);
+  start('iq', 'default', seed, generated.map((g) => g.question));
+  router.push('/test/iq/quiz');
+};
+```
+
+인트로에 **추정 점수가 실제 지능검사가 아니라는 것을 미리 밝힌다.** 결과에서 처음 보는 것보다
+응시 전에 아는 편이 정직하다. `IQ_DISCLAIMER`를 그대로 쓴다.
+
+**`quiz.tsx`** — `dialect/quiz.tsx`와 같은 6줄. `resultRoute="/test/iq/result"`, `accent`만 IQ 색.
+
+**`result.tsx`** — `dialect/result.tsx`를 따르되 두 가지가 추가된다:
+- 급수 합격증(`Certificate`) 위/아래에 **추정 점수**
+- **`result.disclaimer`를 반드시 함께 표시한다.** `IQ_DISCLAIMER` 상수를 import하지 말고
+  `scoreIq()`가 돌려준 객체의 필드를 쓴다 — 그래야 점수를 꺼낼 때 문구가 같이 손에 들어온다.
+
+```tsx
+  <Text testID="iq-score">{result.estimatedScore}</Text>
+  <Text testID="iq-disclaimer">{result.disclaimer}</Text>
+```
+
+**Test:** `점수를 보여주는 화면은 안내 문구도 보여준다` — `testID` 두 개가 **같이** 존재하는지 본다.
+점수만 있고 문구가 없는 화면이 나가는 걸 막는 유일한 장치다.
+
+**`review.tsx`** — `dialect/review.tsx`를 따르되 도형이 들어간다. 문항마다:
+- 문제 도형 (`SvgFigure`, `testID={`review-question-${i}`}`)
+- **내가 고른 것**과 **정답**을 나란히 (`review-chosen-${i}`, `review-answer-${i}`)
+- 해설 텍스트
+
+미응답(`chosenIndex === -1`)이면 "고른 것" 자리에 도형 대신 "응답 없음"을 쓴다.
+`chosenIndex`가 선택지 범위를 벗어나는 경우도 같게 처리한다 — 세션이 깨졌을 때 크래시하지 않게.
+
+---
+
+**4. 홈 화면 배선 확인**
+
+Task 6이 `CATEGORIES`의 iq `available`을 `GENERATORS.length > 0`으로 바꿨을 것이다.
+이 태스크에서 **실제로 홈에서 IQ 카드를 눌러 인트로까지 가는지** 확인한다.
+`route: '/test/iq/intro'`가 이미 적혀 있으므로 파일만 생기면 열린다.
+
+기존 홈 화면 테스트가 "available이 false인 카드는 눌러도 안 열린다"를 검사하고 있다면,
+IQ가 이제 true가 되므로 **그 테스트가 다른 카테고리를 쓰도록** 고쳐야 할 수 있다.
+테스트를 지우지 말고 아직 준비 안 된 카테고리(mz)로 대상을 옮길 것.
 
 **Task 8 — 릴리스 빌드 + 실기기 검증**
 - 권한 여전히 하나뿐인지
