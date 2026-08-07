@@ -6,3 +6,10 @@ jest.mock('react-native-safe-area-context', () => {
   // 소스가 TSX(export default)라서 CJS interop에 따라 .default에 실릴 수 있다.
   return mock.default ?? mock;
 });
+
+// @react-native-async-storage/async-storage 공식 테스트 모크. 네이티브 모듈이 없는
+// Jest 환경에서 getItem/setItem이 실제로 동작하는 인메모리 저장소로 동작하게 한다.
+// 손으로 모크를 새로 만들지 않고 패키지가 제공하는 것을 그대로 쓴다.
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
+);

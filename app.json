@@ -11,7 +11,8 @@
     "android": {
       "package": "com.testmin.app",
       "versionCode": 1,
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "allowBackup": false
     },
     "ios": {
       "bundleIdentifier": "com.testmin.app",

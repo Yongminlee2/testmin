@@ -12,6 +12,7 @@ import { BlackHanSans_400Regular } from '@expo-google-fonts/black-han-sans';
 import { NotoSansKR_500Medium } from '@expo-google-fonts/noto-sans-kr/500Medium';
 import { NotoSansKR_700Bold } from '@expo-google-fonts/noto-sans-kr/700Bold';
 import { NotoSansKR_900Black } from '@expo-google-fonts/noto-sans-kr/900Black';
+import { useHistory } from '@/store/history';
 import { colors, font } from '@/ui/tokens';
 
 void SplashScreen.preventAutoHideAsync();
@@ -28,6 +29,13 @@ export default function RootLayout() {
     // 폰트 로딩이 실패해도 시스템 폰트로 앱을 띄운다. 스플래시에 갇히면 안 된다.
     if (fontsLoaded || fontError) void SplashScreen.hideAsync();
   }, [fontsLoaded, fontError]);
+
+  useEffect(() => {
+    // 성적표·오답노트 탭이 그려지기 전에 저장된 기록을 미리 읽어 둔다.
+    // load()는 절대 throw하지 않는다(storage.ts가 실패를 이미 삼켰다) — 깨진
+    // 데이터 때문에 앱이 스플래시에 갇히거나 죽는 일은 없다.
+    void useHistory.getState().load();
+  }, []);
 
   if (!fontsLoaded && !fontError) return null;
 
