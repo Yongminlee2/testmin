@@ -61,12 +61,20 @@ function buildArithmetic(rand: () => number): Built {
   const last = terms[5] as number;
   const answer = last + step;
 
+  // step이 음수일 때 "${last} + ${step}"을 그대로 쓰면 "41 + -9 = 32"처럼 어색하게 찍힌다.
+  // size.ts가 커집니다/작아집니다로 방향을 말로 나누듯, 여기도 더해집니다/빼집니다로
+  // 나누고 빼는 쪽은 절댓값을 써서 부호가 겹치지 않게 한다.
+  const explanation =
+    step > 0
+      ? `앞의 수에 ${step}씩 더해집니다. ${last} + ${step} = ${answer}.`
+      : `앞의 수에서 ${-step}씩 빼집니다. ${last} - ${-step} = ${answer}.`;
+
   return {
     terms,
     answer,
     // 한 칸 덜 감 / 두 칸 감(계산을 두 번 적용) / 계산 실수(±1)
     candidates: [last, answer + step, answer + 1, answer - 1],
-    explanation: `앞의 수에 ${step}씩 더해집니다. ${last} + ${step} = ${answer}.`,
+    explanation,
   };
 }
 
@@ -90,8 +98,15 @@ function buildGeometric(rand: () => number): Built {
 }
 
 function buildFibonacci(rand: () => number): Built {
-  const a = pickInt(rand, 1, 6);
-  const b = pickInt(rand, 1, 6);
+  // a === b이면 처음 두 항이 같아진다(예: 4, 4, 8, 12, 20, 32) — 첫 항부터
+  // 중복이라 오타처럼 보인다. 세 번째 항부터는 두 양수를 더해 나가므로 항상
+  // 이전 항보다 커진다 — 그래서 막아야 할 충돌은 a === b 하나뿐이다.
+  let a = 0;
+  let b = 0;
+  do {
+    a = pickInt(rand, 1, 6);
+    b = pickInt(rand, 1, 6);
+  } while (a === b);
 
   const terms: number[] = [a, b];
   for (let i = 2; i < 6; i++) {
@@ -110,40 +125,50 @@ function buildFibonacci(rand: () => number): Built {
   };
 }
 
+function hasAdjacentDuplicate(values: readonly number[]): boolean {
+  for (let i = 1; i < values.length; i++) {
+    if (values[i] === values[i - 1]) return true;
+  }
+  return false;
+}
+
 /**
  * 교대수열. 서로 다른 두 등차수열을 한 칸씩 번갈아 배치한다.
  *
  * stepA === stepB이면 전체가 그냥 하나의 등차수열로 퇴화한다(짝수 인덱스와
  * 홀수 인덱스의 공차가 같아지는 순간, 사실상 공차가 일정한 하나의 수열이
  * 되어버린다). 그러면 해설이 "한 칸 건너뛴 수끼리 묶어서 보세요"라고
- * 말하는데 화면엔 평범한 등차수열이 있는 모순이 생긴다. 두 시작값이 같은
- * 경우도 같은 이유로 배제한다. 두 조건 다 재시도로 막는다 — 각 조건이
- * 걸릴 확률이 낮아(1/7, 1/14) 재시도는 대개 한두 번 안에 끝난다.
+ * 말하는데 화면엔 평범한 등차수열이 있는 모순이 생긴다.
+ *
+ * startA !== startB만으로는 부족하다 — 두 줄이 서로 다르게 시작해도, 예를
+ * 들어 startB === startA + stepA처럼 한 줄의 중간 항이 다른 줄의 항과
+ * 우연히 같아질 수 있다(실측: 500시드 중 18개, 예: 4,12,12,16,20,20). 그래서
+ * 파라미터 조건을 더 늘어놓는 대신, 완성된 6항 배열 자체에서 "인접한 두 항이
+ * 같은가"를 직접 검사해 걸리면 재시도한다 — 어떤 조합으로 충돌이 나든 다 잡힌다.
  */
 function buildAlternating(rand: () => number): Built {
   let startA = 0;
   let startB = 0;
   let stepA = 0;
   let stepB = 0;
+  let terms: number[] = [];
   do {
     startA = pickInt(rand, 2, 15);
     startB = pickInt(rand, 2, 15);
     stepA = pickInt(rand, 2, 8);
     stepB = pickInt(rand, 2, 8);
-  } while (stepA === stepB || startA === startB);
+    terms = [
+      startA,
+      startB,
+      startA + stepA,
+      startB + stepB,
+      startA + 2 * stepA,
+      startB + 2 * stepB,
+    ];
+  } while (stepA === stepB || hasAdjacentDuplicate(terms));
 
-  const a = [startA, startA + stepA, startA + 2 * stepA, startA + 3 * stepA];
-  const b = [startB, startB + stepB, startB + 2 * stepB];
-  const terms = [
-    a[0] as number,
-    b[0] as number,
-    a[1] as number,
-    b[1] as number,
-    a[2] as number,
-    b[2] as number,
-  ];
   const last = terms[5] as number;
-  const answer = a[3] as number;
+  const answer = startA + 3 * stepA;
 
   return {
     terms,
@@ -151,7 +176,7 @@ function buildAlternating(rand: () => number): Built {
     // 같은 줄이 아니라 바로 앞 항에 규칙을 적용 / 다른 줄의 다음 값
     candidates: [last + stepA, last + stepB, answer + stepA, answer - stepA],
     explanation:
-      `한 칸 건너뛴 수끼리 묶어서 보세요. ${a[0]}, ${a[1]}, ${a[2]}는 ${stepA}씩 늘어납니다. ` +
+      `한 칸 건너뛴 수끼리 묶어서 보세요. ${terms[0]}, ${terms[2]}, ${terms[4]}는 ${stepA}씩 늘어납니다. ` +
       `다음은 ${answer}.`,
   };
 }

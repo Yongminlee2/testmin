@@ -166,6 +166,54 @@ describe('sequenceGenerator', () => {
     expect(seen).toEqual(new Set(['arithmetic', 'geometric', 'fibonacci', 'alternating', 'square']));
   });
 
+  // 리뷰 #1 — ascending을 강제로 고정해도 나머지 8개 테스트는 초록불로 남는다.
+  // 등차 규칙이 한 방향만 내면 "항상 커진다"를 외워도 다 맞는 문제가 된다.
+  // size.test.ts의 "커지는 방향과 작아지는 방향이 둘 다 나온다"와 같은 모양으로,
+  // 등차로 분류된 시드만 골라 그 방향(step 부호)을 모은다.
+  test('시드 500개에서 등차 규칙이 증가·감소 방향을 둘 다 낸다', () => {
+    const directions = new Set<'up' | 'down'>();
+    for (let seed = 1; seed <= 500; seed++) {
+      const t = termsOf(G.generate(seed).question);
+      if (classify(t) !== 'arithmetic') continue;
+      const step = (t[1] as number) - (t[0] as number);
+      directions.add(step > 0 ? 'up' : 'down');
+    }
+    expect(directions).toEqual(new Set(['up', 'down']));
+  });
+
+  // 리뷰 #2 — 교대 규칙의 startA !== startB 가드를 빼면 인접한 두 항이 같아지는
+  // 경우가 생긴다(예: 4, 4, 8, 12, 20, 32). 첫 두 항이 같은 수열은 오타처럼 보인다.
+  // 특정 규칙에 매인 검사가 아니라 모든 규칙·모든 시드에 걸쳐 인접 중복이 없는지 본다.
+  test('어떤 시드에서도 인접한 두 항이 같지 않다', () => {
+    for (let seed = 1; seed <= 500; seed++) {
+      const t = termsOf(G.generate(seed).question);
+      for (let i = 1; i < t.length; i++) {
+        if (t[i] === t[i - 1]) {
+          throw new Error(`seed ${seed}: 인접한 항이 같음 — ${t.join(',')}`);
+        }
+      }
+    }
+  });
+
+  // 리뷰 #5 — 등비만 5항, 나머지 네 규칙은 6항이다(브리프 표). 등비를 6항으로
+  // "통일"해도 1~9999 범위 테스트는 안 걸린다(2916/8748 모두 4자리라 통과) —
+  // 그래서 항 개수 자체를 별도로 못박아 둔다. 이게 없으면 나중에 "일관성 있게
+  // 다 6항으로 맞추자"는 편집이 조용히 버튼 레이아웃을 깬다.
+  test('규칙별로 표시되는 항 개수가 브리프 표와 일치한다', () => {
+    const expectedTermCount: Record<string, number> = {
+      arithmetic: 6,
+      geometric: 5,
+      fibonacci: 6,
+      alternating: 6,
+      square: 6,
+    };
+    for (let seed = 1; seed <= 500; seed++) {
+      const t = termsOf(G.generate(seed).question);
+      const kind = classify(t);
+      expect(t.length).toBe(expectedTermCount[kind]);
+    }
+  });
+
   // 한 수열이 두 규칙에 동시에 해당하면 해설이 설명하는 규칙과 사용자가
   // 읽어낸 규칙이 달라질 수 있다. 교대의 stepA !== stepB 가드가 이걸 막는다.
   // 판정 순서에 기대는 대신 "겹침이 아예 없다"를 직접 검사한다.
@@ -197,10 +245,11 @@ describe('sequenceGenerator', () => {
     expect(filled / total).toBeLessThan(0.2);
   });
 
-  // ③ 해설 내용 — 비어 있지 않은지가 아니라, 제시된 항에서 역산한 값을
-  // 실제로 담고 있는지 확인한다. 생성기 내부 변수를 재사용하면 동어반복이므로
-  // 이 테스트도 termsOf()로 다시 읽은 값에서 직접 계산한다.
-  test('해설이 제시된 항에서 역산한 값을 실제로 언급한다', () => {
+  // ③ 해설 내용 — 리뷰 #3: 숫자 하나만 toContain하면 "12"가 "120" 안에서도
+  // 매칭되어버린다. 값들을 실제 계산에 쓰인 형태(연산자·등호까지 포함한 구절)로
+  // 묶어서 검사한다 — 그 구절 전체가 우연히 부분 문자열로 나타날 확률은 사실상 0이다.
+  // 값은 여전히 termsOf()로 다시 읽은 항에서 독립적으로 계산한다(생성기 재사용 안 함).
+  test('해설이 제시된 항에서 역산한 값을 실제 사용된 구절 그대로 언급한다', () => {
     for (let seed = 1; seed <= 500; seed++) {
       const { question } = G.generate(seed);
       const t = termsOf(question);
@@ -209,42 +258,57 @@ describe('sequenceGenerator', () => {
       const explanation = question.explanation ?? '';
       const answer = predictNext(t);
 
-      expect(explanation).toContain(String(answer));
-
       switch (kind) {
         case 'arithmetic': {
           const step = (t[1] as number) - (t[0] as number);
-          expect(explanation).toContain(String(step));
-          expect(explanation).toContain(String(last));
+          if (step > 0) {
+            expect(explanation).toContain(`${last} + ${step} = ${answer}`);
+          } else {
+            // 리뷰 #4: 감소 방향은 "41 + -9 = 32"가 아니라 "41 - 9 = 32"로 읽혀야 한다.
+            const absStep = -step;
+            expect(explanation).toContain(`${last} - ${absStep} = ${answer}`);
+            expect(explanation).not.toContain('+ -');
+          }
           break;
         }
         case 'geometric': {
           const ratio = (t[1] as number) / (t[0] as number);
-          expect(explanation).toContain(String(ratio));
-          expect(explanation).toContain(String(last));
+          expect(explanation).toContain(`${last} × ${ratio} = ${answer}`);
           break;
         }
         case 'fibonacci': {
           const prev = t[t.length - 2] as number;
-          expect(explanation).toContain(String(prev));
-          expect(explanation).toContain(String(last));
+          expect(explanation).toContain(`${prev} + ${last} = ${answer}`);
           break;
         }
         case 'alternating': {
           const evens = t.filter((_, i) => i % 2 === 0);
           const stepA = (evens[1] as number) - (evens[0] as number);
-          expect(explanation).toContain(String(stepA));
-          for (const e of evens) expect(explanation).toContain(String(e));
+          expect(explanation).toContain(`${evens[0]}, ${evens[1]}, ${evens[2]}는 ${stepA}씩 늘어납니다`);
+          expect(explanation).toContain(`다음은 ${answer}`);
           break;
         }
         case 'square': {
           const nextBase = Math.round(Math.sqrt(last)) + 1;
-          expect(explanation).toContain(String(nextBase));
+          expect(explanation).toContain(`${nextBase}² = ${answer}`);
           break;
         }
         default:
           throw new Error(`알 수 없는 종류: ${kind}`);
       }
+    }
+  });
+
+  // 리뷰 #4 — 감소하는 등차수열의 해설이 "41 + -9 = 32"처럼 부호가 겹쳐 찍히지
+  // 않는지 전체 시드에서 한 번 더 못박는다(위 테스트는 케이스 안에서만 확인).
+  test('감소하는 등차수열의 해설에 "+ -"가 나타나지 않는다', () => {
+    for (let seed = 1; seed <= 500; seed++) {
+      const { question } = G.generate(seed);
+      const t = termsOf(question);
+      if (classify(t) !== 'arithmetic') continue;
+      const step = (t[1] as number) - (t[0] as number);
+      if (step >= 0) continue;
+      expect(question.explanation ?? '').not.toContain('+ -');
     }
   });
 });
