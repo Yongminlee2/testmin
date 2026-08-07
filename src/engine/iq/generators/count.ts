@@ -21,7 +21,7 @@ function dots(n: number): CellSpec {
   return {
     shapes: DOT_POSITIONS.slice(0, count).map(([x, y]) =>
       // size 0.18 = 반지름 0.09. 위 배치의 최소 중심간 거리가 0.228이므로
-      // 어느 조합도 겹치지 않는다. 0.2 이상으로 올리면 간격이 사라진다.
+      // 어느 조합도 겹치지 않는다. 0.228 이상으로 올리면 간격이 사라진다.
       shape('circle', { x, y, size: 0.18, filled: true })
     ),
   };

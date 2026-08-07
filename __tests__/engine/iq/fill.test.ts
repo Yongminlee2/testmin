@@ -4,9 +4,13 @@ import { figureEquals } from '@/engine/iq/figure';
 
 describe('fillGenerator', () => {
   test('같은 시드는 같은 문항을 만든다', () => {
-    expect(JSON.stringify(fillGenerator.generate(31))).toBe(
-      JSON.stringify(fillGenerator.generate(31))
-    );
+    // 단일 시드는 불리언/저카디널리티 형태의 난수 유입을 절반 확률로만 잡는다.
+    // 여러 시드를 돌려 우연히 일치할 확률을 낮춘다.
+    for (let seed = 1; seed <= 50; seed++) {
+      expect(JSON.stringify(fillGenerator.generate(seed))).toBe(
+        JSON.stringify(fillGenerator.generate(seed))
+      );
+    }
   });
 
   test('문제 도형은 9칸 격자이고 마지막 칸이 비어 있다', () => {
@@ -34,6 +38,14 @@ describe('fillGenerator', () => {
   test('회전을 구분 기준으로 쓰지 않는다', () => {
     for (let seed = 1; seed <= 200; seed++) {
       const { question } = fillGenerator.generate(seed);
+      // 문제 격자(figure.cells)와 선택지(choices) 둘 다 확인한다.
+      // 지금은 둘 다 cellOf()를 거쳐서 우연히 같이 통과할 뿐, 격자 생성 경로만
+      // 따로 회전을 주입해도 choices만 보면 못 잡는다 — 리뷰 Important #2.
+      for (const cell of question.figure?.cells ?? []) {
+        for (const s of cell.shapes) {
+          expect(s.rotation).toBe(0);
+        }
+      }
       for (const c of question.choices) {
         for (const s of c.figure?.cells[0]?.shapes ?? []) {
           expect(s.rotation).toBe(0);
@@ -96,6 +108,36 @@ describe('fillGenerator', () => {
         if (i === ai || c.figure === undefined || answer === undefined) return;
         expect(figureEquals(answer, c.figure)).toBe(false);
       });
+    }
+  });
+
+  // 리뷰 Important #3 — 해설 문자열은 verifyGenerated에서 "비어있지 않은지"만
+  // 검사되므로, 계산값과 무관한 문장으로 바뀌어도 다른 테스트가 못 잡는다.
+  // 생성기 내부 변수(kindNames, answer 등)를 다시 읽으면 동어반복이므로,
+  // ★ 예측 대조와 같은 방식으로 격자에서 종류·채움을 독립적으로 역산해
+  // 해설 문자열에 그 한국어 표현이 실제로 들어있는지 확인한다.
+  test('해설이 격자에서 역산한 종류·채움을 실제로 언급한다', () => {
+    const KIND_NAMES_KR: Record<string, string> = {
+      circle: '원',
+      square: '사각형',
+      triangle: '삼각형',
+      diamond: '마름모',
+    };
+
+    for (let seed = 1; seed <= 300; seed++) {
+      const { question } = fillGenerator.generate(seed);
+      const cells = question.figure?.cells ?? [];
+      // (2,2)의 종류는 (0,2)와 같은 열이므로 같다. 채움은 (0,2)와 (1,2)의 교대에서 역산한다.
+      const kindAtCol2 = cells[2]?.shapes[0]?.kind;
+      const fillRow0 = cells[2]?.shapes[0]?.filled;
+      expect(kindAtCol2).toBeDefined();
+
+      const kindNameKr = KIND_NAMES_KR[kindAtCol2 as string];
+      const fillWording = fillRow0 ? '칠해진' : '비어 있는';
+
+      const explanation = question.explanation ?? '';
+      expect(explanation).toContain(kindNameKr as string);
+      expect(explanation).toContain(fillWording);
     }
   });
 });
