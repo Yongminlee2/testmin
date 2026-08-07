@@ -10,6 +10,8 @@ import personality from './personality.json';
 import typeNamesJson from './typeNames.json';
 import type { TypeNameEntry } from '@/engine/types';
 import love from './psych/love.json';
+import stress from './psych/stress.json';
+import comm from './psych/comm.json';
 import mz from './mz.json';
 import { GENERATORS } from '@/engine/iq/generators';
 import type { IqDrawConfig } from '@/engine/iq/assembleIq';
@@ -54,6 +56,8 @@ export const POOLS: Record<string, readonly Question[]> = {
   'mz:default': mz as unknown as Question[],
   'personality:default': personality as unknown as Question[],
   'psych:love': (love as unknown as { questions: Question[] }).questions,
+  'psych:stress': (stress as unknown as { questions: Question[] }).questions,
+  'psych:comm': (comm as unknown as { questions: Question[] }).questions,
 };
 
 /**
@@ -74,6 +78,8 @@ export const POOL_SCORING: Record<string, PoolScoring> = {
   'mz:default': 'scored',
   'personality:default': 'axis',
   'psych:love': 'vote',
+  'psych:stress': 'vote',
+  'psych:comm': 'vote',
 };
 
 /** 없는 조합이면 빈 배열을 준다 (호출부가 크래시하지 않게). */
@@ -106,13 +112,13 @@ export interface PsychTestMeta {
   readonly available: boolean;
 }
 
-const PSYCH_RAW: Record<string, unknown> = { love };
+const PSYCH_RAW: Record<string, unknown> = { love, stress, comm };
 
 /** 심리 테스트 목록. intro 화면이 이걸로 선택지를 그린다. */
 export const PSYCH_TESTS: readonly PsychTestMeta[] = [
   buildPsych('love'),
-  { id: 'stress', title: '스트레스 반응', types: [], questions: [], available: false },
-  { id: 'comm', title: '소통 유형', types: [], questions: [], available: false },
+  buildPsych('stress'),
+  buildPsych('comm'),
 ];
 
 function buildPsych(id: string): PsychTestMeta {

@@ -1,0 +1,194 @@
+{
+  "id": "comm",
+  "title": "소통 유형",
+  "types": [
+    {
+      "id": "direct",
+      "name": "직설형",
+      "emoji": "🎯",
+      "description": "생각을 있는 그대로 전합니다. 돌려 말하면 오히려 상대가 더 헷갈려한다고 생각합니다."
+    },
+    {
+      "id": "gentle",
+      "name": "완곡형",
+      "emoji": "🕊️",
+      "description": "말을 고르고 다듬어 전합니다. 상대가 다치지 않게 신경 쓰는 편입니다."
+    },
+    {
+      "id": "listen",
+      "name": "경청형",
+      "emoji": "👂",
+      "description": "말하기보다 먼저 듣습니다. 상대 얘기를 끝까지 들어야 내 생각도 정리됩니다."
+    },
+    {
+      "id": "humor",
+      "name": "유머형",
+      "emoji": "😄",
+      "description": "무거운 얘기도 가볍게 풀어냅니다. 분위기부터 편하게 만들고 봅니다."
+    },
+    {
+      "id": "text",
+      "name": "메시지형",
+      "emoji": "✍️",
+      "description": "말보다 글이 편합니다. 정리해서 전할 때 뜻이 더 잘 전달됩니다."
+    }
+  ],
+  "questions": [
+    {
+      "id": "comm-01",
+      "kind": "typed",
+      "prompt": "친구가 부탁을 들어달라고 하는데 내키지 않습니다.",
+      "choices": [
+        { "text": "못 할 것 같다고 바로 말한다", "typeId": "direct" },
+        { "text": "이유를 설명하며 조심스럽게 거절한다", "typeId": "gentle" },
+        { "text": "일단 왜 부탁하는지부터 들어본다", "typeId": "listen" },
+        { "text": "생각할 시간을 갖고 메시지로 답한다", "typeId": "text" }
+      ],
+      "explanation": "거절이라는 껄끄러운 순간을 어떻게 통과하는지가 소통 방식을 보여줍니다.",
+      "difficulty": 1
+    },
+    {
+      "id": "comm-02",
+      "kind": "typed",
+      "prompt": "회의에서 내 생각과 다른 의견이 나왔습니다.",
+      "choices": [
+        { "text": "바로 반대 의견을 낸다", "typeId": "direct" },
+        { "text": "장점부터 짚고 나서 다른 생각을 덧붙인다", "typeId": "gentle" },
+        { "text": "일단 끝까지 듣고 의견을 정리한다", "typeId": "listen" },
+        { "text": "농담 섞어 분위기를 풀며 의견을 낸다", "typeId": "humor" }
+      ],
+      "explanation": "생각이 갈릴 때 관계와 내용 중 무엇을 먼저 챙기는지 봅니다.",
+      "difficulty": 1
+    },
+    {
+      "id": "comm-03",
+      "kind": "typed",
+      "prompt": "친구에게 서운했던 일이 있는데 말을 꺼내야 합니다.",
+      "choices": [
+        { "text": "말을 고르고 골라 조심스레 꺼낸다", "typeId": "gentle" },
+        { "text": "먼저 요즘 어떻게 지내는지 물으며 대화를 연다", "typeId": "listen" },
+        { "text": "가볍게 농담처럼 운을 띄운다", "typeId": "humor" },
+        { "text": "직접 말하기보단 메시지로 먼저 전한다", "typeId": "text" }
+      ],
+      "explanation": "감정을 꺼내기 전에 거치는 준비 단계가 유형마다 다릅니다.",
+      "difficulty": 1
+    },
+    {
+      "id": "comm-04",
+      "kind": "typed",
+      "prompt": "동료의 실수를 알려줘야 하는 상황입니다.",
+      "choices": [
+        { "text": "바로 그 자리에서 짚어준다", "typeId": "direct" },
+        { "text": "먼저 동료의 입장을 들어본다", "typeId": "listen" },
+        { "text": "분위기를 가볍게 만들고 나서 얘기한다", "typeId": "humor" },
+        { "text": "얼굴 보고 말하기보단 메시지로 정리해서 전한다", "typeId": "text" }
+      ],
+      "explanation": "상대가 상처받을 수 있는 말을 어떻게 포장하는지가 드러납니다.",
+      "difficulty": 1
+    },
+    {
+      "id": "comm-05",
+      "kind": "typed",
+      "prompt": "낯선 모임에서 처음 만난 사람과 대화해야 합니다.",
+      "choices": [
+        { "text": "궁금한 걸 바로바로 묻는다", "typeId": "direct" },
+        { "text": "상대 반응을 살피며 천천히 말을 건다", "typeId": "gentle" },
+        { "text": "가벼운 농담으로 분위기부터 만든다", "typeId": "humor" },
+        { "text": "대화는 짧게 하고 나중에 메시지로 이어간다", "typeId": "text" }
+      ],
+      "explanation": "낯선 사이의 어색함을 푸는 첫 수가 유형마다 다릅니다.",
+      "difficulty": 1
+    },
+    {
+      "id": "comm-06",
+      "kind": "typed",
+      "prompt": "가족에게 안 좋은 소식을 전해야 합니다.",
+      "choices": [
+        { "text": "돌리지 않고 있는 그대로 말한다", "typeId": "direct" },
+        { "text": "충격 안 받게 말을 신중히 고른다", "typeId": "gentle" },
+        { "text": "먼저 가족이 짐작하고 있는 게 있는지 물어본다", "typeId": "listen" },
+        { "text": "직접 말하기 어려워 메시지로 먼저 알린다", "typeId": "text" }
+      ],
+      "explanation": "무거운 얘기일수록 전하는 방식에 신경 쓰는 정도가 갈립니다.",
+      "difficulty": 1
+    },
+    {
+      "id": "comm-07",
+      "kind": "typed",
+      "prompt": "단체 채팅방에서 논쟁이 벌어졌습니다.",
+      "choices": [
+        { "text": "내 입장을 명확하게 밝힌다", "typeId": "direct" },
+        { "text": "분위기가 상하지 않게 말을 골라 쓴다", "typeId": "gentle" },
+        { "text": "일단 다들 무슨 얘기를 하는지 지켜본다", "typeId": "listen" },
+        { "text": "농담으로 분위기를 누그러뜨려 본다", "typeId": "humor" }
+      ],
+      "explanation": "여러 사람 앞에서 갈등이 불거질 때의 반응 속도를 봅니다.",
+      "difficulty": 1
+    },
+    {
+      "id": "comm-08",
+      "kind": "typed",
+      "prompt": "칭찬을 받았는데 반응하기 쑥스럽습니다.",
+      "choices": [
+        { "text": "차분히 고맙다는 말로 받아들인다", "typeId": "gentle" },
+        { "text": "칭찬한 이유를 되물으며 대화를 이어간다", "typeId": "listen" },
+        { "text": "농담으로 넘기며 웃어넘긴다", "typeId": "humor" },
+        { "text": "말로는 어색해서 나중에 메시지로 감사를 전한다", "typeId": "text" }
+      ],
+      "explanation": "긍정적인 감정조차 어떻게 다루는지가 소통 습관을 드러냅니다.",
+      "difficulty": 1
+    },
+    {
+      "id": "comm-09",
+      "kind": "typed",
+      "prompt": "친구와 의견이 갈려 언쟁 직전입니다.",
+      "choices": [
+        { "text": "생각을 분명하게 말하고 부딪혀 본다", "typeId": "direct" },
+        { "text": "일단 친구 얘기를 끝까지 들어본다", "typeId": "listen" },
+        { "text": "농담을 던져 분위기를 먼저 풀어본다", "typeId": "humor" },
+        { "text": "그 자리는 넘기고 나중에 메시지로 정리해서 전한다", "typeId": "text" }
+      ],
+      "explanation": "충돌 직전의 긴장을 어떻게 다루는지가 갈립니다.",
+      "difficulty": 1
+    },
+    {
+      "id": "comm-10",
+      "kind": "typed",
+      "prompt": "발표에서 예상치 못한 질문을 받았습니다.",
+      "choices": [
+        { "text": "아는 만큼 곧바로 솔직하게 답한다", "typeId": "direct" },
+        { "text": "신중하게 단어를 골라 답한다", "typeId": "gentle" },
+        { "text": "농담으로 시간을 벌며 생각을 정리한다", "typeId": "humor" },
+        { "text": "바로 답하기보단 나중에 자료로 정리해 보내겠다고 한다", "typeId": "text" }
+      ],
+      "explanation": "즉흥적으로 답해야 하는 순간의 대처 방식을 봅니다.",
+      "difficulty": 1
+    },
+    {
+      "id": "comm-11",
+      "kind": "typed",
+      "prompt": "동료에게 어려운 부탁을 해야 합니다.",
+      "choices": [
+        { "text": "용건부터 바로 꺼낸다", "typeId": "direct" },
+        { "text": "미안한 마음을 먼저 전하고 조심스레 부탁한다", "typeId": "gentle" },
+        { "text": "동료 상황이 어떤지부터 물어본다", "typeId": "listen" },
+        { "text": "직접 말하기보다 메시지로 정중히 부탁한다", "typeId": "text" }
+      ],
+      "explanation": "부탁하는 쪽이 됐을 때 어디까지 조심스러워지는지 봅니다.",
+      "difficulty": 1
+    },
+    {
+      "id": "comm-12",
+      "kind": "typed",
+      "prompt": "오해가 생긴 친구와 다시 이야기해야 합니다.",
+      "choices": [
+        { "text": "오해부터 바로 풀자고 말을 꺼낸다", "typeId": "direct" },
+        { "text": "감정 상하지 않게 천천히 다가간다", "typeId": "gentle" },
+        { "text": "먼저 친구 얘기를 들어보려 한다", "typeId": "listen" },
+        { "text": "무거운 분위기를 풀려고 농담부터 건넨다", "typeId": "humor" }
+      ],
+      "explanation": "관계를 다시 잇는 첫걸음이 유형마다 다른 곳에서 시작됩니다.",
+      "difficulty": 1
+    }
+  ]
+}
