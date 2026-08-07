@@ -33,13 +33,23 @@ export const distributeGenerator: Generator = {
     const rand = mulberry32(seed);
     const kindOffset = pickInt(rand, 0, 2);
     const sizeOffset = pickInt(rand, 0, 2);
+    // 축 교환. 두 라틴 방진 (r+c)와 (r+2c) 중 어느 쪽이 종류를 맡고 어느 쪽이
+    // 크기를 맡을지 뒤집는다. 두 방진은 서로 직교하므로(mod 3에서 9쌍이 전부
+    // 다르다) 맞바꿔도 직교성은 그대로 유지된다 — 어느 쪽을 종류에 붙이든
+    // 종류·크기 조합 9개가 전부 달라서 두 규칙을 다 읽어야 풀린다는 성질은
+    // 안 변한다. kindOffset(3) × sizeOffset(3) × swapped(2) = 18가지 퍼즐(계획 4).
+    const swapped = rand() < 0.5;
 
-    // 두 라틴 방진이 서로 직교한다: (r+c)와 (r+2c)는 mod 3에서 9쌍이 전부 다르다.
-    // 그래서 종류와 크기가 상관관계를 갖지 않고, 둘 다 읽어야 풀린다.
-    const comboAt = (r: number, c: number): Combo => ({
-      kind: KINDS[(r + c + kindOffset) % 3] as ShapeKind,
-      size: SIZES[(r + 2 * c + sizeOffset) % 3] as number,
-    });
+    const comboAt = (r: number, c: number): Combo => {
+      const squareA = (r + c) % 3;
+      const squareB = (r + 2 * c) % 3;
+      const kindSquare = swapped ? squareB : squareA;
+      const sizeSquare = swapped ? squareA : squareB;
+      return {
+        kind: KINDS[(kindSquare + kindOffset) % 3] as ShapeKind,
+        size: SIZES[(sizeSquare + sizeOffset) % 3] as number,
+      };
+    };
 
     const cells: CellSpec[] = [];
     for (let i = 0; i < 9; i++) {

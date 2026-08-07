@@ -2,6 +2,11 @@ import { distributeGenerator } from '@/engine/iq/generators/distribute';
 import { SIZES } from '@/engine/iq/generators/size';
 import { verifyGenerated } from '@/engine/iq/verify';
 import { figureEquals } from '@/engine/iq/figure';
+import { puzzleKey } from '@/engine/iq/assembleIq';
+import { attachParticle } from '@/engine/korean';
+
+/** 종류 이름 순서. 격자에 실제로 찍힌 종류에서 라틴 방진 계수를 역산할 때 쓴다. */
+const KIND_ORDER = ['circle', 'square', 'triangle'] as const;
 
 const G = distributeGenerator;
 const kindAt = (q: ReturnType<typeof G.generate>['question'], i: number) =>
@@ -145,20 +150,34 @@ describe('distributeGenerator', () => {
   });
 
   // ③ 해설 내용
+  //
+  // 리뷰(Task 4 뮤테이션 테스트에서 발견) — 이 검사는 원래 "낱말이 해설
+  // 어딘가에 있는지"만 봤다. 그런데 해설의 첫 문장("가로 한 줄에는 원·사각형·
+  // 삼각형이 한 번씩...")이 이미 세 종류 이름을 전부 고정 문구로 나열하므로,
+  // 이 단순 포함 검사는 뒤 문장의 계산이 틀려도(엉뚱한 종류를 답해도, 마지막
+  // 줄에 이미 있는 두 종류를 잘못 들어도) 항상 통과한다 — rowSizes를 잘못된
+  // 라틴 방진 공식으로 되돌리는 뮤테이션(크기 쪽)을 넣어 실측으로 확인했다.
+  // 같은 구조의 결함이 종류 쪽에도 그대로 있다. "빈 칸은 X이고"와 "이미
+  // Y와 Z 있으므로" 절은 고정 문구가 아니라 계산값으로만 채워지므로, 그
+  // 절 전체를 production과 같은 attachParticle로 재구성해 한 덩어리
+  // 문자열로 대조한다 — 순서·조사까지 다 맞아야 통과한다.
   test('해설이 격자에서 역산한 종류를 실제로 언급한다', () => {
     const names: Record<string, string> = { circle: '원', square: '사각형', triangle: '삼각형' };
     for (let seed = 1; seed <= 200; seed++) {
       const { question } = G.generate(seed);
-      const rowKinds = [kindAt(question, 6), kindAt(question, 7)];
+      const rowKindIds = [kindAt(question, 6), kindAt(question, 7)];
       const missingKind = (['circle', 'square', 'triangle'] as const).find(
-        (k) => !rowKinds.includes(k)
+        (k) => !rowKindIds.includes(k)
       );
+      const rowKindNames = rowKindIds.map((k) => names[k as string] as string);
+      const missingKindName = names[missingKind as string] as string;
       const text = question.explanation ?? '';
-      // 정답 종류를 말해야 하고, 마지막 줄에 이미 있는 두 종류도 근거로 들어야 한다
-      expect(text).toContain(names[missingKind as string] as string);
-      for (const k of rowKinds) {
-        expect(text).toContain(names[k as string] as string);
-      }
+
+      const rowKindsPhrase = `${attachParticle(rowKindNames[0] as string, '과', '와')} ${rowKindNames[1]}`;
+      const expectedClause =
+        `마지막 줄에는 이미 ${attachParticle(rowKindsPhrase, '이', '가')} 있으므로 빈 칸은 ` +
+        `${attachParticle(missingKindName, '이고', '고')}`;
+      expect(text).toContain(expectedClause);
     }
   });
 
@@ -214,6 +233,70 @@ describe('distributeGenerator', () => {
         if (f !== undefined) filledValues.add(f);
       }
       expect(filledValues.size).toBe(1);
+    }
+  });
+
+  // Task 4(축 교환) — 두 라틴 방진 (r+c)와 (r+2c) 중 어느 쪽이 종류를 맡는지를
+  // swapped 내부 변수가 아니라 격자에서 직접 역산해 두 배치가 모두 나오는지
+  // 확인한다. 두 방진은 c가 1 늘 때 종류 인덱스가 (r+c)면 1, (r+2c)면 2씩
+  // 바뀐다 — kindOffset은 0번·1번 칸 모두에 똑같이 더해지므로 인덱스 차이를
+  // 보면 상쇄되어, kindOffset을 몰라도 어느 공식이 쓰였는지 판별할 수 있다.
+  test('시드 500개에서 축 배치(종류를 맡는 라틴 방진) 두 가지가 모두 나온다', () => {
+    const cCoefficients = new Set<number>();
+    for (let seed = 1; seed <= 500; seed++) {
+      const { question } = G.generate(seed);
+      const i0 = KIND_ORDER.indexOf(kindAt(question, 0) as (typeof KIND_ORDER)[number]);
+      const i1 = KIND_ORDER.indexOf(kindAt(question, 1) as (typeof KIND_ORDER)[number]);
+      const cCoeff = (((i1 - i0) % 3) + 3) % 3; // (r+c)면 1, (r+2c)면 2
+      cCoefficients.add(cCoeff);
+    }
+    expect(cCoefficients).toEqual(new Set([1, 2]));
+  });
+
+  // Task 4 증거 — 넓힌 뒤 실측 퍼즐 가짓수가 18(kindOffset 3가지 × sizeOffset
+  // 3가지 × swapped 2가지)이어야 한다. puzzleKey는 tools/validate-content.ts의
+  // measureGeneratorCapacity와 같은 키다 — 릴리스 게이트가 보는 값과 여기 값이
+  // 어긋나지 않게 한다.
+  test('서로 다른 퍼즐이 18가지다', () => {
+    const seen = new Set<string>();
+    for (let seed = 1; seed <= 1000; seed++) {
+      seen.add(puzzleKey(G.generate(seed)));
+    }
+    expect(seen.size).toBe(18);
+  });
+
+  // Task 4 — 해설이 실제 축을 말하는지 확인한다. distribute는 fill·size와 달리
+  // 행/열이 뒤집히는 게 아니라 "어느 라틴 방진이 크기를 맡는가"가 뒤집힌다.
+  // 해설의 크기 문구는 swapped나 sizeOffset을 다시 읽지 않고 항상 cells(6번·
+  // 7번 칸, 이미 그려진 마지막 줄)에서 직접 읽으므로, 어느 공식이 크기를
+  // 맡았든 값 자체는 그대로 정확해야 한다 — 그 불변성을 실측으로 확인한다.
+  // 해설이 격자 대신 (r+c)/(r+2c) 공식을 다시 불러 계산하도록 되돌리면(84번
+  // 줄 주석이 경고하는 바로 그 회귀) 이 테스트가 swapped=true 시드에서 실제
+  // 그려진 크기와 어긋나 실패해야 한다.
+  //
+  // 리뷰(뮤테이션 테스트로 발견) — 처음엔 "각 크기 낱말이 해설 어딘가에
+  // 있는지"만 봤다. distribute.ts 91번 줄의 rowSizes를 (r+2c) 고정 공식으로
+  // 되돌리는 뮤테이션을 넣어도 이 검사가 초록불로 남는 걸 실측으로 확인했다
+  // — 해설 첫 문장이 "크기도 작은·중간·큰 것이 한 번씩"이라며 세 낱말을 이미
+  // 고정 문구로 다 나열하기 때문이다(정답 문구의 마지막 조각 sizeName(answer.size)
+  // 도 항상 셋 중 하나이므로 missingSize 쪽 검사만으로는 절대 못 걸린다). 이미
+  // 나온 두 크기와 정답 크기를 한 절로 묶어 순서까지 대조해야 그 뮤테이션이
+  // 실제로 빨간불이 된다.
+  test('해설이 격자의 실제 축(마지막 줄에서 역산한 크기)을 말한다', () => {
+    const sizeWord = (s: number): string =>
+      s === SIZES[0] ? '작은' : s === SIZES[1] ? '중간' : '큰';
+
+    for (let seed = 1; seed <= 300; seed++) {
+      const { question } = G.generate(seed);
+      const rowSizes = [sizeAt(question, 6), sizeAt(question, 7)];
+      const missingSize = SIZES.find((s) => !rowSizes.includes(s));
+      expect(missingSize).toBeDefined();
+
+      const text = question.explanation ?? '';
+      const expectedClause =
+        `${rowSizes.map((s) => sizeWord(s as number)).join('·')} 크기가 이미 나왔으므로 ` +
+        `${sizeWord(missingSize as number)} 크기입니다`;
+      expect(text).toContain(expectedClause);
     }
   });
 });

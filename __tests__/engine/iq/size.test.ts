@@ -1,6 +1,7 @@
 import { sizeGenerator, SIZES } from '@/engine/iq/generators/size';
 import { verifyGenerated } from '@/engine/iq/verify';
 import { figureEquals } from '@/engine/iq/figure';
+import { puzzleKey } from '@/engine/iq/assembleIq';
 
 const G = sizeGenerator;
 const kindAt = (q: ReturnType<typeof G.generate>['question'], i: number) =>
@@ -41,32 +42,51 @@ describe('sizeGenerator', () => {
   });
 
   // 두 방향이 다 나와야 한다. 한 방향만 나오면 "오른쪽=큼"을 외워도 다 맞는다.
+  //
+  // Task 4(축 교환) 리뷰 — 원래는 sizeAt(1) > sizeAt(0)(0번·1번 칸, 같은 행)로만
+  // 판별했다. swapped 도입 이후 크기가 행을 따라 진행하는 시드가 섞이면
+  // 0번·1번 칸이 같은 행의 두 칸이라 크기가 아예 같아지고(둘 다 열만 다르지
+  // 크기와 무관한 축), 이 비교가 "커짐"을 전혀 못 읽는 구멍이 생긴다. 종류가
+  // 고정되는 축(0번·1번 칸이 같은 종류인지)부터 가려낸 뒤 크기가 실제로
+  // 변하는 축에서 두 칸을 골라 비교한다.
   test('시드 500개에서 커지는 방향과 작아지는 방향이 둘 다 나온다', () => {
     const directions = new Set<string>();
     for (let seed = 1; seed <= 500; seed++) {
       const { question } = G.generate(seed);
+      const kindByRow = kindAt(question, 0) === kindAt(question, 1);
       const s0 = sizeAt(question, 0) as number;
-      const s1 = sizeAt(question, 1) as number;
-      directions.add(s1 > s0 ? 'up' : 'down');
+      const sNext = (kindByRow ? sizeAt(question, 1) : sizeAt(question, 3)) as number;
+      directions.add(sNext > s0 ? 'up' : 'down');
     }
     expect(directions.size).toBe(2);
   });
 
-  // 행 규칙의 두 측면 — 한 행 안에서는 종류가 하나로 고정되고, 세 행은 서로 다른 종류다.
-  // 생성기의 kindOffset을 다시 읽지 않고 격자(그리고 빈 칸은 marked answer)에서 직접 확인한다.
-  test('한 행 안에서는 종류가 하나로 고정되고, 세 행은 서로 다른 종류다', () => {
+  // 종류 규칙의 두 측면 — 한 줄 안에서는 종류가 하나로 고정되고, 나머지 두
+  // 줄은 서로 다른 종류다. 생성기의 kindOffset을 다시 읽지 않고 격자(그리고
+  // 빈 칸은 marked answer)에서 직접 확인한다.
+  //
+  // Task 4 리뷰 — 원래 이 테스트는 "행마다 고정"만 검사했다. swapped=true인
+  // 시드(열마다 고정)에서는 행 3칸의 종류가 전부 달라 new Set(row).size가 1이
+  // 아니라 3이 나와 곧장 빨간불이 됐다 — 축이 바뀌면 "줄"의 정의(행 또는
+  // 열)도 같이 바뀌어야 한다. 0번·1번 칸(같은 행)의 종류가 같은지로 먼저
+  // 축을 가려낸다.
+  test('한 줄 안에서는 종류가 하나로 고정되고, 나머지 두 줄은 서로 다른 종류다', () => {
     for (let seed = 1; seed <= 200; seed++) {
       const { question } = G.generate(seed);
       const marked = question.choices[question.answerIndex ?? -1]?.figure?.cells[0]?.shapes[0];
-      const rowKindSets = [0, 1, 2].map((r) => {
-        const rowCellKinds = [0, 1, 2].map((c) => kindAt(question, r * 3 + c));
-        if (r === 2) rowCellKinds[2] = marked?.kind; // 8번 칸은 빈칸이므로 정답으로 메운다
-        return rowCellKinds;
+      const kindByRow = kindAt(question, 0) === kindAt(question, 1);
+
+      const lineKindSets = [0, 1, 2].map((line) => {
+        // 행 고정이면 같은 행의 세 칸(가로), 열 고정이면 같은 열의 세 칸(세로)을 모은다.
+        const idxs = kindByRow
+          ? [line * 3, line * 3 + 1, line * 3 + 2]
+          : [line, line + 3, line + 6];
+        return idxs.map((i) => (i === 8 ? marked?.kind : kindAt(question, i))); // 8번 칸은 정답으로 메운다
       });
-      for (const row of rowKindSets) {
-        expect(new Set(row).size).toBe(1); // 한 행 안에서는 종류가 하나
+      for (const line of lineKindSets) {
+        expect(new Set(line).size).toBe(1); // 한 줄 안에서는 종류가 하나
       }
-      expect(new Set(rowKindSets.map((row) => row[0])).size).toBe(3); // 세 행은 서로 다른 종류
+      expect(new Set(lineKindSets.map((line) => line[0])).size).toBe(3); // 세 줄은 서로 다른 종류
     }
   });
 
@@ -112,28 +132,41 @@ describe('sizeGenerator', () => {
     }
   });
 
-  // ★ ① 예측 대조 — 첫 줄의 두 칸에서 등차를 읽어 셋째 칸을 독립 계산한다.
+  // ★ ① 예측 대조 — 마지막 줄의 두 칸에서 등차를 읽어 빈 칸을 독립 계산한다.
   // "줄에 없는 값"이 아니라 "진행을 이어간 값"으로 구해야 단조성까지 검사된다.
+  //
+  // Task 4 리뷰 — 원래는 크기가 항상 6번·7번 칸(마지막 행)을 따라 진행한다고
+  // 가정했다. swapped=true(열이 종류·행이 크기)인 시드는 크기가 2번·5번 칸
+  // (마지막 열)을 따라 진행하므로 6번·7번 칸은 사실 같은 열(2)의 종류만
+  // 일정할 뿐 크기는 늘 같은 값(그 열의 크기)이라 등차가 0으로 계산되고
+  // 예측이 빗나갔다 — 종류가 고정되는 축부터 가려내 크기가 실제로 진행하는
+  // 줄을 골라야 한다.
   test('표시된 정답 크기가 줄의 진행을 이어간 값이다', () => {
     for (let seed = 1; seed <= 300; seed++) {
       const { question } = G.generate(seed);
-      // 마지막 줄(6,7)의 간격을 읽어 8번 칸을 예측한다
-      const s6 = sizeAt(question, 6) as number;
-      const s7 = sizeAt(question, 7) as number;
-      const expected = s7 + (s7 - s6);
+      const kindByRow = kindAt(question, 0) === kindAt(question, 1);
+      // 종류가 고정되는 줄(빈 칸을 포함하는 줄) 안에서, 크기가 진행하는 두 칸을 읽는다.
+      const [i0, i1] = kindByRow ? [6, 7] : [2, 5];
+      const s0 = sizeAt(question, i0) as number;
+      const s1 = sizeAt(question, i1) as number;
+      const expected = s1 + (s1 - s0);
       const marked = question.choices[question.answerIndex ?? -1]?.figure?.cells[0]?.shapes[0];
       expect(marked?.size).toBeCloseTo(expected, 10);
       // 종류는 그 줄에서 일정하다
-      expect(marked?.kind).toBe(kindAt(question, 6));
-      expect(kindAt(question, 7)).toBe(kindAt(question, 6));
+      expect(marked?.kind).toBe(kindAt(question, i0));
+      expect(kindAt(question, i1)).toBe(kindAt(question, i0));
     }
   });
 
-  // ③ 해설 내용 — 방향을 실제로 맞게 말하는가
+  // ③ 해설 내용 — 방향을 실제로 맞게 말하는가. 위 "커지는·작아지는 방향" 테스트와
+  // 같은 이유로, 크기가 실제로 변하는 축에서 두 칸을 골라야 한다.
   test('해설의 방향 서술이 격자의 실제 방향과 일치한다', () => {
     for (let seed = 1; seed <= 200; seed++) {
       const { question } = G.generate(seed);
-      const ascending = (sizeAt(question, 1) as number) > (sizeAt(question, 0) as number);
+      const kindByRow = kindAt(question, 0) === kindAt(question, 1);
+      const s0 = sizeAt(question, 0) as number;
+      const sNext = (kindByRow ? sizeAt(question, 1) : sizeAt(question, 3)) as number;
+      const ascending = sNext > s0;
       const text = question.explanation ?? '';
       if (ascending) {
         expect(text).toContain('커집니다');
@@ -143,6 +176,59 @@ describe('sizeGenerator', () => {
         expect(text).not.toContain('커집니다');
       }
     }
+  });
+
+  // Task 4(축 교환) — 해설이 실제 축을 말하는지 확인한다. 종류가 행에 고정된
+  // 배치인지 열에 고정된 배치인지를 swapped 내부 변수가 아니라 격자(0번·1번
+  // 칸)에서 읽어 판별한 다음, 반대되는 축 이름이 나오면 실패시킨다. 이
+  // 테스트는 계획 4가 "가장 위험하다"고 지목한 규칙을 정면으로 검사한다 —
+  // 해설 문구가 한쪽 배치에 고정돼 있으면 swapped=true 시드에서 반드시
+  // 빨간불이 난다.
+  test('해설이 격자의 실제 축을 말한다', () => {
+    let sawRowKind = false;
+    let sawColumnKind = false;
+    for (let seed = 1; seed <= 500; seed++) {
+      const { question } = G.generate(seed);
+      const kindByRow = kindAt(question, 0) === kindAt(question, 1);
+      const text = question.explanation ?? '';
+      if (kindByRow) {
+        sawRowKind = true;
+        expect(text).toContain('가로 줄마다');
+        expect(text).toContain('오른쪽으로');
+        expect(text).not.toContain('세로 줄마다');
+      } else {
+        sawColumnKind = true;
+        expect(text).toContain('세로 줄마다');
+        expect(text).toContain('아래로');
+        expect(text).not.toContain('가로 줄마다');
+      }
+    }
+    expect(sawRowKind).toBe(true);
+    expect(sawColumnKind).toBe(true);
+  });
+
+  // Task 4 — 시드 500개에서 두 축 배치(행이 종류를 맡는 배치, 열이 종류를
+  // 맡는 배치)가 모두 나오는지 격자에서 직접 확인한다. swapped 내부 변수를
+  // 읽지 않고, 0번·1번 칸(같은 행, 열만 다르다)의 종류가 같은지로 판별한다.
+  test('시드 500개에서 축 배치 두 가지가 모두 나온다', () => {
+    const arrangements = new Set<'rowKind' | 'columnKind'>();
+    for (let seed = 1; seed <= 500; seed++) {
+      const { question } = G.generate(seed);
+      const kindByRow = kindAt(question, 0) === kindAt(question, 1);
+      arrangements.add(kindByRow ? 'rowKind' : 'columnKind');
+    }
+    expect(arrangements).toEqual(new Set(['rowKind', 'columnKind']));
+  });
+
+  // Task 4 증거 — 넓힌 뒤 실측 퍼즐 가짓수가 12(kindOffset 3가지 × ascending
+  // 2가지 × swapped 2가지)여야 한다. puzzleKey는 tools/validate-content.ts의
+  // measureGeneratorCapacity와 같은 키다.
+  test('서로 다른 퍼즐이 12가지다', () => {
+    const seen = new Set<string>();
+    for (let seed = 1; seed <= 1000; seed++) {
+      seen.add(puzzleKey(G.generate(seed)));
+    }
+    expect(seen.size).toBe(12);
   });
 
   test('오답은 모두 정답과 다르다', () => {

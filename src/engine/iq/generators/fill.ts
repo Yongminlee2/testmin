@@ -32,11 +32,20 @@ export const fillGenerator: Generator = {
     const rand = mulberry32(seed);
     const kindOffset = pickInt(rand, 0, KINDS.length - 1);
     const startFilled = rand() < 0.5;
+    // 축 교환. 기본(swapped=false)은 열이 종류를, 행이 채움을 맡는다 — 원래
+    // 규칙 그대로다. swapped=true면 행이 종류를, 열이 채움을 맡도록 뒤집는다.
+    // 문제(종류 3가지 순환·채움 2가지 교대)는 그대로고 배치만 새로워지므로
+    // kindOffset(3) × startFilled(2) × swapped(2) = 12가지 퍼즐(계획 4).
+    const swapped = rand() < 0.5;
 
-    const comboAt = (r: number, c: number): Combo => ({
-      kind: KINDS[(kindOffset + c) % KINDS.length] as ShapeKind,
-      filled: (r % 2 === 0) === startFilled,
-    });
+    const comboAt = (r: number, c: number): Combo => {
+      const kindIndex = swapped ? r : c;
+      const fillIndex = swapped ? c : r;
+      return {
+        kind: KINDS[(kindOffset + kindIndex) % KINDS.length] as ShapeKind,
+        filled: (fillIndex % 2 === 0) === startFilled,
+      };
+    };
 
     const cells: CellSpec[] = [];
     for (let i = 0; i < 9; i++) {
@@ -67,6 +76,16 @@ export const fillGenerator: Generator = {
       diamond: '마름모',
     };
 
+    // 해설이 말할 축 이름은 swapped를 직접 읽지 않고 이미 그려진 cells에서
+    // 역산한다. 0번 칸과 3번 칸은 같은 열(행만 다르다) — 종류가 같으면 열이
+    // 종류를 고정하는 축이고, 다르면 행이 그 축이다. swapped에서 곧장
+    // "행"/"열" 문구를 고르면, 나중에 comboAt의 축 배정만 바뀌고 이 분기를
+    // 못 따라가는 리팩터링이 나와도 해설은 옛 축을 계속 가리킨 채 초록불로
+    // 남는다 — 격자를 직접 보고 판단하면 그 여지가 없다.
+    const kindByColumn = cells[0]?.shapes[0]?.kind === cells[3]?.shapes[0]?.kind;
+    const kindAxis = kindByColumn ? '열' : '행';
+    const fillAxis = kindByColumn ? '행' : '열';
+
     const question: Question = {
       id: iqQuestionId('fill', seed),
       kind: 'scored',
@@ -75,8 +94,8 @@ export const fillGenerator: Generator = {
       choices: options.map((o) => ({ figure: single(o) })),
       answerIndex,
       explanation:
-        `열마다 도형이 ${KINDS.map((k) => kindNames[k]).join('→')} 순서로 바뀌고, ` +
-        `행마다 색이 번갈아 칠해집니다. 마지막 칸은 ${attachParticle(kindNames[answer.kind], '이고', '고')} ` +
+        `${kindAxis}마다 도형이 ${KINDS.map((k) => kindNames[k]).join('→')} 순서로 바뀌고, ` +
+        `${fillAxis}마다 색이 번갈아 칠해집니다. 마지막 칸은 ${attachParticle(kindNames[answer.kind], '이고', '고')} ` +
         `${answer.filled ? '색이 칠해진' : '비어 있는'} 모양입니다.`,
       difficulty: 2,
     };
