@@ -1,4 +1,7 @@
 import type { Difficulty, GeneratedQuestion } from '../../types';
+import { rotationGenerator } from './rotation';
+import { countGenerator } from './count';
+import { fillGenerator } from './fill';
 
 export interface Generator {
   readonly id: string;
@@ -7,5 +10,5 @@ export interface Generator {
   generate(seed: number): GeneratedQuestion;
 }
 
-/** Task 4·5에서 채워진다. */
-export const GENERATORS: readonly Generator[] = [];
+/** Task 5에서 나머지가 채워진다. */
+export const GENERATORS: readonly Generator[] = [rotationGenerator, countGenerator, fillGenerator];
