@@ -4,6 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TypeCard } from '@/ui/TypeCard';
 import { Button } from '@/ui/Button';
+import { ShareButton } from '@/ui/ShareButton';
 import { AdSlot } from '@/ui/AdSlot';
 import { useSession } from '@/store/session';
 import { useHistory } from '@/store/history';
@@ -26,6 +27,7 @@ export default function PersonalityResultScreen() {
   // 같은 응시가 중복 저장된다. 축 합계형(성격 16유형)은 정답·오답 개념이 없으므로
   // 오답노트에는 아무것도 넘기지 않는다.
   const savedRef = useRef(false);
+  const cardRef = useRef<View>(null);
   useEffect(() => {
     if (savedRef.current || result === null || variant === null) return;
     savedRef.current = true;
@@ -68,13 +70,17 @@ export default function PersonalityResultScreen() {
         style={styles.screen}
         contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
       >
-        <TypeCard
-          label="성격 16유형 고사"
-          headline={result.code}
-          nickname={entry?.nickname ?? result.code}
-          description={entry?.description ?? ''}
-          axes={result.axes}
-        />
+        <View ref={cardRef} collapsable={false}>
+          <TypeCard
+            label="성격 16유형 고사"
+            headline={result.code}
+            nickname={entry?.nickname ?? result.code}
+            description={entry?.description ?? ''}
+            axes={result.axes}
+          />
+        </View>
+
+        <ShareButton targetRef={cardRef} dialogTitle="성격 16유형 고사" />
 
         <Button
           label="✎ 문항별 해설 보기"

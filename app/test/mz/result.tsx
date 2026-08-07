@@ -4,6 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Certificate } from '@/ui/Certificate';
 import { Button } from '@/ui/Button';
+import { ShareButton } from '@/ui/ShareButton';
 import { AdSlot } from '@/ui/AdSlot';
 import { useSession } from '@/store/session';
 import { useHistory } from '@/store/history';
@@ -31,6 +32,7 @@ export default function MzResultScreen() {
   // 채점 직후 성적표에 딱 한 번만 기록한다. ref 가드가 없으면 재렌더될 때마다
   // (예: 다른 상태 변화로 이 화면이 다시 그려질 때) 같은 응시가 중복 저장된다.
   const savedRef = useRef(false);
+  const cardRef = useRef<View>(null);
   useEffect(() => {
     if (savedRef.current || result === null || variant === null) return;
     savedRef.current = true;
@@ -81,17 +83,21 @@ export default function MzResultScreen() {
           { paddingBottom: space.xxl + insets.bottom },
         ]}
       >
-        <Certificate
-          label="MZ 고사"
-          grade={result.grade}
-          title={result.title}
-          detail={`${result.total}문항 중 ${result.correct}문항 정답`}
-          note={
-            result.wrong.length === 0
-              ? '틀린 문항이 없습니다.'
-              : `틀린 문항은 ${result.wrong.length}개예요. 전체 문항 해설을 확인해보세요.`
-          }
-        />
+        <View ref={cardRef} collapsable={false}>
+          <Certificate
+            label="MZ 고사"
+            grade={result.grade}
+            title={result.title}
+            detail={`${result.total}문항 중 ${result.correct}문항 정답`}
+            note={
+              result.wrong.length === 0
+                ? '틀린 문항이 없습니다.'
+                : `틀린 문항은 ${result.wrong.length}개예요. 전체 문항 해설을 확인해보세요.`
+            }
+          />
+        </View>
+
+        <ShareButton targetRef={cardRef} dialogTitle="MZ 고사" />
 
         {result.wrong.length > 0 ? (
           <Button

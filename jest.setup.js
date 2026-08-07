@@ -13,3 +13,16 @@ jest.mock('react-native-safe-area-context', () => {
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
+
+// react-native-view-shot: 캡처는 순수 네이티브 로직이라 Jest 환경에 없다.
+// 항상 같은 더미 uri를 돌려주는 스텁 — ShareButton 테스트는 이 uri가
+// Sharing.shareAsync로 그대로 전달되는지만 확인한다.
+jest.mock('react-native-view-shot', () => ({
+  captureRef: jest.fn(() => Promise.resolve('file:///mock-capture.png')),
+}));
+
+// expo-sharing: 네이티브 공유 시트도 Jest 환경에 없다.
+jest.mock('expo-sharing', () => ({
+  isAvailableAsync: jest.fn(() => Promise.resolve(true)),
+  shareAsync: jest.fn(() => Promise.resolve()),
+}));

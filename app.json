@@ -46,7 +46,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#FFF8E1"
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "icon": "./assets/images/icon.png"
   }

@@ -4,6 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Certificate } from '@/ui/Certificate';
 import { Button } from '@/ui/Button';
+import { ShareButton } from '@/ui/ShareButton';
 import { AdSlot } from '@/ui/AdSlot';
 import { useSession } from '@/store/session';
 import { useHistory } from '@/store/history';
@@ -29,6 +30,7 @@ export default function IqResultScreen() {
   // 채점 직후 성적표에 딱 한 번만 기록한다. ref 가드가 없으면 재렌더될 때마다
   // 같은 응시가 중복 저장된다.
   const savedRef = useRef(false);
+  const cardRef = useRef<View>(null);
   useEffect(() => {
     if (savedRef.current || result === null || variant === null) return;
     savedRef.current = true;
@@ -81,29 +83,36 @@ export default function IqResultScreen() {
           { paddingBottom: space.xxl + insets.bottom },
         ]}
       >
-        <Text testID="iq-score" style={styles.score} maxFontSizeMultiplier={font.maxScale}>
-          추정 점수 {result.estimatedScore}
-        </Text>
+        {/* 점수·합격증·안내 문구를 한 View로 묶는다 — 공유 이미지는 앱 밖으로
+            나가는 새로운 표시 자리이고, 점수가 보이는 곳엔 안내 문구도 함께
+            보여야 한다는 규칙이 여기도 그대로 적용된다. */}
+        <View ref={cardRef} collapsable={false}>
+          <Text testID="iq-score" style={styles.score} maxFontSizeMultiplier={font.maxScale}>
+            추정 점수 {result.estimatedScore}
+          </Text>
 
-        <Certificate
-          label="IQ 고사"
-          grade={result.grade}
-          title={result.title}
-          detail={`${result.total}문항 중 ${result.correct}문항 정답`}
-          note={
-            result.wrong.length === 0
-              ? '틀린 문항이 없습니다.'
-              : `틀린 문항은 ${result.wrong.length}개예요. 전체 문항 해설을 확인해보세요.`
-          }
-        />
+          <Certificate
+            label="IQ 고사"
+            grade={result.grade}
+            title={result.title}
+            detail={`${result.total}문항 중 ${result.correct}문항 정답`}
+            note={
+              result.wrong.length === 0
+                ? '틀린 문항이 없습니다.'
+                : `틀린 문항은 ${result.wrong.length}개예요. 전체 문항 해설을 확인해보세요.`
+            }
+          />
 
-        <Text
-          testID="iq-disclaimer"
-          style={styles.disclaimer}
-          maxFontSizeMultiplier={font.maxScale}
-        >
-          {result.disclaimer}
-        </Text>
+          <Text
+            testID="iq-disclaimer"
+            style={styles.disclaimer}
+            maxFontSizeMultiplier={font.maxScale}
+          >
+            {result.disclaimer}
+          </Text>
+        </View>
+
+        <ShareButton targetRef={cardRef} dialogTitle="IQ 고사" />
 
         {result.wrong.length > 0 ? (
           <Button

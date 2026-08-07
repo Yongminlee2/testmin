@@ -4,6 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TypeCard } from '@/ui/TypeCard';
 import { Button } from '@/ui/Button';
+import { ShareButton } from '@/ui/ShareButton';
 import { AdSlot } from '@/ui/AdSlot';
 import { useSession } from '@/store/session';
 import { useHistory } from '@/store/history';
@@ -28,6 +29,7 @@ export default function PsychResultScreen() {
   // 같은 응시가 중복 저장된다. 득표형(심리 테스트)도 정답·오답 개념이 없으므로
   // 오답노트에는 아무것도 넘기지 않는다.
   const savedRef = useRef(false);
+  const cardRef = useRef<View>(null);
   useEffect(() => {
     if (savedRef.current || result === null || test === undefined || variant === null) return;
     savedRef.current = true;
@@ -66,17 +68,21 @@ export default function PsychResultScreen() {
         style={styles.screen}
         contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
       >
-        <TypeCard
-          label={test.title}
-          headline={won?.emoji ?? '🔮'}
-          nickname={won?.name ?? result.typeId}
-          description={won?.description ?? ''}
-          note={
-            result.wasTie
-              ? `12문항 중 ${votes}표 — 다른 유형과 거의 비슷했습니다`
-              : `12문항 중 ${votes}표`
-          }
-        />
+        <View ref={cardRef} collapsable={false}>
+          <TypeCard
+            label={test.title}
+            headline={won?.emoji ?? '🔮'}
+            nickname={won?.name ?? result.typeId}
+            description={won?.description ?? ''}
+            note={
+              result.wasTie
+                ? `12문항 중 ${votes}표 — 다른 유형과 거의 비슷했습니다`
+                : `12문항 중 ${votes}표`
+            }
+          />
+        </View>
+
+        <ShareButton targetRef={cardRef} dialogTitle={test.title} />
 
         <Button
           label="✎ 문항별 해설 보기"
