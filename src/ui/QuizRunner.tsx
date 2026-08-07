@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScrollView, Text, View, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,6 +26,17 @@ export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
   const questions = useSession((s) => s.questions);
   const answer = useSession((s) => s.answer);
   const [index, setIndex] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
+
+  // 문항이 바뀌면 스크롤을 맨 위로 되돌린다 — ScrollView는 이전 문항의 스크롤
+  // 오프셋을 그대로 들고 있어서, 안 하면 다음 문제 도형보다 아래에 떨어진 채로
+  // 시작한다(IQ 문항처럼 화면보다 콘텐츠가 길 때 실기기에서 눈에 띔).
+  // 빈 상태(questions.length === 0)에서는 ScrollView 자체가 렌더되지 않아
+  // scrollRef.current가 null이므로 optional chaining으로 안전하게 건너뛴다.
+  // 훅 순서를 규칙대로 유지하기 위해 아래 이른 반환보다 위에 둔다.
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [index]);
 
   const current = questions[index];
 
@@ -50,6 +61,7 @@ export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
 
   return (
     <ScrollView
+      ref={scrollRef}
       style={styles.screen}
       contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
     >

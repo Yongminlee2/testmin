@@ -88,4 +88,24 @@ describe('IqResultScreen', () => {
     expect(mockReplace).toHaveBeenCalledWith('/test/iq/quiz');
     expect(useSession.getState().questions.length).toBeGreaterThan(0);
   });
+
+  // 리뷰 화면(app/test/iq/review.tsx)은 정답·오답 문항을 전부 보여준다.
+  // 버튼과 안내 문구가 "틀린 문항만" 볼 수 있는 것처럼 말하면 실제 동작과 어긋난다.
+  // 느슨한 substring(예: '틀린'만 확인)은 회귀를 못 잡으므로 렌더된 문자열 전체로 검증한다.
+  test('해설 보기 버튼과 안내 문구는 리뷰가 오답만 걸러 보여준다고 말하지 않는다', async () => {
+    useSession.getState().start('iq', 'default', 1, questions);
+    useSession.getState().answer('a', 1); // 오답 (정답은 0)
+    useSession.getState().answer('b', 1); // 정답
+    useSession.getState().answer('c', 2); // 정답
+    useSession.getState().answer('d', 3); // 정답
+
+    await render(<IqResultScreen />);
+
+    expect(screen.getByText('✎ 문항별 해설 보기')).toBeTruthy();
+    expect(
+      screen.getByText('틀린 문항은 1개예요. 전체 문항 해설을 확인해보세요.'),
+    ).toBeTruthy();
+    // 예전 문구("틀린 N문항 해설 보기")가 되살아나면 이 매치가 걸린다.
+    expect(screen.queryByText(/틀린 \d+문항 해설 보기/)).toBeNull();
+  });
 });

@@ -62,7 +62,7 @@ export default function IqResultScreen() {
           note={
             result.wrong.length === 0
               ? '틀린 문항이 없습니다.'
-              : `틀린 ${result.wrong.length}문항의 해설을 확인해보세요.`
+              : `틀린 문항은 ${result.wrong.length}개예요. 전체 문항 해설을 확인해보세요.`
           }
         />
 
@@ -76,7 +76,7 @@ export default function IqResultScreen() {
 
         {result.wrong.length > 0 ? (
           <Button
-            label={`✎ 틀린 ${result.wrong.length}문항 해설 보기`}
+            label="✎ 문항별 해설 보기"
             onPress={() => router.push('/test/iq/review')}
             testID="go-review"
           />
