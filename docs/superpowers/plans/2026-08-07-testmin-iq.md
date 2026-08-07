@@ -1719,11 +1719,182 @@ Task 4에서 만든 `generators.test.ts`가 **모듈에서 내보내는 모든 �
 자동으로 커버된다. 만약 생성기 목록을 하드코딩해 열거하는 방식이라면 그건 Task 4 리뷰 지적 ④가
 되살아난 것이므로 **발견 방식으로 고칠 것.**
 
-**Task 5 — 수열 생성기**
-- `sequence.ts`: 등차·등비·피보나치·교대·제곱. 도형이 아니라 숫자이므로 `figure` 없이 텍스트 선택지
-- 해설이 수식으로 나온다: "3, 6, 12, 24 — 앞 항의 2배"
-- 공통 요구 중 **②는 적용되지 않는다**(그림이 없다). 대신 **숫자 범위**를 검사한다 — 등비·제곱은 금방 자릿수가 폭발해서 선택지가 화면을 넘친다. 상한을 정하고 테스트할 것
-- ①은 제시된 항들에서 규칙을 역산해 다음 항을 독립 계산하는 형태가 된다
+### Task 5 — 수열 생성기
+
+**Files:**
+- Create: `src/engine/iq/generators/sequence.ts`
+- Modify: `src/engine/iq/generators/index.ts` (레지스트리 등록 — 발견 방식이면 자동)
+- Test: `__tests__/engine/iq/sequence.test.ts`
+
+도형이 아니라 숫자다. `figure` 없이 `choices[].text`를 쓰고, `prompt`에 수열을 적는다.
+공통 요구 ②(시각적 유효성)는 여기서 **숫자 크기**로 나타난다 — 등비·제곱은 금방 자릿수가
+폭발해서 선택지 버튼이 화면을 넘친다. 아래 파라미터 범위는 그걸 계산해서 정한 값이다.
+
+**규칙 5종과 파라미터 범위** (전부 결과가 1~9999에 들어오도록 계산해둔 값이다)
+
+| 규칙 | 파라미터 | 보여줄 항 수 | 정답의 최댓값 |
+|---|---|---|---|
+| 등차(증가) | `start` 2~20, `step` 2~12 | 6 | 20+6·12 = 92 |
+| 등차(감소) | `start` 80~99, `step` -12~-2 | 6 | 최소 80-72 = 8 (**음수 안 나옴**) |
+| 등비 | `start` 1~4, `ratio` 2~3 | 5 | 4·3⁵ = 972 |
+| 피보나치 | `a` 1~6, `b` 1~6 | 6 | 78 |
+| 교대 | 두 등차 각각 `start` 2~15, `step` 2~8 | 6 | 15+3·8 = 39 |
+| 제곱 | `(n+k)²`, `k` 0~3 | 6 | 10² = 100 |
+
+> **등비의 항 수가 5인 이유:** 6개를 보여주면 정답이 `4·3⁶ = 2916`이 되고, "한 단계 더 간" 오답이
+> `8748`이 된다. 거기서 한 단계만 더 늘리면 다섯 자리가 되어 버튼을 넘친다. 5항이 안전한 상한이다.
+
+**오답 만들기 — 공용 헬퍼로 통일한다**
+
+수열은 규칙마다 "그럴듯한 오답"이 다르다. 그런데 규칙별 오답이 서로 겹치거나 정답과 같아질 수
+있어서, 매번 손으로 처리하면 빠뜨린다. 헬퍼 하나로 모은다.
+
+```ts
+/**
+ * 규칙에서 나온 "그럴듯한 오답" 후보를 받아 정답과 다른 4개를 고른다.
+ * 후보가 모자라면 정답 ±k로 채운다 — 교육적이진 않지만 5지선다는 채워야 한다.
+ * 상한(9999)을 넘는 값은 버린다. 선택지 버튼이 화면을 넘치기 때문이다.
+ */
+export function pickDistractors(
+  answer: number,
+  candidates: readonly number[],
+  rand: () => number
+): number[] {
+  const MAX = 9999;
+  const ok = (n: number): boolean => Number.isInteger(n) && n >= 1 && n <= MAX;
+
+  const out: number[] = [];
+  const seen = new Set<number>([answer]);
+  for (const c of candidates) {
+    if (out.length === 4) break;
+    if (!ok(c) || seen.has(c)) continue;
+    seen.add(c);
+    out.push(c);
+  }
+  // 부족분은 정답 근처 값으로 채운다. 1부터 차례로 늘려가며 위아래를 번갈아 본다.
+  for (let k = 1; out.length < 4; k++) {
+    for (const cand of [answer + k, answer - k]) {
+      if (out.length === 4) break;
+      if (!ok(cand) || seen.has(cand)) continue;
+      seen.add(cand);
+      out.push(cand);
+    }
+    if (k > MAX) throw new Error(`오답을 채울 수 없습니다: answer=${answer}`);
+  }
+  return shuffle(out, rand);
+}
+```
+
+**규칙별 오답 후보** — 각각 특정한 오해에서 나온 값이라 순서가 곧 우선순위다.
+
+```ts
+// 등차: 한 칸 덜 감 / 두 칸 감 / 계산 실수(±1)
+[last, answer + step, answer + 1, answer - 1]
+
+// 등비: 곱하는 대신 더함 / 한 칸 덜 감 / 한 칸 더 감
+[last + ratio, last, answer * ratio, answer + last]
+
+// 피보나치: 마지막 항의 2배로 착각 / 한 칸 덜 감 / 두 항 차이를 더함
+[last * 2, last, last + (last - prev), answer + prev]
+
+// 교대: 같은 줄이 아니라 바로 앞 항에 규칙을 적용 / 다른 줄의 다음 값
+[last + stepA, last + stepB, answer + stepA, answer - stepA]
+
+// 제곱: 마지막 제곱수 + n / 한 칸 덜 감 / 제곱 대신 곱셈 실수
+[last + base, last, (base + 2) ** 2, answer + base]
+```
+
+**중요:** 이 후보들이 정답과 같아지는 조합이 실제로 존재한다. 예를 들어 등차에서 `step === 1`이면
+`answer + 1`과 다음 항이 겹친다. 그래서 위 표에서 **모든 `step`의 하한이 2**다.
+`pickDistractors`가 중복을 걸러주므로 안전하지만, 걸러진 만큼 교육적인 오답이 근처 숫자로
+대체된다는 뜻이기도 하다. **시드 500개에서 "채우기로 대체된 비율"을 측정하는 테스트를 넣어
+20%를 넘지 않는지 본다.** 넘으면 파라미터 범위가 잘못된 것이다.
+
+**문항 형태**
+
+```ts
+prompt: `다음 수열에서 ?에 들어갈 수는?\n\n${terms.join(', ')}, ?`,
+choices: options.map((n) => ({ text: String(n) })),
+```
+
+`figure`는 넣지 않는다. `QuizRunner`는 이미 텍스트 선택지를 그리므로 Task 7에서 따로 할 일이 없다.
+
+**해설** — 규칙마다 수식이 보이게 쓴다. 값은 전부 실제 사용한 파라미터에서 만든다.
+
+```
+등차: `앞의 수에 ${step}씩 더해집니다. ${last} + ${step} = ${answer}.`
+등비: `앞의 수에 ${ratio}씩 곱해집니다. ${last} × ${ratio} = ${answer}.`
+피보나치: `앞의 두 수를 더하면 다음 수가 됩니다. ${prev} + ${last} = ${answer}.`
+교대: `한 칸 건너뛴 수끼리 묶어서 보세요. ${a0}, ${a1}, ${a2}는 ${stepA}씩 늘어납니다. 다음은 ${answer}.`
+제곱: `1², 2², 3² … 제곱수입니다. ${base}² = ${answer}.`
+```
+
+**Test:** `__tests__/engine/iq/sequence.test.ts`
+
+공통 요구 ①③④를 갖추고, ②는 숫자 범위로 대체한다.
+
+```ts
+  // ② 화면에 들어가는가
+  test('제시된 항과 선택지가 모두 1~9999 정수다', () => {
+    for (let seed = 1; seed <= 500; seed++) {
+      const { question } = G.generate(seed);
+      const nums = [...termsOf(question), ...question.choices.map((c) => Number(c.text))];
+      for (const n of nums) {
+        expect(Number.isInteger(n)).toBe(true);
+        expect(n).toBeGreaterThanOrEqual(1);
+        expect(n).toBeLessThanOrEqual(9999);
+      }
+    }
+  });
+
+  // ★ ① 예측 대조 — 제시된 항에서 규칙을 역산해 다음 항을 독립 계산한다.
+  // 생성기의 파라미터를 읽지 않는다. 다섯 규칙 중 어느 것인지도 항들만 보고 판정한다.
+  test('표시된 정답이 제시된 항에서 역산한 다음 항과 일치한다', () => {
+    for (let seed = 1; seed <= 500; seed++) {
+      const { question } = G.generate(seed);
+      const t = termsOf(question);
+      const marked = Number(question.choices[question.answerIndex ?? -1]?.text);
+      expect(marked).toBe(predictNext(t));
+    }
+  });
+
+  // 다섯 규칙이 전부 나오는가. 하나가 죽어도 나머지로 통과해버리면 안 된다.
+  test('시드 500개에서 다섯 규칙이 모두 출제된다', () => {
+    const seen = new Set<string>();
+    for (let seed = 1; seed <= 500; seed++) {
+      seen.add(classify(termsOf(G.generate(seed).question)));
+    }
+    expect(seen).toEqual(
+      new Set(['arithmetic', 'geometric', 'fibonacci', 'alternating', 'square'])
+    );
+  });
+
+  // 채우기 오답이 너무 많으면 파라미터 범위가 잘못된 것이다
+  test('교육적 오답이 근처 숫자로 대체된 비율이 20% 미만이다', () => {
+    let filled = 0;
+    let total = 0;
+    for (let seed = 1; seed <= 500; seed++) {
+      const { question } = G.generate(seed);
+      const answer = Number(question.choices[question.answerIndex ?? -1]?.text);
+      for (const c of question.choices) {
+        const n = Number(c.text);
+        if (n === answer) continue;
+        total++;
+        if (Math.abs(n - answer) <= 2) filled++;  // ±1·±2는 채우기로 나온 값
+      }
+    }
+    expect(filled / total).toBeLessThan(0.2);
+  });
+```
+
+`predictNext`와 `classify`는 **테스트 파일 안에** 둔다. 생성기가 쓰는 코드를 재사용하면
+동어반복이 되어 예측 대조의 의미가 사라진다. `classify`는 항들만 보고 판정한다:
+연속 차가 일정하면 등차, 연속 비가 일정하면 등비, `t[i] = t[i-1] + t[i-2]`면 피보나치,
+전부 완전제곱수면 제곱, 한 칸 건너뛴 값들의 차가 일정하면 교대.
+
+> **판정 순서 주의:** 1, 2, 4, 8은 등비이면서 "한 칸 건너뛴 차가 일정"하지도 않지만,
+> 2, 4, 8, 16 같은 짧은 수열은 여러 규칙에 걸릴 수 있다. `classify`는 **가장 강한 조건부터**
+> 검사한다: 피보나치 → 제곱 → 등비 → 등차 → 교대. 순서를 바꾸면 오분류가 난다.
 
 **Task 6 — IQ 출제·채점·급수**
 - `assembleIq.ts`: 난이도 분포에 따라 생성기를 골라 20문항 생성
