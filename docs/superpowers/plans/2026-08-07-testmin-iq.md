@@ -1283,11 +1283,441 @@ Task 4 리뷰에서 확정. 생성기가 지켜야 할 규칙은 네 종류이�
 
 ---
 
-**Task 4b — 3분배 · 크기 진행 생성기**
-- `distribute.ts`: 각 행에 세 종류가 정확히 한 번씩. 열도 마찬가지(라틴 방진). 오답은 "이미 그 행에 있는 종류"
-- `size.ts`: 크기가 단계적으로 커지거나 작아진다. `shapeKey`가 `size`를 포함하므로 비교는 이미 동작한다(Task 1 finding 참조)
-- **`size.ts` 주의:** 크기 차이가 너무 작으면 화면에서 구분이 안 된다. 인접 단계 간 `size` 차를 0.12 이상으로 잡고, 최소 0.25·최대 0.85 범위를 지킬 것. 기계는 0.01 차이도 "다른 도형"이라 판정한다
-- 위 공통 요구 ①~④를 각각 갖출 것
+### Task 4b — 3분배 · 크기 진행 생성기
+
+**Files:**
+- Create: `src/engine/iq/generators/distribute.ts`, `src/engine/iq/generators/size.ts`
+- Modify: `src/engine/iq/generators/index.ts` (레지스트리 등록)
+- Test: `__tests__/engine/iq/distribute.test.ts`, `__tests__/engine/iq/size.test.ts`
+
+위의 **공통 요구 ①~④를 두 생성기가 각각** 갖춘다. ②(시각적 유효성)는 여기서 겹침이 아니라
+**크기 구분 가능성**으로 나타난다 — 한 셀에 도형이 하나뿐이라 겹칠 일은 없다.
+
+**크기 상수는 두 생성기가 공유한다.** `size.ts`에 정의하고 `distribute.ts`가 import한다.
+
+```ts
+/** 화면에서 확실히 구분되는 세 단계. 인접 간격 0.2 — 최소 요구치 0.12의 1.6배. */
+export const SIZES = [0.3, 0.5, 0.7] as const;
+```
+
+> **왜 3단계뿐인가 (되돌리지 말 것):** 9칸을 단조 증가시키려면 8번 커져야 하는데,
+> 허용 범위 0.25~0.85의 폭은 0.6이라 한 단계가 0.075가 된다. 이건 화면에서 구분이 안 된다.
+> 기계는 0.01 차이도 "다른 도형"으로 판정하므로 **자동 검사로는 절대 안 잡힌다.**
+> 회전 함정과 같은 종류다. 그래서 크기는 **행이나 열 안에서만** 진행하고 9칸을 관통하지 않는다.
+
+---
+
+**`src/engine/iq/generators/distribute.ts`** — 난이도 3
+
+규칙: **각 줄에 세 종류가 한 번씩, 세 크기도 한 번씩.** 종류와 크기가 서로 독립인 그레코-라틴 방진이라
+9칸의 (종류, 크기) 조합이 전부 다르다. 레이븐 행렬의 고전적 형태다.
+
+```ts
+import { mulberry32, pickInt, shuffle } from '../../rng';
+import { shape } from '../figure';
+import { SIZES } from './size';
+import type { CellSpec, FigureSpec, GeneratedQuestion, Question, ShapeKind } from '../../types';
+import type { Generator } from './index';
+
+const KINDS: readonly ShapeKind[] = ['circle', 'square', 'triangle'];
+
+interface Combo {
+  readonly kind: ShapeKind;
+  readonly size: number;
+}
+
+function cellOf(c: Combo): CellSpec {
+  return { shapes: [shape(c.kind, { size: c.size, filled: false })] };
+}
+
+function single(c: Combo): FigureSpec {
+  return { kind: 'single', cells: [cellOf(c)] };
+}
+
+function comboKey(c: Combo): string {
+  return `${c.kind}:${c.size}`;
+}
+
+export const distributeGenerator: Generator = {
+  id: 'distribute',
+  difficulty: 3,
+
+  generate(seed: number): GeneratedQuestion {
+    const rand = mulberry32(seed);
+    const kindOffset = pickInt(rand, 0, 2);
+    const sizeOffset = pickInt(rand, 0, 2);
+
+    // 두 라틴 방진이 서로 직교한다: (r+c)와 (r+2c)는 mod 3에서 9쌍이 전부 다르다.
+    // 그래서 종류와 크기가 상관관계를 갖지 않고, 둘 다 읽어야 풀린다.
+    const comboAt = (r: number, c: number): Combo => ({
+      kind: KINDS[(r + c + kindOffset) % 3] as ShapeKind,
+      size: SIZES[(r + 2 * c + sizeOffset) % 3] as number,
+    });
+
+    const cells: CellSpec[] = [];
+    for (let i = 0; i < 9; i++) {
+      cells.push(cellOf(comboAt(Math.floor(i / 3), i % 3)));
+    }
+
+    const answer = comboAt(2, 2);
+
+    // 오답은 어긴 규칙별로 하나씩 — fill.ts와 같은 원칙.
+    //  (a) 종류는 맞고 크기만 틀림 (1개): 종류 줄만 읽은 사람
+    //  (b) 크기는 맞고 종류만 틀림 (2개): 크기 줄만 읽은 사람. 마지막 줄에 이미 있는 종류다
+    //  (c) 둘 다 틀림 (1개)
+    const otherKinds = KINDS.filter((k) => k !== answer.kind);
+    const otherSizes = SIZES.filter((s) => s !== answer.size);
+    const wrong: Combo[] = [
+      { kind: answer.kind, size: otherSizes[pickInt(rand, 0, otherSizes.length - 1)] as number },
+      ...otherKinds.map((k) => ({ kind: k, size: answer.size })),
+      {
+        kind: otherKinds[pickInt(rand, 0, otherKinds.length - 1)] as ShapeKind,
+        size: otherSizes[pickInt(rand, 0, otherSizes.length - 1)] as number,
+      },
+    ];
+    const options = shuffle([answer, ...wrong], rand);
+    const answerIndex = options.findIndex((o) => comboKey(o) === comboKey(answer));
+
+    const kindNames: Record<ShapeKind, string> = {
+      circle: '원', square: '사각형', triangle: '삼각형', diamond: '마름모',
+    };
+    const sizeName = (s: number): string =>
+      s === SIZES[0] ? '작은' : s === SIZES[1] ? '중간' : '큰';
+
+    const rowKinds = [comboAt(2, 0), comboAt(2, 1)].map((c) => kindNames[c.kind]);
+    const rowSizes = [comboAt(2, 0), comboAt(2, 1)].map((c) => sizeName(c.size));
+
+    const question: Question = {
+      id: `iq-distribute-${seed}`,
+      kind: 'scored',
+      prompt: '빈 칸에 들어갈 도형은?',
+      figure: { kind: 'grid', cells, blankIndex: 8 },
+      choices: options.map((o) => ({ figure: single(o) })),
+      answerIndex,
+      explanation:
+        `가로 한 줄에는 원·사각형·삼각형이 한 번씩, 크기도 작은·중간·큰 것이 한 번씩 나옵니다. ` +
+        `마지막 줄에는 이미 ${rowKinds.join('과 ')}이 있으므로 빈 칸은 ${kindNames[answer.kind]}이고, ` +
+        `${rowSizes.join('·')} 크기가 이미 나왔으므로 ${sizeName(answer.size)} 크기입니다.`,
+      difficulty: 3,
+    };
+
+    return { question, generatorId: 'distribute', seed };
+  },
+};
+```
+
+**Test:** `__tests__/engine/iq/distribute.test.ts`
+
+공통 요구 ①~③에 더해, **그레코-라틴 성질 자체**를 검사한다. 이게 무너지면 문제에 정답이 둘이 되거나
+아예 풀 수 없는 문제가 된다.
+
+```ts
+import { distributeGenerator } from '@/engine/iq/generators/distribute';
+import { SIZES } from '@/engine/iq/generators/size';
+import { verifyGenerated } from '@/engine/iq/verify';
+import { figureEquals } from '@/engine/iq/figure';
+
+const G = distributeGenerator;
+const kindAt = (q: ReturnType<typeof G.generate>['question'], i: number) =>
+  q.figure?.cells[i]?.shapes[0]?.kind;
+const sizeAt = (q: ReturnType<typeof G.generate>['question'], i: number) =>
+  q.figure?.cells[i]?.shapes[0]?.size;
+
+describe('distributeGenerator', () => {
+  test('시드 50개에서 같은 시드가 같은 문항을 만든다', () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      expect(JSON.stringify(G.generate(seed))).toBe(JSON.stringify(G.generate(seed)));
+    }
+  });
+
+  test('시드 500개에서 항상 검증을 통과한다', () => {
+    for (let seed = 1; seed <= 500; seed++) {
+      const errors = verifyGenerated(G.generate(seed));
+      if (errors.length > 0) throw new Error(`seed ${seed}: ${errors.join(' / ')}`);
+    }
+  });
+
+  test('시드 500개에서 정답 위치가 고정되어 있지 않다', () => {
+    const positions = new Set<number>();
+    for (let seed = 1; seed <= 500; seed++) {
+      positions.add(G.generate(seed).question.answerIndex ?? -1);
+    }
+    expect(positions.size).toBeGreaterThan(1);
+  });
+
+  // 규칙 자체의 무결성 — 이게 깨지면 정답이 둘이거나 풀 수 없는 문제가 나온다
+  test('모든 행과 열에 세 종류·세 크기가 정확히 한 번씩 나온다', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const { question } = G.generate(seed);
+      // 빈 칸(8번)은 정답으로 메워서 완성된 격자로 본다
+      const full = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({
+        kind: kindAt(question, i),
+        size: sizeAt(question, i),
+      }));
+      const ans = question.choices[question.answerIndex ?? -1]?.figure?.cells[0]?.shapes[0];
+      full.push({ kind: ans?.kind, size: ans?.size });
+
+      for (let line = 0; line < 3; line++) {
+        const row = [0, 1, 2].map((c) => full[line * 3 + c]);
+        const col = [0, 1, 2].map((r) => full[r * 3 + line]);
+        for (const group of [row, col]) {
+          expect(new Set(group.map((g) => g?.kind)).size).toBe(3);
+          expect(new Set(group.map((g) => g?.size)).size).toBe(3);
+        }
+      }
+    }
+  });
+
+  // ② 시각적 유효성 — 크기가 화면에서 구분되는가
+  test('쓰이는 크기는 세 단계뿐이고 서로 0.12 이상 벌어져 있다', () => {
+    const used = new Set<number>();
+    for (let seed = 1; seed <= 200; seed++) {
+      const { question } = G.generate(seed);
+      for (let i = 0; i < 9; i++) {
+        const s = sizeAt(question, i);
+        if (s !== undefined) used.add(s);
+      }
+      for (const c of question.choices) {
+        const s = c.figure?.cells[0]?.shapes[0]?.size;
+        if (s !== undefined) used.add(s);
+      }
+    }
+    const sorted = [...used].sort((a, b) => a - b);
+    expect(sorted).toEqual([...SIZES].sort((a, b) => a - b));
+    for (let i = 1; i < sorted.length; i++) {
+      expect((sorted[i] as number) - (sorted[i - 1] as number)).toBeGreaterThanOrEqual(0.12);
+    }
+    expect(sorted[0] as number).toBeGreaterThanOrEqual(0.25);
+    expect(sorted[sorted.length - 1] as number).toBeLessThanOrEqual(0.85);
+  });
+
+  test('오답은 종류만 틀림 2개, 크기만 틀림 1개, 둘 다 틀림 1개다', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const { question } = G.generate(seed);
+      const ai = question.answerIndex ?? -1;
+      const a = question.choices[ai]?.figure?.cells[0]?.shapes[0];
+      expect(a).toBeDefined();
+      let kindOnly = 0, sizeOnly = 0, both = 0;
+      question.choices.forEach((c, i) => {
+        if (i === ai) return;
+        const s = c.figure?.cells[0]?.shapes[0];
+        const kw = s?.kind !== a!.kind;
+        const sw = s?.size !== a!.size;
+        if (kw && sw) both++; else if (kw) kindOnly++; else if (sw) sizeOnly++;
+      });
+      expect({ kindOnly, sizeOnly, both }).toEqual({ kindOnly: 2, sizeOnly: 1, both: 1 });
+    }
+  });
+
+  // ★ ① 예측 대조 — 마지막 줄에 빠진 종류·크기를 격자에서 직접 구한다.
+  // 생성기의 (r+c)%3 공식을 다시 쓰지 않는다. 라틴 방진이면 "줄에 없는 값"이 곧 답이다.
+  test('표시된 정답이 마지막 줄에서 빠진 종류·크기와 일치한다', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const { question } = G.generate(seed);
+      const rowKinds = [kindAt(question, 6), kindAt(question, 7)];
+      const rowSizes = [sizeAt(question, 6), sizeAt(question, 7)];
+      const missingKind = (['circle', 'square', 'triangle'] as const).find(
+        (k) => !rowKinds.includes(k)
+      );
+      const missingSize = SIZES.find((s) => !rowSizes.includes(s));
+      expect(missingKind).toBeDefined();
+      expect(missingSize).toBeDefined();
+
+      const marked = question.choices[question.answerIndex ?? -1]?.figure?.cells[0]?.shapes[0];
+      expect(marked?.kind).toBe(missingKind);
+      expect(marked?.size).toBe(missingSize);
+    }
+  });
+
+  // ③ 해설 내용
+  test('해설이 격자에서 역산한 종류를 실제로 언급한다', () => {
+    const names: Record<string, string> = { circle: '원', square: '사각형', triangle: '삼각형' };
+    for (let seed = 1; seed <= 200; seed++) {
+      const { question } = G.generate(seed);
+      const rowKinds = [kindAt(question, 6), kindAt(question, 7)];
+      const missingKind = (['circle', 'square', 'triangle'] as const).find(
+        (k) => !rowKinds.includes(k)
+      );
+      const text = question.explanation ?? '';
+      // 정답 종류를 말해야 하고, 마지막 줄에 이미 있는 두 종류도 근거로 들어야 한다
+      expect(text).toContain(names[missingKind as string] as string);
+      for (const k of rowKinds) {
+        expect(text).toContain(names[k as string] as string);
+      }
+    }
+  });
+
+  test('오답은 모두 정답과 다르다', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const { question } = G.generate(seed);
+      const ai = question.answerIndex ?? 0;
+      const answer = question.choices[ai]?.figure;
+      question.choices.forEach((c, i) => {
+        if (i === ai || c.figure === undefined || answer === undefined) return;
+        expect(figureEquals(answer, c.figure)).toBe(false);
+      });
+    }
+  });
+});
+```
+
+> **해설 테스트에 대한 주의:** `사각형`은 `원`을 포함하지 않지만 한글 부분문자열 함정을 조심할 것.
+> 이 세 이름은 서로의 부분문자열이 아니므로 `toContain`이 안전하다. 나중에 `마름모`를 추가하면
+> 다시 확인할 것.
+
+---
+
+**`src/engine/iq/generators/size.ts`** — 난이도 2
+
+규칙: **행이 종류를 정하고, 열이 크기를 정한다.** 왼쪽에서 오른쪽으로 갈수록 커진다.
+`fill.ts`와 축이 반대이고(거긴 열=종류, 행=채움) 변하는 속성도 다르므로 헷갈리지 않는다.
+
+```ts
+import { mulberry32, pickInt, shuffle } from '../../rng';
+import { shape } from '../figure';
+import type { CellSpec, FigureSpec, GeneratedQuestion, Question, ShapeKind } from '../../types';
+import type { Generator } from './index';
+
+/** 화면에서 확실히 구분되는 세 단계. 인접 간격 0.2 — 최소 요구치 0.12의 1.6배. */
+export const SIZES = [0.3, 0.5, 0.7] as const;
+
+const KINDS: readonly ShapeKind[] = ['circle', 'square', 'triangle'];
+
+interface Combo {
+  readonly kind: ShapeKind;
+  readonly size: number;
+}
+
+function cellOf(c: Combo): CellSpec {
+  return { shapes: [shape(c.kind, { size: c.size, filled: true })] };
+}
+
+function single(c: Combo): FigureSpec {
+  return { kind: 'single', cells: [cellOf(c)] };
+}
+
+function comboKey(c: Combo): string {
+  return `${c.kind}:${c.size}`;
+}
+
+export const sizeGenerator: Generator = {
+  id: 'size',
+  difficulty: 2,
+
+  generate(seed: number): GeneratedQuestion {
+    const rand = mulberry32(seed);
+    const kindOffset = pickInt(rand, 0, 2);
+    // 커지는 방향인가 작아지는 방향인가. 두 방향 다 나와야 "오른쪽=큼"을 외우는 걸 막는다.
+    const ascending = rand() < 0.5;
+
+    const comboAt = (r: number, c: number): Combo => ({
+      kind: KINDS[(r + kindOffset) % 3] as ShapeKind,
+      size: (ascending ? SIZES[c] : SIZES[2 - c]) as number,
+    });
+
+    const cells: CellSpec[] = [];
+    for (let i = 0; i < 9; i++) {
+      cells.push(cellOf(comboAt(Math.floor(i / 3), i % 3)));
+    }
+
+    const answer = comboAt(2, 2);
+
+    const otherKinds = KINDS.filter((k) => k !== answer.kind);
+    const otherSizes = SIZES.filter((s) => s !== answer.size);
+    const wrong: Combo[] = [
+      // 크기만 틀림 2개 — 크기가 이 문제의 핵심 규칙이므로 오답도 여기에 몰아준다
+      ...otherSizes.map((s) => ({ kind: answer.kind, size: s })),
+      { kind: otherKinds[pickInt(rand, 0, otherKinds.length - 1)] as ShapeKind, size: answer.size },
+      {
+        kind: otherKinds[pickInt(rand, 0, otherKinds.length - 1)] as ShapeKind,
+        size: otherSizes[pickInt(rand, 0, otherSizes.length - 1)] as number,
+      },
+    ];
+    const options = shuffle([answer, ...wrong], rand);
+    const answerIndex = options.findIndex((o) => comboKey(o) === comboKey(answer));
+
+    const kindNames: Record<ShapeKind, string> = {
+      circle: '원', square: '사각형', triangle: '삼각형', diamond: '마름모',
+    };
+
+    const question: Question = {
+      id: `iq-size-${seed}`,
+      kind: 'scored',
+      prompt: '빈 칸에 들어갈 도형은?',
+      figure: { kind: 'grid', cells, blankIndex: 8 },
+      choices: options.map((o) => ({ figure: single(o) })),
+      answerIndex,
+      explanation:
+        `가로 줄마다 도형 종류가 정해져 있고, 오른쪽으로 갈수록 ` +
+        `${ascending ? '커집니다' : '작아집니다'}. ` +
+        `마지막 줄은 ${kindNames[answer.kind]}이고, 세 번째 칸이므로 ` +
+        `${ascending ? '가장 큰' : '가장 작은'} 크기입니다.`,
+      difficulty: 2,
+    };
+
+    return { question, generatorId: 'size', seed };
+  },
+};
+```
+
+**Test:** `__tests__/engine/iq/size.test.ts`
+
+`distribute.test.ts`와 같은 여덟 가지를 갖추되 이 규칙에 맞게 쓴다. 특히 다른 점 세 가지:
+
+```ts
+  // 두 방향이 다 나와야 한다. 한 방향만 나오면 "오른쪽=큼"을 외워도 다 맞는다.
+  test('시드 500개에서 커지는 방향과 작아지는 방향이 둘 다 나온다', () => {
+    const directions = new Set<string>();
+    for (let seed = 1; seed <= 500; seed++) {
+      const { question } = G.generate(seed);
+      const s0 = sizeAt(question, 0) as number;
+      const s1 = sizeAt(question, 1) as number;
+      directions.add(s1 > s0 ? 'up' : 'down');
+    }
+    expect(directions.size).toBe(2);
+  });
+
+  // ★ ① 예측 대조 — 첫 줄의 두 칸에서 등차를 읽어 셋째 칸을 독립 계산한다.
+  // "줄에 없는 값"이 아니라 "진행을 이어간 값"으로 구해야 단조성까지 검사된다.
+  test('표시된 정답 크기가 줄의 진행을 이어간 값이다', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const { question } = G.generate(seed);
+      // 마지막 줄(6,7)의 간격을 읽어 8번 칸을 예측한다
+      const s6 = sizeAt(question, 6) as number;
+      const s7 = sizeAt(question, 7) as number;
+      const expected = s7 + (s7 - s6);
+      const marked = question.choices[question.answerIndex ?? -1]?.figure?.cells[0]?.shapes[0];
+      expect(marked?.size).toBeCloseTo(expected, 10);
+      // 종류는 그 줄에서 일정하다
+      expect(marked?.kind).toBe(kindAt(question, 6));
+      expect(kindAt(question, 7)).toBe(kindAt(question, 6));
+    }
+  });
+
+  // ③ 해설 내용 — 방향을 실제로 맞게 말하는가
+  test('해설의 방향 서술이 격자의 실제 방향과 일치한다', () => {
+    for (let seed = 1; seed <= 200; seed++) {
+      const { question } = G.generate(seed);
+      const ascending = (sizeAt(question, 1) as number) > (sizeAt(question, 0) as number);
+      const text = question.explanation ?? '';
+      if (ascending) {
+        expect(text).toContain('커집니다');
+        expect(text).not.toContain('작아집니다');
+      } else {
+        expect(text).toContain('작아집니다');
+        expect(text).not.toContain('커집니다');
+      }
+    }
+  });
+```
+
+나머지(결정성 50시드, `verifyGenerated` 500시드, 정답 위치 분산, 크기 3단계·간격 0.12,
+오답 구성 `{ sizeOnly: 2, kindOnly: 1, both: 1 }`, 오답≠정답)는 `distribute.test.ts`와 같은 형태로 쓴다.
+
+**레지스트리 등록** — `GENERATORS`에 `distributeGenerator`와 `sizeGenerator`를 추가한다.
+Task 4에서 만든 `generators.test.ts`가 **모듈에서 내보내는 모든 생성기를 발견하는 방식**이면
+자동으로 커버된다. 만약 생성기 목록을 하드코딩해 열거하는 방식이라면 그건 Task 4 리뷰 지적 ④가
+되살아난 것이므로 **발견 방식으로 고칠 것.**
 
 **Task 5 — 수열 생성기**
 - `sequence.ts`: 등차·등비·피보나치·교대·제곱. 도형이 아니라 숫자이므로 `figure` 없이 텍스트 선택지
