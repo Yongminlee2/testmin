@@ -3,6 +3,7 @@ import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TypeCard } from '@/ui/TypeCard';
+import { CompatCard } from '@/ui/CompatCard';
 import { Button } from '@/ui/Button';
 import { ShareButton } from '@/ui/ShareButton';
 import { AdSlot } from '@/ui/AdSlot';
@@ -83,6 +84,24 @@ export default function PsychResultScreen() {
         </View>
 
         <ShareButton targetRef={cardRef} dialogTitle={test.title} />
+
+        <CompatCard
+          goodWith={(won?.goodWith ?? []).map((g) => ({
+            label: test.types.find((t) => t.id === g.code)?.name ?? g.code,
+            sub: test.types.find((t) => t.id === g.code)?.emoji,
+            why: g.why,
+          }))}
+          hardWith={
+            won
+              ? {
+                  label: test.types.find((t) => t.id === won.hardWith.code)?.name ?? won.hardWith.code,
+                  sub: test.types.find((t) => t.id === won.hardWith.code)?.emoji,
+                  why: won.hardWith.why,
+                }
+              : undefined
+          }
+          rule={test.compatRule}
+        />
 
         <Button
           label="✎ 문항별 해설 보기"

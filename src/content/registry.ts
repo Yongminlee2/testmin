@@ -8,7 +8,7 @@ import jeju from './dialect/jeju.json';
 import seoul from './dialect/seoul.json';
 import personality from './personality.json';
 import typeNamesJson from './typeNames.json';
-import type { TypeNameEntry } from '@/engine/types';
+import type { CompatLink, TypeNameEntry } from '@/engine/types';
 import love from './psych/love.json';
 import stress from './psych/stress.json';
 import comm from './psych/comm.json';
@@ -170,6 +170,9 @@ export interface PsychTypeEntry {
   readonly name: string;
   readonly emoji: string;
   readonly description: string;
+  /** 잘 맞는 유형 2개. CompatCard가 그대로 쓴다(성격 16유형과 같은 컴포넌트). */
+  readonly goodWith: readonly CompatLink[];
+  readonly hardWith: CompatLink;
 }
 
 export interface PsychTestMeta {
@@ -178,6 +181,8 @@ export interface PsychTestMeta {
   readonly types: readonly PsychTypeEntry[];
   readonly questions: readonly Question[];
   readonly available: boolean;
+  /** CompatCard의 rule 문구. 5유형은 정보를 축 코드로 못 나누므로 테스트마다 따로 적는다. */
+  readonly compatRule: string;
 }
 
 const PSYCH_RAW: Record<string, unknown> = { love, stress, comm };
@@ -191,10 +196,16 @@ export const PSYCH_TESTS: readonly PsychTestMeta[] = [
 
 function buildPsych(id: string): PsychTestMeta {
   const raw = PSYCH_RAW[id] as
-    | { id: string; title: string; types: PsychTypeEntry[]; questions: Question[] }
+    | {
+        id: string;
+        title: string;
+        compatRule: string;
+        types: PsychTypeEntry[];
+        questions: Question[];
+      }
     | undefined;
   if (raw === undefined) {
-    return { id, title: id, types: [], questions: [], available: false };
+    return { id, title: id, types: [], questions: [], available: false, compatRule: '' };
   }
   return {
     id: raw.id,
@@ -202,6 +213,7 @@ function buildPsych(id: string): PsychTestMeta {
     types: raw.types,
     questions: raw.questions,
     available: raw.questions.length > 0,
+    compatRule: raw.compatRule,
   };
 }
 
