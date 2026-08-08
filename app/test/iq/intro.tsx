@@ -36,7 +36,7 @@ export default function IqIntroScreen() {
         </Text>
 
         <Text style={styles.note} maxFontSizeMultiplier={font.maxScale}>
-          회전·개수·채움·분배·크기·수열, 여섯 가지 유형에서 {IQ_DRAW.questionCount}문항이
+          회전·개수·채움·분배·크기·수열·겹침·합, 여덟 가지 유형에서 {IQ_DRAW.questionCount}문항이
           나옵니다. 시간 제한은 없습니다.
         </Text>
 
