@@ -1,5 +1,7 @@
 import { Text, View, StyleSheet } from 'react-native';
 import { Card } from './Card';
+import { ResultIllustration } from './ResultIllustration';
+import type { ResultComic } from '@/content/resultIllustrations';
 import { borderWidth, colors, font, radius, space } from './tokens';
 
 interface Props {
@@ -8,10 +10,11 @@ interface Props {
   readonly title: string;
   readonly detail: string;
   readonly note?: string;
+  readonly illustration?: ResultComic;
 }
 
 /** 공유 대상이 되는 급수 합격증. 계획 3에서 이 View를 그대로 이미지로 캡처한다. */
-export function Certificate({ label, grade, title, detail, note }: Props) {
+export function Certificate({ label, grade, title, detail, note, illustration }: Props) {
   return (
     <Card radius={radius.card} offset={4} style={styles.wrap}>
       <View style={styles.inner}>
@@ -21,6 +24,7 @@ export function Certificate({ label, grade, title, detail, note }: Props) {
         <Text style={styles.grade} maxFontSizeMultiplier={1}>
           {grade}급
         </Text>
+        {illustration ? <ResultIllustration {...illustration} /> : null}
         <Text style={styles.detail} maxFontSizeMultiplier={font.maxScale}>
           {detail}
         </Text>
@@ -55,7 +59,12 @@ const styles = StyleSheet.create({
     color: colors.ink,
     marginVertical: space.xs,
   },
-  detail: { fontSize: font.size.caption, fontFamily: font.family.bold, color: colors.muted },
+  detail: {
+    marginTop: space.sm,
+    fontSize: font.size.caption,
+    fontFamily: font.family.bold,
+    color: colors.muted,
+  },
   seal: {
     marginTop: space.md,
     borderWidth: borderWidth.strong,

@@ -12,6 +12,7 @@ import { useHistory } from '@/store/history';
 import { scoreByVote } from '@/engine/typeScore';
 import { hashSeed } from '@/engine/rng';
 import { getPsychTest } from '@/content/registry';
+import { psychComic } from '@/content/resultIllustrations';
 import { colors, font, space } from '@/ui/tokens';
 
 export default function PsychResultScreen() {
@@ -75,6 +76,7 @@ export default function PsychResultScreen() {
             headline={won?.emoji ?? '🔮'}
             nickname={won?.name ?? result.typeId}
             description={won?.description ?? ''}
+            illustration={psychComic(test.id, result.typeId)}
             note={
               result.wasTie
                 ? `12문항 중 ${votes}표 — 다른 유형과 거의 비슷했습니다`

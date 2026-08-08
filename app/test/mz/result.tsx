@@ -18,6 +18,7 @@ import {
   gradeTableId,
 } from '@/content/registry';
 import { colors, font, space } from '@/ui/tokens';
+import { gradeComic } from '@/content/resultIllustrations';
 
 export default function MzResultScreen() {
   const router = useRouter();
@@ -89,6 +90,7 @@ export default function MzResultScreen() {
             grade={result.grade}
             title={result.title}
             detail={`${result.total}문항 중 ${result.correct}문항 정답`}
+            illustration={gradeComic(result.grade)}
             note={
               result.wrong.length === 0
                 ? '틀린 문항이 없습니다.'

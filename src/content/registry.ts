@@ -12,6 +12,9 @@ import type { CompatLink, TypeNameEntry } from '@/engine/types';
 import love from './psych/love.json';
 import stress from './psych/stress.json';
 import comm from './psych/comm.json';
+import recharge from './psych/recharge.json';
+import procrastination from './psych/procrastination.json';
+import travel from './psych/travel.json';
 import mz from './mz.json';
 import spelling from './scored/spelling.json';
 import purekorean from './scored/purekorean.json';
@@ -123,6 +126,9 @@ export const POOLS: Record<string, readonly Question[]> = {
   'psych:love': (love as unknown as { questions: Question[] }).questions,
   'psych:stress': (stress as unknown as { questions: Question[] }).questions,
   'psych:comm': (comm as unknown as { questions: Question[] }).questions,
+  'psych:recharge': (recharge as unknown as { questions: Question[] }).questions,
+  'psych:procrastination': (procrastination as unknown as { questions: Question[] }).questions,
+  'psych:travel': (travel as unknown as { questions: Question[] }).questions,
 };
 
 /**
@@ -148,6 +154,9 @@ export const POOL_SCORING: Record<string, PoolScoring> = {
   'psych:love': 'vote',
   'psych:stress': 'vote',
   'psych:comm': 'vote',
+  'psych:recharge': 'vote',
+  'psych:procrastination': 'vote',
+  'psych:travel': 'vote',
 };
 
 /** 없는 조합이면 빈 배열을 준다 (호출부가 크래시하지 않게). */
@@ -185,13 +194,23 @@ export interface PsychTestMeta {
   readonly compatRule: string;
 }
 
-const PSYCH_RAW: Record<string, unknown> = { love, stress, comm };
+const PSYCH_RAW: Record<string, unknown> = {
+  love,
+  stress,
+  comm,
+  recharge,
+  procrastination,
+  travel,
+};
 
 /** 심리 테스트 목록. intro 화면이 이걸로 선택지를 그린다. */
 export const PSYCH_TESTS: readonly PsychTestMeta[] = [
   buildPsych('love'),
   buildPsych('stress'),
   buildPsych('comm'),
+  buildPsych('recharge'),
+  buildPsych('procrastination'),
+  buildPsych('travel'),
 ];
 
 function buildPsych(id: string): PsychTestMeta {
@@ -289,7 +308,7 @@ export const CATEGORIES: readonly CategoryMeta[] = [
   {
     id: 'psych',
     title: '심리 테스트',
-    subtitle: '연애·스트레스 성향',
+    subtitle: '연애·휴식·여행·미루기',
     emoji: '🔮',
     colorKey: 'psych',
     questionCount: 12,

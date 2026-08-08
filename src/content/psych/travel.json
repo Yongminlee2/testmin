@@ -1,0 +1,184 @@
+{
+  "id": "travel",
+  "title": "여행 메이트 유형",
+  "compatRule": "여행에서 기대하는 즐거움이 가깝거나 서로의 빈틈을 편하게 채워주는 유형을 잘 맞는 쪽으로, 일정 속도와 우선순위가 가장 크게 다른 유형을 부딪히는 쪽으로 정리했습니다.",
+  "types": [
+    {
+      "id": "explorer",
+      "name": "골목 탐험대",
+      "emoji": "🧭",
+      "description": "처음 보는 길과 예상 밖의 발견이 여행의 핵심입니다. 길을 잃어도 새로운 코스가 생겼다고 생각합니다.",
+      "goodWith": [
+        { "code": "foodie", "why": "탐험대가 낯선 골목을 열면 한입원정대가 그곳의 맛있는 목적지를 찾아냅니다." },
+        { "code": "memory", "why": "즉흥적인 발견을 추억형이 멋진 장면으로 남겨 둘 다 여행의 재미가 커집니다." }
+      ],
+      "hardWith": { "code": "planner", "why": "탐험대는 계획 밖으로 새는 순간이 즐겁지만 관제탑은 놓친 일정부터 보여 마음이 급해질 수 있습니다." }
+    },
+    {
+      "id": "relaxer",
+      "name": "숙소 정착민",
+      "emoji": "🏖️",
+      "description": "좋은 숙소와 느린 아침만 있으면 이미 성공한 여행입니다. 많이 보는 것보다 제대로 쉬는 게 중요합니다.",
+      "goodWith": [
+        { "code": "foodie", "why": "멀리 뛰지 않아도 맛있는 한 끼를 함께 즐길 수 있어 둘 다 무리하지 않는 여행이 됩니다." },
+        { "code": "memory", "why": "추억형이 숙소와 주변의 예쁜 순간을 찾아줘 정착민도 이동 부담 없이 여행 기분을 냅니다." }
+      ],
+      "hardWith": { "code": "explorer", "why": "정착민에게 빈 시간은 휴식이지만 탐험대에게는 새 장소 하나를 더 볼 기회라 하루 속도가 다릅니다." }
+    },
+    {
+      "id": "foodie",
+      "name": "한입 원정대",
+      "emoji": "🍜",
+      "description": "관광지는 지나쳐도 맛집은 지나치지 않습니다. 다음 식사를 중심으로 동선이 자연스럽게 완성됩니다.",
+      "goodWith": [
+        { "code": "explorer", "why": "탐험대의 호기심과 한입형의 맛 레이더가 만나 숨은 가게를 발견할 가능성이 큽니다." },
+        { "code": "planner", "why": "관제탑이 예약과 이동 시간을 잡아주면 먹고 싶은 곳을 놓치지 않고 안정적으로 돌 수 있습니다." }
+      ],
+      "hardWith": { "code": "relaxer", "why": "한입형은 한 끼를 위해서라도 움직이지만 정착민은 숙소를 나가는 순간부터 피곤하다고 느낄 수 있습니다." }
+    },
+    {
+      "id": "planner",
+      "name": "일정 관제탑",
+      "emoji": "🗺️",
+      "description": "예약, 이동, 영업시간이 머릿속 관제 화면에 떠 있습니다. 계획대로 움직일 때 모두가 편하다고 믿습니다.",
+      "goodWith": [
+        { "code": "foodie", "why": "한입형이 목적지를 고르면 관제탑이 예약과 동선을 책임져 먹는 일정이 매끄럽습니다." },
+        { "code": "memory", "why": "관제탑이 좋은 시간과 장소를 확보하고 추억형이 그 순간을 멋지게 남깁니다." }
+      ],
+      "hardWith": { "code": "explorer", "why": "관제탑은 시간을 지켜야 안심되지만 탐험대는 흥미로운 골목이 나오면 계획을 기꺼이 바꿉니다." }
+    },
+    {
+      "id": "memory",
+      "name": "추억 연출가",
+      "emoji": "📸",
+      "description": "사진과 영상, 함께 웃은 장면이 여행의 완성입니다. 좋은 순간을 그냥 지나치지 않고 제대로 남깁니다.",
+      "goodWith": [
+        { "code": "explorer", "why": "탐험대가 예상 못 한 장면을 만들면 추억형이 놓치지 않고 이야기로 남깁니다." },
+        { "code": "planner", "why": "관제탑이 빛과 장소가 좋은 시간을 확보해주면 추억형의 연출력이 빛납니다." }
+      ],
+      "hardWith": { "code": "relaxer", "why": "추억형은 한 장만 더 남기고 싶지만 정착민은 포즈보다 그대로 쉬는 순간을 더 좋아합니다." }
+    }
+  ],
+  "questions": [
+    {
+      "id": "travel-01", "kind": "typed", "prompt": "여행지를 고를 때 가장 먼저 보는 것은?",
+      "choices": [
+        { "text": "기억에 남길 풍경과 사진 명소", "typeId": "memory" },
+        { "text": "숙소의 편안함과 주변 분위기", "typeId": "relaxer" },
+        { "text": "꼭 먹어야 할 음식과 맛집", "typeId": "foodie" },
+        { "text": "이동 동선과 예약 가능 여부", "typeId": "planner" }
+      ],
+      "explanation": "여행을 상상할 때 가장 먼저 떠오르는 기대를 확인합니다.", "difficulty": 1
+    },
+    {
+      "id": "travel-02", "kind": "typed", "prompt": "도착 첫날 오후가 통째로 비었습니다.",
+      "choices": [
+        { "text": "지도 없이 주변 골목부터 걷는다", "typeId": "explorer" },
+        { "text": "첫날 이동 시간과 체크인 동선을 본다", "typeId": "planner" },
+        { "text": "근처에서 유명한 메뉴를 찾아 먹는다", "typeId": "foodie" },
+        { "text": "해 질 무렵 사진이 잘 나오는 곳을 찾는다", "typeId": "memory" }
+      ],
+      "explanation": "예정 없는 시간을 자연스럽게 채우는 방식이 여행 성향을 보여줍니다.", "difficulty": 1
+    },
+    {
+      "id": "travel-03", "kind": "typed", "prompt": "길을 잘못 들어 예정에 없던 동네에 왔습니다.",
+      "choices": [
+        { "text": "오히려 좋다며 그대로 둘러본다", "typeId": "explorer" },
+        { "text": "가까운 카페에서 쉬며 방향을 잡는다", "typeId": "relaxer" },
+        { "text": "이 동네에서 맛있는 곳부터 검색한다", "typeId": "foodie" },
+        { "text": "원래 일정에 미칠 시간을 계산한다", "typeId": "planner" }
+      ],
+      "explanation": "예상 밖의 변수를 모험, 휴식, 음식, 일정 중 무엇으로 바꾸는지 봅니다.", "difficulty": 1
+    },
+    {
+      "id": "travel-04", "kind": "typed", "prompt": "여행 가방에서 가장 먼저 챙길 것은?",
+      "choices": [
+        { "text": "걷기 편한 신발과 작은 가방", "typeId": "explorer" },
+        { "text": "잠옷과 익숙한 휴식용품", "typeId": "relaxer" },
+        { "text": "예약표와 이동 일정 정리", "typeId": "planner" },
+        { "text": "카메라와 사진용 소품", "typeId": "memory" }
+      ],
+      "explanation": "짐의 우선순위는 여행에서 놓치고 싶지 않은 경험을 드러냅니다.", "difficulty": 1
+    },
+    {
+      "id": "travel-05", "kind": "typed", "prompt": "현지에서 줄이 아주 긴 가게를 발견했습니다.",
+      "choices": [
+        { "text": "기다리는 동안 주변을 탐험한다", "typeId": "explorer" },
+        { "text": "힘들면 근처 편한 곳으로 바꾼다", "typeId": "relaxer" },
+        { "text": "여기까지 왔으니 맛을 꼭 본다", "typeId": "foodie" },
+        { "text": "뒤 일정에 지장이 없는지 먼저 본다", "typeId": "planner" }
+      ],
+      "explanation": "시간과 체력을 어디에 쓰는지가 여행의 핵심 우선순위를 보여줍니다.", "difficulty": 1
+    },
+    {
+      "id": "travel-06", "kind": "typed", "prompt": "비가 와서 야외 일정이 취소됐습니다.",
+      "choices": [
+        { "text": "우천 대체 장소와 이동 시간을 다시 짠다", "typeId": "planner" },
+        { "text": "숙소에서 쉬라는 뜻으로 받아들인다", "typeId": "relaxer" },
+        { "text": "실내에서 먹을 코스를 새로 찾는다", "typeId": "foodie" },
+        { "text": "숙소에서 사진과 영상을 정리한다", "typeId": "memory" }
+      ],
+      "explanation": "계획이 무너졌을 때 즐거움을 다시 만드는 방식을 확인합니다.", "difficulty": 1
+    },
+    {
+      "id": "travel-07", "kind": "typed", "prompt": "동행이 오늘 뭐 할지 묻습니다.",
+      "choices": [
+        { "text": "일단 나가서 끌리는 곳으로 가자", "typeId": "explorer" },
+        { "text": "동선과 운영 시간을 보고 순서를 정하자", "typeId": "planner" },
+        { "text": "먹고 싶은 것부터 하나 고르자", "typeId": "foodie" },
+        { "text": "다 같이 예쁜 단체 사진을 남기자", "typeId": "memory" }
+      ],
+      "explanation": "동행에게 자연스럽게 제안하는 여행의 중심을 봅니다.", "difficulty": 1
+    },
+    {
+      "id": "travel-08", "kind": "typed", "prompt": "하루 일정이 생각보다 빨리 끝났습니다.",
+      "choices": [
+        { "text": "아직 안 가본 곳을 하나 더 찾는다", "typeId": "explorer" },
+        { "text": "숙소로 돌아가 여유를 즐긴다", "typeId": "relaxer" },
+        { "text": "야식이나 디저트를 먹으러 간다", "typeId": "foodie" },
+        { "text": "오늘 사진을 고르고 같이 공유한다", "typeId": "memory" }
+      ],
+      "explanation": "남은 체력과 시간을 어디에 쓰는지 확인합니다.", "difficulty": 1
+    },
+    {
+      "id": "travel-09", "kind": "typed", "prompt": "여행에서 가장 아까운 순간은?",
+      "choices": [
+        { "text": "궁금한 골목을 못 가본 것", "typeId": "explorer" },
+        { "text": "너무 바빠 제대로 못 쉰 것", "typeId": "relaxer" },
+        { "text": "먹고 싶던 메뉴를 놓친 것", "typeId": "foodie" },
+        { "text": "일정이 꼬여 예약을 날린 것", "typeId": "planner" }
+      ],
+      "explanation": "놓쳤을 때 가장 아쉬운 경험이 우선순위를 선명하게 보여줍니다.", "difficulty": 1
+    },
+    {
+      "id": "travel-10", "kind": "typed", "prompt": "여행이 끝난 뒤 가장 오래 남는 것은?",
+      "choices": [
+        { "text": "예상 못 한 장소를 발견한 기억", "typeId": "explorer" },
+        { "text": "아무 걱정 없이 쉬었던 감각", "typeId": "relaxer" },
+        { "text": "다시 먹고 싶은 음식의 맛", "typeId": "foodie" },
+        { "text": "함께 찍은 사진과 영상", "typeId": "memory" }
+      ],
+      "explanation": "여행 후 기억에 남는 감각으로 핵심 동기를 확인합니다.", "difficulty": 1
+    },
+    {
+      "id": "travel-11", "kind": "typed", "prompt": "동행과 의견이 갈렸을 때 내가 맡는 역할은?",
+      "choices": [
+        { "text": "새로운 제3의 선택지를 찾아낸다", "typeId": "explorer" },
+        { "text": "잠깐 쉬면서 천천히 결정하자고 한다", "typeId": "relaxer" },
+        { "text": "시간과 거리를 비교해 현실적인 안을 낸다", "typeId": "planner" },
+        { "text": "모두 좋아할 장면이 생기는 쪽을 고른다", "typeId": "memory" }
+      ],
+      "explanation": "여행 중 갈등을 풀 때 자신이 지키려는 가치를 봅니다.", "difficulty": 1
+    },
+    {
+      "id": "travel-12", "kind": "typed", "prompt": "나에게 성공한 여행이란?",
+      "choices": [
+        { "text": "새로운 세계를 하나 발견한 여행", "typeId": "explorer" },
+        { "text": "몸과 마음이 제대로 쉰 여행", "typeId": "relaxer" },
+        { "text": "맛있는 기억이 가득한 여행", "typeId": "foodie" },
+        { "text": "함께한 장면이 멋지게 남은 여행", "typeId": "memory" }
+      ],
+      "explanation": "여행의 성공 기준을 직접 선택해 앞선 답의 방향을 확인합니다.", "difficulty": 1
+    }
+  ]
+}

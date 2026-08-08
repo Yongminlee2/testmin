@@ -13,6 +13,7 @@ import { scoreByAxis } from '@/engine/typeScore';
 import { assembleByAxis } from '@/engine/assembleTyped';
 import { hashSeed } from '@/engine/rng';
 import { getPool, getTypeName, PERSONALITY_DRAW } from '@/content/registry';
+import { personalityComic } from '@/content/resultIllustrations';
 import { colors, font, space } from '@/ui/tokens';
 
 export default function PersonalityResultScreen() {
@@ -78,6 +79,7 @@ export default function PersonalityResultScreen() {
             nickname={entry?.nickname ?? result.code}
             description={entry?.description ?? ''}
             axes={result.axes}
+            illustration={personalityComic(result.code)}
           />
         </View>
 

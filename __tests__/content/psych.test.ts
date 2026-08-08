@@ -1,6 +1,9 @@
 import love from '@/content/psych/love.json';
 import stress from '@/content/psych/stress.json';
 import comm from '@/content/psych/comm.json';
+import recharge from '@/content/psych/recharge.json';
+import procrastination from '@/content/psych/procrastination.json';
+import travel from '@/content/psych/travel.json';
 
 interface PsychType { id: string; name: string; emoji: string; description: string }
 interface PsychChoice { text: string; typeId: string }
@@ -10,7 +13,14 @@ interface PsychQuestion {
 }
 interface PsychTest { id: string; title: string; types: PsychType[]; questions: PsychQuestion[] }
 
-const tests: PsychTest[] = [love, stress, comm] as unknown as PsychTest[];
+const tests: PsychTest[] = [
+  love,
+  stress,
+  comm,
+  recharge,
+  procrastination,
+  travel,
+] as unknown as PsychTest[];
 
 describe.each(tests.map((t) => [t.id, t] as const))('심리 테스트 %s', (_id, psychTest) => {
   test('유형이 5개이고 id가 중복되지 않는다', () => {

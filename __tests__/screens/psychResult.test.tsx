@@ -85,19 +85,22 @@ describe('PsychResultScreen', () => {
 
   // 세 심리 테스트 전부가 실제로 배선됐는지 — 하나만 확인하면 stress·comm의
   // compatRule이 비거나 types에 goodWith가 빠져도 못 잡는다.
-  test.each(['love', 'stress', 'comm'])('%s 테스트도 궁합 카드가 뜬다', async (id) => {
-    const test = getPsychTest(id)!;
-    useSession.getState().start('psych', id, 1, test.questions);
-    const firstType = test.types[0]!.id;
-    for (const q of test.questions) {
-      const idx = q.choices.findIndex((c) => c.typeId === firstType);
-      if (idx >= 0) useSession.getState().answer(q.id, idx);
-    }
+  test.each(['love', 'stress', 'comm', 'recharge', 'procrastination', 'travel'])(
+    '%s 테스트도 궁합 카드가 뜬다',
+    async (id) => {
+      const test = getPsychTest(id)!;
+      useSession.getState().start('psych', id, 1, test.questions);
+      const firstType = test.types[0]!.id;
+      for (const q of test.questions) {
+        const idx = q.choices.findIndex((c) => c.typeId === firstType);
+        if (idx >= 0) useSession.getState().answer(q.id, idx);
+      }
 
-    await render(<PsychResultScreen />);
-    expect(screen.getByTestId('compat-rule')).toBeTruthy();
-    expect(screen.getByText(test.compatRule)).toBeTruthy();
-  });
+      await render(<PsychResultScreen />);
+      expect(screen.getByTestId('compat-rule')).toBeTruthy();
+      expect(screen.getByText(test.compatRule)).toBeTruthy();
+    }
+  );
 
   test('세션이 비어 있으면 크래시하지 않는다', async () => {
     await render(<PsychResultScreen />);

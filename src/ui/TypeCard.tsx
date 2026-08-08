@@ -1,8 +1,10 @@
 import { Text, View, StyleSheet } from 'react-native';
 import { Card } from './Card';
 import { AxisBar } from './AxisBar';
+import { ResultIllustration } from './ResultIllustration';
 import { borderWidth, colors, font, radius, space } from './tokens';
 import type { AxisScore } from '@/engine/types';
+import type { ResultComic } from '@/content/resultIllustrations';
 
 interface Props {
   /** 상단 라벨. 예: "성격 16유형 고사" */
@@ -15,10 +17,11 @@ interface Props {
   /** 성격 전용. 없으면 막대를 그리지 않는다 */
   readonly axes?: readonly AxisScore[];
   readonly note?: string;
+  readonly illustration?: ResultComic;
 }
 
 /** 유형형 결과 카드. 계획 4에서 이 View를 그대로 이미지로 캡처한다. */
-export function TypeCard({ label, headline, nickname, description, axes, note }: Props) {
+export function TypeCard({ label, headline, nickname, description, axes, note, illustration }: Props) {
   return (
     <Card radius={radius.card} offset={4} style={styles.wrap}>
       <View style={styles.inner}>
@@ -28,6 +31,7 @@ export function TypeCard({ label, headline, nickname, description, axes, note }:
         <Text style={styles.headline} maxFontSizeMultiplier={1}>
           {headline}
         </Text>
+        {illustration ? <ResultIllustration {...illustration} /> : null}
         <View style={styles.seal}>
           <Text style={styles.sealText} maxFontSizeMultiplier={font.maxScale}>
             {nickname}

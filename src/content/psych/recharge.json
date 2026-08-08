@@ -1,0 +1,184 @@
+{
+  "id": "recharge",
+  "title": "휴식 충전 유형",
+  "compatRule": "쉬는 방식이 비슷하거나 서로의 회복을 방해하지 않는 유형을 잘 맞는 쪽으로, 충전 리듬이 가장 크게 엇갈리는 유형을 부딪히는 쪽으로 정리했습니다.",
+  "types": [
+    {
+      "id": "sprint",
+      "name": "번개 충전형",
+      "emoji": "⚡",
+      "description": "짧고 굵게 바람을 쐬거나 맛있는 걸 먹으면 금방 살아납니다. 쉬는 시간에도 작은 이벤트가 있어야 충전됩니다.",
+      "goodWith": [
+        { "code": "hobby", "why": "둘 다 가만히 있기보다 뭔가를 하며 기분을 바꾸는 편이라 쉬는 날의 속도가 잘 맞습니다." },
+        { "code": "chat", "why": "번개 충전형이 즉흥 코스를 꺼내면 수다 충전형이 사람과 이야기라는 에너지를 보태줍니다." }
+      ],
+      "hardWith": { "code": "nest", "why": "번개 충전형은 밖으로 나가야 살아나는데, 동굴 충전형은 일정 없는 고요함이 필요해서 휴일 계획부터 엇갈리기 쉽습니다." }
+    },
+    {
+      "id": "nest",
+      "name": "동굴 충전형",
+      "emoji": "🛌",
+      "description": "약속 없는 집, 편한 옷, 느린 시간이 최고의 충전기입니다. 아무것도 하지 않을 자유가 꼭 필요합니다.",
+      "goodWith": [
+        { "code": "vanish", "why": "둘 다 혼자 있는 시간을 방해하지 않아 같은 공간에서도 편안하게 각자 쉴 수 있습니다." },
+        { "code": "chat", "why": "수다 충전형이 부담 없이 안부를 건네주면 동굴 충전형도 집을 나서지 않고 따뜻하게 연결될 수 있습니다." }
+      ],
+      "hardWith": { "code": "sprint", "why": "동굴 충전형에게 즉흥 외출은 휴식이 아니라 새 일정이라, 번개 충전형의 속도가 벅찰 수 있습니다." }
+    },
+    {
+      "id": "chat",
+      "name": "수다 충전형",
+      "emoji": "☕",
+      "description": "좋아하는 사람과 이야기하다 보면 마음의 배터리가 찹니다. 혼자 고민할 때보다 입 밖으로 꺼낼 때 회복이 빠릅니다.",
+      "goodWith": [
+        { "code": "sprint", "why": "가벼운 외출과 대화가 동시에 생겨 둘 다 짧은 시간에 활력을 얻습니다." },
+        { "code": "nest", "why": "수다 충전형이 먼저 편안한 분위기를 만들면 동굴 충전형도 무리하지 않고 마음을 열 수 있습니다." }
+      ],
+      "hardWith": { "code": "vanish", "why": "수다 충전형은 연결되어야 안심되는데, 잠수 충전형은 연락부터 끊어야 쉬어서 서로 서운해지기 쉽습니다." }
+    },
+    {
+      "id": "vanish",
+      "name": "잠수 충전형",
+      "emoji": "🎧",
+      "description": "알림을 끄고 혼자만의 세계로 들어가야 비로소 쉽니다. 잠깐 사라졌다가 멀쩡해져 돌아오는 편입니다.",
+      "goodWith": [
+        { "code": "nest", "why": "서로의 침묵을 불편해하지 않고, 연락이 뜸해도 쉬고 있다는 걸 이해합니다." },
+        { "code": "hobby", "why": "각자 좋아하는 것에 몰입해도 관계가 멀어진다고 생각하지 않아 부담이 적습니다." }
+      ],
+      "hardWith": { "code": "chat", "why": "잠수 충전형은 연락을 끊어야 회복되지만 수다 충전형은 대화가 끊기면 거리감을 느끼기 쉽습니다." }
+    },
+    {
+      "id": "hobby",
+      "name": "취미 환승형",
+      "emoji": "🎨",
+      "description": "일 생각을 다른 몰입으로 덮어씁니다. 만들기, 운동, 게임처럼 집중할 대상이 바뀌면 머리가 맑아집니다.",
+      "goodWith": [
+        { "code": "sprint", "why": "번개 충전형의 즉흥성과 취미 환승형의 호기심이 만나면 쉬는 시간이 작은 모험이 됩니다." },
+        { "code": "vanish", "why": "각자 몰입할 대상을 존중해 함께 있어도 서로의 충전을 방해하지 않습니다." }
+      ],
+      "hardWith": { "code": "nest", "why": "취미 환승형은 쉬는 날에도 뭔가 하고 싶지만 동굴 충전형은 아무 계획도 없는 상태를 원해 리듬이 다릅니다." }
+    }
+  ],
+  "questions": [
+    {
+      "id": "recharge-01", "kind": "typed", "prompt": "힘든 하루가 끝난 직후 가장 먼저 하는 일은?",
+      "choices": [
+        { "text": "맛있는 걸 사러 잠깐 밖에 나간다", "typeId": "sprint" },
+        { "text": "편한 옷으로 갈아입고 눕는다", "typeId": "nest" },
+        { "text": "친한 사람에게 오늘 일을 털어놓는다", "typeId": "chat" },
+        { "text": "알림을 끄고 혼자 조용해진다", "typeId": "vanish" }
+      ],
+      "explanation": "피로 직후 무의식적으로 찾는 행동이 가장 익숙한 회복 방식을 보여줍니다.", "difficulty": 1
+    },
+    {
+      "id": "recharge-02", "kind": "typed", "prompt": "완전히 비어 있는 토요일이 생겼습니다.",
+      "choices": [
+        { "text": "당일치기 코스를 즉흥으로 잡는다", "typeId": "sprint" },
+        { "text": "깨지 않고 잘 수 있을 때까지 잔다", "typeId": "nest" },
+        { "text": "보고 싶던 사람에게 연락한다", "typeId": "chat" },
+        { "text": "미뤄둔 취미를 꺼내 하루 종일 판다", "typeId": "hobby" }
+      ],
+      "explanation": "의무가 사라진 날 무엇을 채워 넣는지가 충전의 방향을 드러냅니다.", "difficulty": 1
+    },
+    {
+      "id": "recharge-03", "kind": "typed", "prompt": "머릿속이 복잡해서 일이 손에 안 잡힙니다.",
+      "choices": [
+        { "text": "일단 산책하며 몸부터 움직인다", "typeId": "sprint" },
+        { "text": "잠깐 누워 생각을 멈춘다", "typeId": "nest" },
+        { "text": "누군가에게 말하며 생각을 정리한다", "typeId": "chat" },
+        { "text": "혼자 이어폰을 끼고 세상과 거리를 둔다", "typeId": "vanish" }
+      ],
+      "explanation": "과부하를 풀 때 몸, 정지, 대화, 차단 중 무엇을 먼저 쓰는지 봅니다.", "difficulty": 1
+    },
+    {
+      "id": "recharge-04", "kind": "typed", "prompt": "휴가를 가장 잘 보냈다고 느끼는 순간은?",
+      "choices": [
+        { "text": "처음 가본 곳에서 신나는 경험을 했을 때", "typeId": "sprint" },
+        { "text": "시계 안 보고 푹 쉬었을 때", "typeId": "nest" },
+        { "text": "좋아하는 사람과 실컷 웃었을 때", "typeId": "chat" },
+        { "text": "좋아하는 일을 오래 붙잡고 있었을 때", "typeId": "hobby" }
+      ],
+      "explanation": "휴가의 만족 조건은 평소 부족했던 에너지가 무엇인지 보여줍니다.", "difficulty": 1
+    },
+    {
+      "id": "recharge-05", "kind": "typed", "prompt": "갑자기 약속이 취소됐을 때 속마음은?",
+      "choices": [
+        { "text": "그럼 다른 재미있는 일을 찾지 뭐", "typeId": "sprint" },
+        { "text": "솔직히 집에서 쉴 수 있어 반갑다", "typeId": "nest" },
+        { "text": "잘됐다, 혼자만의 시간이 생겼다", "typeId": "vanish" },
+        { "text": "미뤄둔 취미를 할 기회다", "typeId": "hobby" }
+      ],
+      "explanation": "예상 밖의 빈 시간을 본능적으로 어디에 쓰는지 확인합니다.", "difficulty": 1
+    },
+    {
+      "id": "recharge-06", "kind": "typed", "prompt": "잠깐 쉬는 시간에 가장 손이 가는 것은?",
+      "choices": [
+        { "text": "간식이나 커피를 사러 나간다", "typeId": "sprint" },
+        { "text": "눈을 감고 아무것도 안 한다", "typeId": "nest" },
+        { "text": "사람 없는 곳에서 혼자 있는다", "typeId": "vanish" },
+        { "text": "짧게라도 게임이나 그림을 한다", "typeId": "hobby" }
+      ],
+      "explanation": "짧은 휴식은 꾸며낸 계획보다 실제 충전 습관을 더 잘 보여줍니다.", "difficulty": 1
+    },
+    {
+      "id": "recharge-07", "kind": "typed", "prompt": "기분이 가라앉은 친구가 찾아왔습니다.",
+      "choices": [
+        { "text": "바람 쐬러 나가자고 데리고 나간다", "typeId": "sprint" },
+        { "text": "하고 싶은 말을 충분히 들어준다", "typeId": "chat" },
+        { "text": "혼자 정리할 시간도 필요하다고 말한다", "typeId": "vanish" },
+        { "text": "같이 몰입할 만한 걸 찾아준다", "typeId": "hobby" }
+      ],
+      "explanation": "남을 위로할 때도 자신에게 효과적인 회복법을 권하기 쉽습니다.", "difficulty": 1
+    },
+    {
+      "id": "recharge-08", "kind": "typed", "prompt": "일요일 저녁, 내일 생각에 마음이 무거워집니다.",
+      "choices": [
+        { "text": "짧게라도 밖에 나가 기분을 전환한다", "typeId": "sprint" },
+        { "text": "친구와 통화하며 마음을 푼다", "typeId": "chat" },
+        { "text": "휴대폰을 멀리 두고 혼자 정리한다", "typeId": "vanish" },
+        { "text": "좋아하는 콘텐츠에 몰입한다", "typeId": "hobby" }
+      ],
+      "explanation": "다가올 일정의 압박을 어떤 자극으로 덮거나 비우는지 봅니다.", "difficulty": 1
+    },
+    {
+      "id": "recharge-09", "kind": "typed", "prompt": "여행에서 꼭 확보하고 싶은 시간은?",
+      "choices": [
+        { "text": "숙소에서 느긋하게 뒹구는 시간", "typeId": "nest" },
+        { "text": "동행과 밤늦게 이야기하는 시간", "typeId": "chat" },
+        { "text": "혼자 이어폰 끼고 걷는 시간", "typeId": "vanish" },
+        { "text": "사진이나 기록에 몰입하는 시간", "typeId": "hobby" }
+      ],
+      "explanation": "즐거운 여행 중에도 따로 필요한 시간이 본래의 충전 방식을 드러냅니다.", "difficulty": 1
+    },
+    {
+      "id": "recharge-10", "kind": "typed", "prompt": "하루 종일 사람을 많이 만난 뒤에는?",
+      "choices": [
+        { "text": "집에서 푹 자고 싶다", "typeId": "nest" },
+        { "text": "가장 편한 사람과 오늘을 정리한다", "typeId": "chat" },
+        { "text": "아무 연락도 받지 않고 혼자 있고 싶다", "typeId": "vanish" },
+        { "text": "내가 좋아하는 일로 머리를 바꾸고 싶다", "typeId": "hobby" }
+      ],
+      "explanation": "사회적 에너지를 쓴 뒤 회복시키는 방식의 차이를 봅니다.", "difficulty": 1
+    },
+    {
+      "id": "recharge-11", "kind": "typed", "prompt": "한 달간 바빴던 일이 드디어 끝났습니다.",
+      "choices": [
+        { "text": "바로 맛집이나 가까운 여행을 잡는다", "typeId": "sprint" },
+        { "text": "며칠은 약속 없이 늘어져 있는다", "typeId": "nest" },
+        { "text": "고생한 사람들과 만나 뒤풀이한다", "typeId": "chat" },
+        { "text": "미뤄둔 취미 프로젝트를 시작한다", "typeId": "hobby" }
+      ],
+      "explanation": "큰 긴장이 끝난 직후 선택하는 보상이 핵심 회복 욕구를 보여줍니다.", "difficulty": 1
+    },
+    {
+      "id": "recharge-12", "kind": "typed", "prompt": "나에게 진짜 휴식이란 무엇에 가장 가깝나요?",
+      "choices": [
+        { "text": "새로운 자극으로 기분을 확 바꾸는 것", "typeId": "sprint" },
+        { "text": "해야 할 일이 하나도 없는 것", "typeId": "nest" },
+        { "text": "편한 사람과 마음을 나누는 것", "typeId": "chat" },
+        { "text": "누구에게도 방해받지 않는 것", "typeId": "vanish" }
+      ],
+      "explanation": "휴식에 대한 직접적인 정의로 앞선 선택들의 방향을 확인합니다.", "difficulty": 1
+    }
+  ]
+}
