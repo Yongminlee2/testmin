@@ -4,7 +4,11 @@ name: 웹 배포 (GitHub Pages)
 # 저장소 Settings → Pages → Source를 "GitHub Actions"로 한 번 바꿔둬야 동작한다.
 on:
   push:
-    branches: [main]
+    # feat/foundation이 아직 저장소 기본 브랜치다. github-pages 환경은 기본
+    # 브랜치에서만 배포를 허용하므로, 기본 브랜치를 main으로 바꾸기 전까지는
+    # 둘 다 걸어둔다(두 브랜치는 같은 커밋을 가리킨다).
+    # 기본 브랜치를 main으로 바꾸면 feat/foundation은 여기서 지운다.
+    branches: [main, feat/foundation]
   workflow_dispatch:
 
 permissions:
