@@ -23,9 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 러너가 Node 20 액션을 24로 강제 실행하며 경고를 낸다. 빌드 노드도 22로 올려
+      # 로컬(Node 20+)과 CI가 서로 다른 런타임에서 도는 상태를 만들지 않는다.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
