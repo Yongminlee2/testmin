@@ -94,7 +94,7 @@ export default function ResultScreen() {
             grade={result.grade}
             title={result.title}
             detail={`${result.total}문항 중 ${result.correct}문항 정답`}
-            illustration={gradeComic(result.grade)}
+            illustration={gradeComic('dialect', result.grade)}
             note={
               result.wrong.length === 0
                 ? '틀린 문항이 없습니다.'
