@@ -82,16 +82,71 @@ const GRADE_ASSETS = {
     require('../../assets/illustrations/comic/grade/mz/8.webp'),
     require('../../assets/illustrations/comic/grade/mz/9.webp'),
   ],
-  dialect: [
-    require('../../assets/illustrations/comic/grade/dialect/1.webp'),
-    require('../../assets/illustrations/comic/grade/dialect/2.webp'),
-    require('../../assets/illustrations/comic/grade/dialect/3.webp'),
-    require('../../assets/illustrations/comic/grade/dialect/4.webp'),
-    require('../../assets/illustrations/comic/grade/dialect/5.webp'),
-    require('../../assets/illustrations/comic/grade/dialect/6.webp'),
-    require('../../assets/illustrations/comic/grade/dialect/7.webp'),
-    require('../../assets/illustrations/comic/grade/dialect/8.webp'),
-    require('../../assets/illustrations/comic/grade/dialect/9.webp'),
+  'dialect-gyeongsang': [
+    require('../../assets/illustrations/comic/grade/dialect/gyeongsang/1.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gyeongsang/2.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gyeongsang/3.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gyeongsang/4.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gyeongsang/5.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gyeongsang/6.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gyeongsang/7.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gyeongsang/8.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gyeongsang/9.webp'),
+  ],
+  'dialect-jeolla': [
+    require('../../assets/illustrations/comic/grade/dialect/jeolla/1.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeolla/2.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeolla/3.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeolla/4.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeolla/5.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeolla/6.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeolla/7.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeolla/8.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeolla/9.webp'),
+  ],
+  'dialect-chungcheong': [
+    require('../../assets/illustrations/comic/grade/dialect/chungcheong/1.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/chungcheong/2.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/chungcheong/3.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/chungcheong/4.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/chungcheong/5.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/chungcheong/6.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/chungcheong/7.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/chungcheong/8.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/chungcheong/9.webp'),
+  ],
+  'dialect-gangwon': [
+    require('../../assets/illustrations/comic/grade/dialect/gangwon/1.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gangwon/2.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gangwon/3.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gangwon/4.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gangwon/5.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gangwon/6.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gangwon/7.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gangwon/8.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/gangwon/9.webp'),
+  ],
+  'dialect-jeju': [
+    require('../../assets/illustrations/comic/grade/dialect/jeju/1.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeju/2.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeju/3.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeju/4.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeju/5.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeju/6.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeju/7.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeju/8.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/jeju/9.webp'),
+  ],
+  'dialect-seoul': [
+    require('../../assets/illustrations/comic/grade/dialect/seoul/1.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/seoul/2.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/seoul/3.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/seoul/4.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/seoul/5.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/seoul/6.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/seoul/7.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/seoul/8.webp'),
+    require('../../assets/illustrations/comic/grade/dialect/seoul/9.webp'),
   ],
   spelling: [
     require('../../assets/illustrations/comic/grade/spelling/1.webp'),
@@ -130,11 +185,27 @@ const GRADE_ASSETS = {
 
 const GRADE_LABELS = {
   mz: 'MZ 고사',
-  dialect: '사투리 고사',
+  'dialect-gyeongsang': '경상도 사투리 고사',
+  'dialect-jeolla': '전라도 사투리 고사',
+  'dialect-chungcheong': '충청도 사투리 고사',
+  'dialect-gangwon': '강원도 사투리 고사',
+  'dialect-jeju': '제주도 사투리 고사',
+  'dialect-seoul': '서울·경기 사투리 고사',
   spelling: '맞춤법 고사',
   purekorean: '순우리말 고사',
   idiom: '고사성어 고사',
+} as const satisfies Record<keyof typeof GRADE_ASSETS, string>;
+
+const DIALECT_REGION_LABELS = {
+  gyeongsang: '경상도',
+  jeolla: '전라도',
+  chungcheong: '충청도',
+  gangwon: '강원도',
+  jeju: '제주도',
+  seoul: '서울·경기',
 } as const;
+
+type DialectRegion = keyof typeof DIALECT_REGION_LABELS;
 
 const GRADE_CAPTIONS = {
   mz: ['알림 파도까지 서핑 완료', '밈 왕좌에 자연스럽게 착석', '이모지 비도 전부 수신', '단톡방 암호 해독 중', '폴더폰과 스마트폰 사이 줄타기', '도망가는 해시태그 검거 작전', '유행 열차 방향만 살짝 반대', '낯선 밈을 유물처럼 감정 중', '오늘의 트렌드는 베개 모드'],
@@ -142,17 +213,26 @@ const GRADE_CAPTIONS = {
   spelling: ['교정 연필 오늘도 우승', '원고 산 정상에 깃발 꽂기', '교정 메달이 연필보다 큼', '도망가는 문장부호 포획 중', '닮은 표현 두 장 균형 잡기', '초고 미로도 점선 따라 전진', '빈칸은 틀렸지만 표정은 정답', '돋보기 수사대 야근 중', '원고 이불과 따뜻한 차'],
   purekorean: ['우리말 새싹에 꽃관 왕관', '이야기책 언덕 정상 도착', '꽃메달이 몸보다 풍성', '잊힌 물건 바구니 한가득', '닮은 잎도 차분히 구별', '시냇길 따라 단어 산책', '잘못 탄 잎배에서 반딧불 발견', '옛 물건 보물상자 탐험', '큰 잎 아래 새싹 낮잠'],
   idiom: ['먹빛 용 타고 이야기 출발', '구름 정상에 네 칸 도착', '옥메달 바람으로 여유 만점', '날아가는 두루마리 포획 중', '옛이야기 두 폭 균형 잡기', '먹길 따라 대숲 산책', '배는 반대여도 폭포는 장관', '청동 유물 확대 수사', '두루마리 베개와 학 경비원'],
-} as const satisfies Record<keyof typeof GRADE_ASSETS, readonly string[]>;
+} as const;
 
-export function gradeComic(testId: string, grade: number): ResultComic {
-  const id = testId in GRADE_ASSETS ? (testId as keyof typeof GRADE_ASSETS) : 'spelling';
+export function gradeComic(testId: string, grade: number, variant?: string): ResultComic {
+  const dialectRegion = variant && variant in DIALECT_REGION_LABELS
+    ? (variant as DialectRegion)
+    : 'gyeongsang';
+  const dialectAssetId = `dialect-${dialectRegion}` as keyof typeof GRADE_ASSETS;
+  const id = testId === 'dialect'
+    ? dialectAssetId
+    : testId in GRADE_ASSETS
+      ? (testId as keyof typeof GRADE_ASSETS)
+      : 'spelling';
+  const captionId = (testId === 'dialect' ? 'dialect' : id) as keyof typeof GRADE_CAPTIONS;
   const safeGrade = grade >= 1 && grade <= 9 ? grade : 9;
   return comic(
     `grade:${id}:${safeGrade}`,
     GRADE_ASSETS[id][safeGrade - 1]!,
     `${GRADE_LABELS[id]} ${safeGrade}급 전용 코믹 일러스트`,
-    GRADE_CAPTIONS[id][safeGrade - 1]!,
-    gradeStory(id, safeGrade)
+    `${GRADE_LABELS[id]} · ${GRADE_CAPTIONS[captionId][safeGrade - 1]!}`,
+    gradeStory(testId === 'dialect' ? 'dialect' : id, safeGrade, testId === 'dialect' ? dialectRegion : undefined)
   );
 }
 

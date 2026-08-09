@@ -10,12 +10,14 @@
 |---|---|---:|
 | 성격 16유형 | `assets/illustrations/comic/personality/<MBTI>.webp` | 16 |
 | 심리 테스트 | `assets/illustrations/comic/psych-v2/<testId>-<typeId>.webp` | 30 |
-| 정답형 급수 | `assets/illustrations/comic/grade/<testId>/<1-9>.webp` | 45 |
+| 일반 정답형 급수 | `assets/illustrations/comic/grade/<testId>/<1-9>.webp` | 36 |
+| 사투리 지역별 급수 | `assets/illustrations/comic/grade/dialect/<region>/<1-9>.webp` | 54 |
 | IQ 구간 | `assets/illustrations/comic/iq-v2/<구간>.webp` | 3 |
 
-총 94장이며, 서로 다른 테스트나 결과가 같은 파일을 공유하지 않는다. 심리 테스트나
+총 139장이며, 사투리의 6개 지역 선택까지 별도 테스트 변형으로 계산한다. 서로 다른
+테스트·지역·결과가 같은 파일을 공유하지 않는다. 심리 테스트나
 결과 유형을 추가할 때는 해당 결과만의 그림·접근성 설명·코믹 캡션·관찰일지를 함께
-등록한다. `__tests__/content/resultIllustrations.test.ts`가 파일 경로와 설명 중복을 막는다.
+등록한다. `__tests__/content/resultIllustrations.test.ts`가 파일 경로·파일 해시·설명 중복을 막는다.
 
 ## 테스트별 화풍
 
@@ -30,7 +32,12 @@
 | 여행 메이트 | 1950년대 여행 포스터 |
 | IQ | 레트로 미래주의 클레이 디오라마 |
 | MZ | Y2K 픽셀·사이버 스티커 |
-| 사투리 | 한지 질감의 민화 |
+| 사투리 — 경상도 | 한지 질감의 까치 민화 |
+| 사투리 — 전라도 | 판소리 무대풍 민화 |
+| 사투리 — 충청도 | 분청·청자 도자기 디오라마 |
+| 사투리 — 강원도 | 거친 산악 리노컷 목판화 |
+| 사투리 — 제주도 | 현무암·귤 캐릭터 종이 콜라주 |
+| 사투리 — 서울·경기 | 1980년대 도시 레트로 웹툰 콜라주 |
 | 맞춤법 | 흑백 신문 펜화 + 붉은 교정색 |
 | 순우리말 | 수채·색연필 그림책 |
 | 고사성어 | 수묵·목판화 코믹 |

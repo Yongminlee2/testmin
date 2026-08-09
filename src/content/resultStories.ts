@@ -90,6 +90,39 @@ const GRADE_TESTS = {
   },
 } as const;
 
+const DIALECT_REGION_STORIES = {
+  gyeongsang: {
+    subject: '경상도 말씨 확성기',
+    charm: '짧고 단단한 말끝에서 속정까지 포착하는 박자감',
+    practice: '다음에는 툭 던진 한마디 뒤에 숨은 따뜻한 속뜻까지 같이 들어보세요.',
+  },
+  jeolla: {
+    subject: '전라도 말씨 소리꾼',
+    charm: '한 문장 안의 맛깔스러운 굴곡과 넉넉한 정을 듣는 귀',
+    practice: '말끝이 노래처럼 휘어지는 장면을 떠올리면 뜻도 덩실덩실 따라옵니다.',
+  },
+  chungcheong: {
+    subject: '충청도 말씨 달팽이 안테나',
+    charm: '느긋한 호흡 사이에 숨어 있는 재치와 진심을 기다려 주는 여유',
+    practice: '서두르지 말고 문장을 한 박자 쉬어 읽으면 슬쩍 숨은 농담이 보일 거예요.',
+  },
+  gangwon: {
+    subject: '강원도 말씨 산바람 수신기',
+    charm: '담백한 말씨 속 산뜻한 리듬과 생활의 결을 찾아내는 감각',
+    practice: '말풍선이 산길을 돈다고 생각하고 소리 내어 읽으면 억양이 더 또렷해집니다.',
+  },
+  jeju: {
+    subject: '제주도 말씨 돌하르방 통역기',
+    charm: '바람 센 섬의 독특한 낱말과 정겨운 리듬을 겁내지 않는 호기심',
+    practice: '낯선 단어 하나를 귤처럼 천천히 까 보면 문장 전체의 향이 살아납니다.',
+  },
+  seoul: {
+    subject: '서울·경기 말씨 환승 카드',
+    charm: '익숙해 보이는 표현 사이의 미묘한 높낮이와 거리감을 알아채는 감각',
+    practice: '평소 말투와 다른 지점을 지하철 노선처럼 하나씩 연결해 보세요.',
+  },
+} as const;
+
 const GRADE_TONES: Record<number, { habit: string; charm: string; tip: string }> = {
   1: { habit: '최고 감도로 켜져 있어 작은 단서도 축포처럼 잡아냅니다.', charm: '이미 설명하는 사람 역할까지 가능한 안정적인 실력입니다.', tip: '완벽한 점수보다 재미있는 문제 하나를 친구에게 내보세요.' },
   2: { habit: '정상 바로 위까지 올라가 여유롭게 주변 풍경도 살핍니다.', charm: '대부분의 함정을 지나치지 않는 탄탄한 감각입니다.', tip: '헷갈린 한 문제만 복기하면 다음엔 왕관이 더 가까워요.' },
@@ -102,13 +135,16 @@ const GRADE_TONES: Record<number, { habit: string; charm: string; tip: string }>
   9: { habit: '오늘은 시험지를 이불처럼 덮고 다음 장면을 준비합니다.', charm: '점수에 기죽지 않고 다시 웃으며 시작할 여지가 가장 큽니다.', tip: '정답 하나만 새로 알아가도 오늘 판은 충분히 이긴 거예요.' },
 };
 
-export function gradeStory(testId: string, grade: number): ResultStory {
+export function gradeStory(testId: string, grade: number, variant?: string): ResultStory {
   const test = GRADE_TESTS[testId as keyof typeof GRADE_TESTS] ?? GRADE_TESTS.spelling;
   const tone = GRADE_TONES[grade] ?? GRADE_TONES[9]!;
+  const dialectRegion = testId === 'dialect' && variant && variant in DIALECT_REGION_STORIES
+    ? DIALECT_REGION_STORIES[variant as keyof typeof DIALECT_REGION_STORIES]
+    : undefined;
   return story(
-    `${test.subject}가 ${tone.habit}`,
-    `${test.charm}이 보입니다. ${tone.charm}`,
-    `${tone.tip} ${test.practice}`
+    `${dialectRegion?.subject ?? test.subject}가 ${tone.habit}`,
+    `${dialectRegion?.charm ?? test.charm}이 보입니다. ${tone.charm}`,
+    `${tone.tip} ${dialectRegion?.practice ?? test.practice}`
   );
 }
 
