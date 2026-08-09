@@ -4,7 +4,11 @@ const HORIZONTAL_SCREEN_PADDING = space.lg * 2;
 const FIVE_CHOICE_COLUMNS = 3;
 const DEFAULT_COLUMNS = 2;
 const MAX_FIGURE_SIZE = 80;
+const MAX_WIDE_FIGURE_SIZE = 96;
 const MIN_FIGURE_SIZE = 52;
+const MAX_THREE_COLUMN_ITEM_WIDTH = 200;
+const MAX_TWO_COLUMN_ITEM_WIDTH = 260;
+const WIDE_VIEWPORT = 768;
 // Card의 좌우 padding(24)과 양쪽 테두리(약 5)를 모두 포함해야 웹의
 // min-content 너비 때문에 세 번째 보기가 다음 줄로 밀리지 않는다.
 const FIGURE_CARD_INSET = space.md * 2 + 6;
@@ -14,6 +18,7 @@ export interface FigureChoiceGridMetrics {
   readonly figureSize: number;
   readonly gap: number;
   readonly itemWidth: number;
+  readonly gridWidth: number;
 }
 
 /**
@@ -28,11 +33,20 @@ export function figureChoiceGridMetrics(
   const columns = choiceCount >= 5 ? FIVE_CHOICE_COLUMNS : DEFAULT_COLUMNS;
   const gap = space.md;
   const contentWidth = Math.max(safeWidth - HORIZONTAL_SCREEN_PADDING, 0);
-  const itemWidth = Math.floor((contentWidth - gap * (columns - 1)) / columns);
+  const itemWidthLimit =
+    columns === FIVE_CHOICE_COLUMNS
+      ? MAX_THREE_COLUMN_ITEM_WIDTH
+      : MAX_TWO_COLUMN_ITEM_WIDTH;
+  const itemWidth = Math.min(
+    itemWidthLimit,
+    Math.floor((contentWidth - gap * (columns - 1)) / columns),
+  );
+  const figureSizeLimit = safeWidth >= WIDE_VIEWPORT ? MAX_WIDE_FIGURE_SIZE : MAX_FIGURE_SIZE;
   const figureSize = Math.max(
     MIN_FIGURE_SIZE,
-    Math.min(MAX_FIGURE_SIZE, itemWidth - FIGURE_CARD_INSET),
+    Math.min(figureSizeLimit, itemWidth - FIGURE_CARD_INSET),
   );
+  const gridWidth = itemWidth * columns + gap * (columns - 1);
 
-  return { columns, figureSize, gap, itemWidth };
+  return { columns, figureSize, gap, itemWidth, gridWidth };
 }

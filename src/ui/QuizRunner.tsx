@@ -16,6 +16,9 @@ import { figureChoiceGridMetrics } from './figureChoiceLayout';
 import { useSession } from '@/store/session';
 import { colors, font, space } from './tokens';
 
+const MAX_QUIZ_CONTENT_WIDTH = 920;
+const WIDE_VIEWPORT = 768;
+
 interface Props {
   /** 마지막 문항 뒤 이동할 결과 화면 경로 */
   readonly resultRoute: string;
@@ -61,6 +64,7 @@ export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
 
   const figureChoices = current.choices.some((c) => c.figure !== undefined);
   const figureGrid = figureChoiceGridMetrics(viewportWidth, current.choices.length);
+  const questionFigureSize = viewportWidth >= WIDE_VIEWPORT ? 240 : 220;
 
   const choose = (choiceIndex: number) => {
     answer(current.id, choiceIndex);
@@ -85,7 +89,7 @@ export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
 
       {current.figure ? (
         <View style={styles.questionFigure} accessible accessibilityLabel="문제 도형">
-          <SvgFigure spec={current.figure} size={220} testID="question-figure" />
+          <SvgFigure spec={current.figure} size={questionFigureSize} testID="question-figure" />
         </View>
       ) : null}
 
@@ -94,7 +98,14 @@ export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
       <View
         style={
           figureChoices
-            ? [styles.grid, { columnGap: figureGrid.gap, rowGap: figureGrid.gap }]
+            ? [
+                styles.grid,
+                {
+                  width: figureGrid.gridWidth,
+                  columnGap: figureGrid.gap,
+                  rowGap: figureGrid.gap,
+                },
+              ]
             : undefined
         }
       >
@@ -143,7 +154,12 @@ export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream },
-  content: { padding: space.lg },
+  content: {
+    width: '100%',
+    maxWidth: MAX_QUIZ_CONTENT_WIDTH,
+    alignSelf: 'center',
+    padding: space.lg,
+  },
   prompt: {
     fontSize: font.size.title,
     lineHeight: font.size.title * 1.5,
@@ -153,7 +169,12 @@ const styles = StyleSheet.create({
     marginBottom: space.lg,
   },
   questionFigure: { alignItems: 'center', marginBottom: space.lg },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
+  grid: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
   choice: { marginBottom: space.md },
   figureChoiceContent: { alignItems: 'center', justifyContent: 'center' },
   choiceText: {

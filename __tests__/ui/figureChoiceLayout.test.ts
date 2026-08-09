@@ -7,6 +7,7 @@ describe('figureChoiceGridMetrics', () => {
       figureSize: 80,
       gap: 12,
       itemWidth: 118,
+      gridWidth: 378,
     });
   });
 
@@ -16,6 +17,7 @@ describe('figureChoiceGridMetrics', () => {
       figureSize: 58,
       gap: 12,
       itemWidth: 88,
+      gridWidth: 288,
     });
   });
 
@@ -23,6 +25,16 @@ describe('figureChoiceGridMetrics', () => {
     expect(figureChoiceGridMetrics(360, 4)).toMatchObject({
       columns: 2,
       itemWidth: 158,
+    });
+  });
+
+  test('넓은 웹 화면에서도 카드가 늘어나지 않고 3개 열을 유지한다', () => {
+    expect(figureChoiceGridMetrics(1902, 5)).toEqual({
+      columns: 3,
+      figureSize: 96,
+      gap: 12,
+      itemWidth: 200,
+      gridWidth: 624,
     });
   });
 });
