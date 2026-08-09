@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TypeCard } from '@/ui/TypeCard';
+import { PsychResultCard } from '@/ui/PsychResultCard';
 import { CompatCard } from '@/ui/CompatCard';
 import { Button } from '@/ui/Button';
 import { ShareButton } from '@/ui/ShareButton';
@@ -13,6 +13,7 @@ import { scoreByVote } from '@/engine/typeScore';
 import { hashSeed } from '@/engine/rng';
 import { getPsychTest } from '@/content/registry';
 import { psychComic } from '@/content/resultIllustrations';
+import { psychRelationCopy } from '@/content/resultPresentation';
 import { colors, font, space } from '@/ui/tokens';
 
 export default function PsychResultScreen() {
@@ -56,6 +57,7 @@ export default function PsychResultScreen() {
 
   const won = test.types.find((t) => t.id === result.typeId);
   const votes = result.tally[result.typeId] ?? 0;
+  const relationCopy = psychRelationCopy(test.id);
 
   const retry = () => {
     const nextSeed = hashSeed(`psych:${test.id}:${Date.now()}`);
@@ -71,13 +73,12 @@ export default function PsychResultScreen() {
         contentContainerStyle={[styles.content, { paddingBottom: space.xxl + insets.bottom }]}
       >
         <View ref={cardRef} collapsable={false}>
-          <TypeCard
-            label={test.title}
-            headline={won?.emoji ?? '🔮'}
-            nickname={won?.name ?? result.typeId}
+          <PsychResultCard
+            testTitle={test.title}
+            typeName={won?.name ?? result.typeId}
             description={won?.description ?? ''}
             illustration={psychComic(test.id, result.typeId)}
-            note={
+            evidence={
               result.wasTie
                 ? `12문항 중 ${votes}표 — 다른 유형과 거의 비슷했습니다`
                 : `12문항 중 ${votes}표`
@@ -103,6 +104,9 @@ export default function PsychResultScreen() {
               : undefined
           }
           rule={test.compatRule}
+          goodHeading={relationCopy.goodHeading}
+          hardHeading={relationCopy.hardHeading}
+          disclaimer={relationCopy.disclaimer}
         />
 
         <Button

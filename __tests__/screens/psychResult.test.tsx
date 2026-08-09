@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react-native';
 import PsychResultScreen from '../../app/test/psych/result';
 import { useSession } from '@/store/session';
 import { getPsychTest } from '@/content/registry';
+import { psychRelationCopy } from '@/content/resultPresentation';
 
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
@@ -99,6 +100,7 @@ describe('PsychResultScreen', () => {
       await render(<PsychResultScreen />);
       expect(screen.getByTestId('compat-rule')).toBeTruthy();
       expect(screen.getByText(test.compatRule)).toBeTruthy();
+      expect(screen.getByText(psychRelationCopy(id).goodHeading)).toBeTruthy();
     }
   );
 

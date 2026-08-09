@@ -14,14 +14,21 @@ describe('ResultIllustration', () => {
           charm: '그 습관 안에 숨어 있는 좋은 능력을 다정한 문장으로 설명합니다.',
           tip: '고치라는 명령 대신 다음에 시도할 작은 선택을 부드럽게 제안합니다.',
         }}
+        journal={{
+          title: '교정실 리포트',
+          habitLabel: '이번 원고 장면',
+          charmLabel: '이미 잡은 감각',
+          tipLabel: '다음 한 문장',
+          disclaimer: '맞춤법 실수는 실력 전체가 아니에요.',
+        }}
       />
     );
 
     expect(screen.getByText('웃기는 한 줄')).toBeTruthy();
-    expect(screen.getByText('📓 코믹 관찰일지')).toBeTruthy();
-    expect(screen.getByText('평소 장면')).toBeTruthy();
-    expect(screen.getByText('숨은 장점')).toBeTruthy();
-    expect(screen.getByText('다음 한 수')).toBeTruthy();
-    expect(screen.getByText(/웃자고 만든 관찰일지/)).toBeTruthy();
+    expect(screen.getByText('교정실 리포트')).toBeTruthy();
+    expect(screen.getByText('이번 원고 장면')).toBeTruthy();
+    expect(screen.getByText('이미 잡은 감각')).toBeTruthy();
+    expect(screen.getByText('다음 한 문장')).toBeTruthy();
+    expect(screen.getByText(/맞춤법 실수는 실력 전체가 아니에요/)).toBeTruthy();
   });
 });

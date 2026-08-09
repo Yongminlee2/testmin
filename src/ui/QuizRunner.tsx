@@ -1,10 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
-import { ScrollView, Text, View, Pressable, StyleSheet } from 'react-native';
+import {
+  ScrollView,
+  Text,
+  View,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from './Card';
 import { Badge } from './Badge';
 import { SvgFigure } from './SvgFigure';
+import { figureChoiceGridMetrics } from './figureChoiceLayout';
 import { useSession } from '@/store/session';
 import { colors, font, space } from './tokens';
 
@@ -23,6 +31,7 @@ interface Props {
 export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { width: viewportWidth } = useWindowDimensions();
   const questions = useSession((s) => s.questions);
   const answer = useSession((s) => s.answer);
   const [index, setIndex] = useState(0);
@@ -51,6 +60,7 @@ export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
   }
 
   const figureChoices = current.choices.some((c) => c.figure !== undefined);
+  const figureGrid = figureChoiceGridMetrics(viewportWidth, current.choices.length);
 
   const choose = (choiceIndex: number) => {
     answer(current.id, choiceIndex);
@@ -79,25 +89,45 @@ export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
         </View>
       ) : null}
 
-      {/* 도형 선택지를 한 줄에 하나씩 쌓으면 4~5개가 화면을 넘겨, 고르려면 매번
-          스크롤해야 한다. 2열로 깔면 문제 도형까지 한 화면에 들어온다.
-          글자 선택지는 길이가 제각각이라 그대로 세로로 쌓는다. */}
-      <View style={figureChoices ? styles.grid : undefined}>
+      {/* 오지선다 도형은 3개 + 2개로 가운데 정렬한다. 글자 선택지는 길이가
+          제각각이라 기존처럼 한 줄씩 쌓는다. */}
+      <View
+        style={
+          figureChoices
+            ? [styles.grid, { columnGap: figureGrid.gap, rowGap: figureGrid.gap }]
+            : undefined
+        }
+      >
         {current.choices.map((c, i) => (
           <Pressable
             key={`${current.id}-${i}`}
             testID={`choice-${i}`}
             accessibilityRole="button"
-            style={figureChoices ? styles.gridItem : undefined}
+            style={figureChoices ? { width: figureGrid.itemWidth } : undefined}
             // 도형 선택지는 글자가 없어 <Text>가 읽을 거리를 못 준다 — TalkBack이
             // "버튼"만 읽고 넘어가지 않게 이름을 직접 준다. 텍스트 선택지는
             // undefined를 넘겨 기존 동작(자식 Text에서 이름을 얻는다)을 그대로 둔다.
             accessibilityLabel={c.figure ? `${i + 1}번 보기` : undefined}
             onPress={() => choose(i)}
           >
-            <Card style={c.figure ? styles.figureChoice : styles.choice}>
+            <Card
+              offset={c.figure ? 2 : undefined}
+              radius={c.figure ? 12 : undefined}
+              style={c.figure ? undefined : styles.choice}
+            >
               {c.figure ? (
-                <SvgFigure spec={c.figure} size={88} testID={`choice-figure-${i}`} />
+                <View
+                  style={[
+                    styles.figureChoiceContent,
+                    { minHeight: figureGrid.figureSize + space.sm },
+                  ]}
+                >
+                  <SvgFigure
+                    spec={c.figure}
+                    size={figureGrid.figureSize}
+                    testID={`choice-figure-${i}`}
+                  />
+                </View>
               ) : (
                 <Text style={styles.choiceText} maxFontSizeMultiplier={font.maxScale}>
                   {c.text ?? ''}
@@ -123,10 +153,9 @@ const styles = StyleSheet.create({
     marginBottom: space.lg,
   },
   questionFigure: { alignItems: 'center', marginBottom: space.lg },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  gridItem: { width: '48%' },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
   choice: { marginBottom: space.md },
-  figureChoice: { marginBottom: space.md, alignItems: 'center' },
+  figureChoiceContent: { alignItems: 'center', justifyContent: 'center' },
   choiceText: {
     fontSize: font.size.body,
     lineHeight: font.size.body * 1.5,

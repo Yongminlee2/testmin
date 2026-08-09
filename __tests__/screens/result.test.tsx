@@ -48,7 +48,7 @@ describe('ResultScreen', () => {
 
     await render(<ResultScreen />);
     expect(screen.getByText('1급')).toBeTruthy();
-    expect(screen.getByText('부산 이모 인정')).toBeTruthy();
+    expect(screen.getByText('경상도 말씨 달인')).toBeTruthy();
   });
 
   test('맞힌 개수와 총 개수를 보여준다', async () => {

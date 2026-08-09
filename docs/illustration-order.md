@@ -12,9 +12,9 @@
 | 심리 테스트 | `assets/illustrations/comic/psych-v2/<testId>-<typeId>.webp` | 30 |
 | 일반 정답형 급수 | `assets/illustrations/comic/grade/<testId>/<1-9>.webp` | 36 |
 | 사투리 지역별 급수 | `assets/illustrations/comic/grade/dialect/<region>/<1-9>.webp` | 54 |
-| IQ 구간 | `assets/illustrations/comic/iq-v2/<구간>.webp` | 3 |
+| IQ 동물 퍼즐 구간 | `assets/illustrations/comic/iq-animals/<동물>.webp` | 4 |
 
-총 139장이며, 사투리의 6개 지역 선택까지 별도 테스트 변형으로 계산한다. 서로 다른
+총 140장이며, 사투리의 6개 지역 선택까지 별도 테스트 변형으로 계산한다. 서로 다른
 테스트·지역·결과가 같은 파일을 공유하지 않는다. 심리 테스트나
 결과 유형을 추가할 때는 해당 결과만의 그림·접근성 설명·코믹 캡션·관찰일지를 함께
 등록한다. `__tests__/content/resultIllustrations.test.ts`가 파일 경로·파일 해시·설명 중복을 막는다.
@@ -30,7 +30,7 @@
 | 충전 방식 | 손바느질 펠트 스톱모션 |
 | 미루기 탈출 | 노트 낙서·색연필 콜라주 |
 | 여행 메이트 | 1950년대 여행 포스터 |
-| IQ | 레트로 미래주의 클레이 디오라마 |
+| IQ | 수중·야간 작업실·나무 위 연구실·정글 관측소를 나눈 동물 클레이 디오라마 |
 | MZ | Y2K 픽셀·사이버 스티커 |
 | 사투리 — 경상도 | 한지 질감의 까치 민화 |
 | 사투리 — 전라도 | 판소리 무대풍 민화 |

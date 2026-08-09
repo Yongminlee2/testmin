@@ -6,14 +6,19 @@ import { borderWidth, colors, font, radius, space } from './tokens';
 interface Props {
   readonly score: number;
   readonly percent: number;
+  readonly grade: number;
+  readonly title: string;
+  readonly correct: number;
+  readonly total: number;
+  readonly disclaimer: string;
 }
 
 /**
  * IQ 점수를 크게 보여주는 카드. 숫자만 크게 띄우면 실제 검사 점수처럼 읽히므로
  * 어떻게 나온 값인지(정답률 → 70~145 구간)를 같은 카드 안에서 밝힌다.
- * 안내 문구(IQ_DISCLAIMER)는 결과 화면이 별도로 함께 표시한다.
+ * 급수·정답 수·안내 문구까지 한 카드에 묶어 같은 값이 여러 카드에서 반복되지 않게 한다.
  */
-export function IqScoreCard({ score, percent }: Props) {
+export function IqScoreCard({ score, percent, grade, title, correct, total, disclaimer }: Props) {
   const span = IQ_SCORE_MAX - IQ_SCORE_MIN;
   const clamped = Math.max(IQ_SCORE_MIN, Math.min(IQ_SCORE_MAX, score));
   const ratio = span === 0 ? 0 : (clamped - IQ_SCORE_MIN) / span;
@@ -22,7 +27,7 @@ export function IqScoreCard({ score, percent }: Props) {
     <Card radius={radius.card} offset={4} style={styles.wrap}>
       <View style={styles.inner}>
         <Text style={styles.label} maxFontSizeMultiplier={font.maxScale}>
-          추정 아이큐
+          재미로 보는 퍼즐 지수
         </Text>
 
         <View style={styles.scoreRow}>
@@ -49,9 +54,21 @@ export function IqScoreCard({ score, percent }: Props) {
           </Text>
         </View>
 
+        <View style={styles.summary}>
+          <Text style={styles.summaryTitle} maxFontSizeMultiplier={font.maxScale}>
+            {grade}급 · {title}
+          </Text>
+          <Text style={styles.summaryDetail} maxFontSizeMultiplier={font.maxScale}>
+            {total}문항 중 {correct}문항 정답
+          </Text>
+        </View>
+
         <Text testID="iq-score-basis" style={styles.basis} maxFontSizeMultiplier={font.maxScale}>
           정답률 {Math.round(percent)}%를 {IQ_SCORE_MIN}~{IQ_SCORE_MAX} 구간에 그대로 대응시킨
           값입니다.
+        </Text>
+        <Text testID="iq-disclaimer" style={styles.disclaimer} maxFontSizeMultiplier={font.maxScale}>
+          {disclaimer}
         </Text>
       </View>
     </Card>
@@ -109,6 +126,31 @@ const styles = StyleSheet.create({
     marginTop: space.xs,
   },
   tick: { fontSize: font.size.caption, fontFamily: font.family.bold, color: colors.ink },
+  summary: {
+    alignItems: 'center',
+    marginTop: space.md,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    borderWidth: borderWidth.strong,
+    borderColor: colors.ink,
+    borderRadius: radius.button,
+    backgroundColor: colors.yellow,
+  },
+  summaryTitle: {
+    fontSize: font.size.body,
+    lineHeight: font.size.body * 1.4,
+    fontFamily: font.family.black,
+    color: colors.ink,
+    textAlign: 'center',
+  },
+  summaryDetail: {
+    marginTop: 2,
+    fontSize: font.size.caption,
+    lineHeight: font.size.caption * 1.4,
+    fontFamily: font.family.bold,
+    color: colors.ink,
+    textAlign: 'center',
+  },
   basis: {
     marginTop: space.md,
     paddingHorizontal: space.lg,
@@ -117,5 +159,14 @@ const styles = StyleSheet.create({
     color: colors.ink,
     textAlign: 'center',
     lineHeight: 17,
+  },
+  disclaimer: {
+    marginTop: space.sm,
+    paddingHorizontal: space.lg,
+    fontSize: 11,
+    lineHeight: 16,
+    fontFamily: font.family.body,
+    color: colors.muted,
+    textAlign: 'center',
   },
 });

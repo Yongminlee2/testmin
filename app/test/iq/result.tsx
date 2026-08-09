@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Certificate } from '@/ui/Certificate';
 import { IqScoreCard } from '@/ui/IqScoreCard';
+import { IqAnimalCard } from '@/ui/IqAnimalCard';
 import { Card } from '@/ui/Card';
 import { ResultIllustration } from '@/ui/ResultIllustration';
 import { Button } from '@/ui/Button';
@@ -16,6 +16,7 @@ import { assembleIq } from '@/engine/iq/assembleIq';
 import { hashSeed } from '@/engine/rng';
 import { IQ_DRAW, getGradeBands, gradeTableId } from '@/content/registry';
 import { iqComic } from '@/content/resultIllustrations';
+import { iqAnimalFriend } from '@/content/resultPresentation';
 import { colors, font, space } from '@/ui/tokens';
 
 export default function IqResultScreen() {
@@ -91,31 +92,21 @@ export default function IqResultScreen() {
             나가는 새로운 표시 자리이고, 점수가 보이는 곳엔 안내 문구도 함께
             보여야 한다는 규칙이 여기도 그대로 적용된다. */}
         <View ref={cardRef} collapsable={false}>
-          <IqScoreCard score={result.estimatedScore} percent={result.percent} />
+          <IqScoreCard
+            score={result.estimatedScore}
+            percent={result.percent}
+            grade={result.grade}
+            title={result.title}
+            correct={result.correct}
+            total={result.total}
+            disclaimer={result.disclaimer}
+          />
+
+          <IqAnimalCard friend={iqAnimalFriend(result.estimatedScore)} />
 
           <Card style={styles.comicCard}>
             <ResultIllustration {...iqComic(result.estimatedScore)} />
           </Card>
-
-          <Certificate
-            label="IQ 고사"
-            grade={result.grade}
-            title={result.title}
-            detail={`${result.total}문항 중 ${result.correct}문항 정답`}
-            note={
-              result.wrong.length === 0
-                ? '틀린 문항이 없습니다.'
-                : `틀린 문항은 ${result.wrong.length}개예요. 전체 문항 해설을 확인해보세요.`
-            }
-          />
-
-          <Text
-            testID="iq-disclaimer"
-            style={styles.disclaimer}
-            maxFontSizeMultiplier={font.maxScale}
-          >
-            {result.disclaimer}
-          </Text>
         </View>
 
         <ShareButton targetRef={cardRef} dialogTitle="IQ 고사" />
@@ -150,14 +141,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream },
   content: { padding: space.lg, paddingBottom: space.xxl },
   comicCard: { marginBottom: space.lg },
-  disclaimer: {
-    fontSize: font.size.caption,
-    fontFamily: font.family.body,
-    color: colors.muted,
-    lineHeight: 17,
-    textAlign: 'center',
-    marginBottom: space.lg,
-  },
   empty: {
     flex: 1,
     backgroundColor: colors.cream,

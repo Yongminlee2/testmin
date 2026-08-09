@@ -1,16 +1,18 @@
 import { Image, Text, View, StyleSheet, type ImageSourcePropType } from 'react-native';
 import { borderWidth, colors, font, radius, space } from './tokens';
 import type { ResultStory } from '@/content/resultStories';
+import type { ResultJournal } from '@/content/resultPresentation';
 
 interface Props {
   readonly source: ImageSourcePropType;
   readonly accessibilityLabel: string;
   readonly caption: string;
   readonly story: ResultStory;
+  readonly journal: ResultJournal;
 }
 
 /** 결과 카드에 들어가는 래스터 코믹 컷. 공유 이미지에도 그대로 포함된다. */
-export function ResultIllustration({ source, accessibilityLabel, caption, story }: Props) {
+export function ResultIllustration({ source, accessibilityLabel, caption, story, journal }: Props) {
   return (
     <View style={styles.wrap} testID="result-illustration">
       <View style={styles.imageFrame}>
@@ -29,13 +31,13 @@ export function ResultIllustration({ source, accessibilityLabel, caption, story 
 
       <View style={styles.story} testID="comic-observation-log">
         <Text style={styles.storyTitle} maxFontSizeMultiplier={font.maxScale}>
-          📓 코믹 관찰일지
+          {journal.title}
         </Text>
-        <StoryRow emoji="🎬" label="평소 장면" text={story.habit} color={colors.sky} />
-        <StoryRow emoji="✨" label="숨은 장점" text={story.charm} color={colors.mint} />
-        <StoryRow emoji="🍀" label="다음 한 수" text={story.tip} color={colors.lavender} />
+        <StoryRow marker="01" label={journal.habitLabel} text={story.habit} color={colors.sky} />
+        <StoryRow marker="02" label={journal.charmLabel} text={story.charm} color={colors.mint} />
+        <StoryRow marker="03" label={journal.tipLabel} text={story.tip} color={colors.lavender} />
         <Text style={styles.disclaimer} maxFontSizeMultiplier={font.maxScale}>
-          웃자고 만든 관찰일지예요. 사람은 상황과 컨디션에 따라 얼마든지 달라집니다.
+          {journal.disclaimer}
         </Text>
       </View>
     </View>
@@ -43,20 +45,20 @@ export function ResultIllustration({ source, accessibilityLabel, caption, story 
 }
 
 function StoryRow({
-  emoji,
+  marker,
   label,
   text,
   color,
 }: {
-  readonly emoji: string;
+  readonly marker: string;
   readonly label: string;
   readonly text: string;
   readonly color: string;
 }) {
   return (
     <View style={[styles.storyRow, { backgroundColor: color }]}>
-      <Text style={styles.storyEmoji} maxFontSizeMultiplier={1}>
-        {emoji}
+      <Text style={styles.storyMarker} maxFontSizeMultiplier={1}>
+        {marker}
       </Text>
       <View style={styles.storyCopy}>
         <Text style={styles.storyLabel} maxFontSizeMultiplier={font.maxScale}>
@@ -133,10 +135,18 @@ const styles = StyleSheet.create({
     borderColor: colors.ink,
     borderRadius: radius.button,
   },
-  storyEmoji: {
-    width: 24,
-    fontSize: font.size.body,
-    lineHeight: font.size.body * 1.4,
+  storyMarker: {
+    width: 28,
+    marginTop: 1,
+    fontSize: 11,
+    lineHeight: 20,
+    fontFamily: font.family.black,
+    color: colors.ink,
+    textAlign: 'center',
+    borderWidth: borderWidth.strong,
+    borderColor: colors.ink,
+    borderRadius: radius.pill,
+    backgroundColor: colors.white,
   },
   storyCopy: { flex: 1 },
   storyLabel: {

@@ -31,7 +31,6 @@ export function TypeCard({ label, headline, nickname, description, axes, note, i
         <Text style={styles.headline} maxFontSizeMultiplier={1}>
           {headline}
         </Text>
-        {illustration ? <ResultIllustration {...illustration} /> : null}
         <View style={styles.seal}>
           <Text style={styles.sealText} maxFontSizeMultiplier={font.maxScale}>
             {nickname}
@@ -54,6 +53,8 @@ export function TypeCard({ label, headline, nickname, description, axes, note, i
             {note}
           </Text>
         ) : null}
+
+        {illustration ? <ResultIllustration {...illustration} /> : null}
       </View>
     </Card>
   );

@@ -1,5 +1,13 @@
 import type { ImageSourcePropType } from 'react-native';
 import { gradeStory, iqStory, typeStory, type ResultStory } from './resultStories';
+import {
+  IQ_JOURNAL,
+  iqAnimalFriend,
+  personalityJournal,
+  psychJournal,
+  scoredJournal,
+  type ResultJournal,
+} from './resultPresentation';
 
 export interface ResultComic {
   /** 자동 검사에서 같은 파일을 두 결과가 공유하는지 확인하는 안정적인 식별자. */
@@ -8,6 +16,7 @@ export interface ResultComic {
   readonly accessibilityLabel: string;
   readonly caption: string;
   readonly story: ResultStory;
+  readonly journal: ResultJournal;
 }
 
 const MBTI_COMICS = {
@@ -209,7 +218,7 @@ type DialectRegion = keyof typeof DIALECT_REGION_LABELS;
 
 const GRADE_CAPTIONS = {
   mz: ['알림 파도까지 서핑 완료', '밈 왕좌에 자연스럽게 착석', '이모지 비도 전부 수신', '단톡방 암호 해독 중', '폴더폰과 스마트폰 사이 줄타기', '도망가는 해시태그 검거 작전', '유행 열차 방향만 살짝 반대', '낯선 밈을 유물처럼 감정 중', '오늘의 트렌드는 베개 모드'],
-  dialect: ['여섯 말씨를 한 번에 지휘', '산 정상에서도 억양 방송 중', '말풍선 메달이 제법 묵직', '날아가는 사투리까지 채집 완료', '두 말씨 사이 균형 감각 만점', '말풍선 따라 마을 한 바퀴', '버스는 달라도 풍경은 좋습니다', '말하는 장독대와 대화 시도', '말씨 구름 아래 낮잠 한 판'],
+  dialect: ['말씨 탐험대 오늘의 우승', '낯선 억양도 차분히 포착', '말풍선 메달 정식 수여', '날아가는 표현까지 채집 중', '두 표현 사이 균형 잡기', '말풍선 길 따라 한 걸음', '새 억양 신호에 안테나 번쩍', '말씨 지도 펼치고 복습 중', '오늘은 귀도 포근하게 휴식'],
   spelling: ['교정 연필 오늘도 우승', '원고 산 정상에 깃발 꽂기', '교정 메달이 연필보다 큼', '도망가는 문장부호 포획 중', '닮은 표현 두 장 균형 잡기', '초고 미로도 점선 따라 전진', '빈칸은 틀렸지만 표정은 정답', '돋보기 수사대 야근 중', '원고 이불과 따뜻한 차'],
   purekorean: ['우리말 새싹에 꽃관 왕관', '이야기책 언덕 정상 도착', '꽃메달이 몸보다 풍성', '잊힌 물건 바구니 한가득', '닮은 잎도 차분히 구별', '시냇길 따라 단어 산책', '잘못 탄 잎배에서 반딧불 발견', '옛 물건 보물상자 탐험', '큰 잎 아래 새싹 낮잠'],
   idiom: ['먹빛 용 타고 이야기 출발', '구름 정상에 네 칸 도착', '옥메달 바람으로 여유 만점', '날아가는 두루마리 포획 중', '옛이야기 두 폭 균형 잡기', '먹길 따라 대숲 산책', '배는 반대여도 폭포는 장관', '청동 유물 확대 수사', '두루마리 베개와 학 경비원'],
@@ -232,34 +241,42 @@ export function gradeComic(testId: string, grade: number, variant?: string): Res
     GRADE_ASSETS[id][safeGrade - 1]!,
     `${GRADE_LABELS[id]} ${safeGrade}급 전용 코믹 일러스트`,
     `${GRADE_LABELS[id]} · ${GRADE_CAPTIONS[captionId][safeGrade - 1]!}`,
-    gradeStory(testId === 'dialect' ? 'dialect' : id, safeGrade, testId === 'dialect' ? dialectRegion : undefined)
+    gradeStory(testId === 'dialect' ? 'dialect' : id, safeGrade, testId === 'dialect' ? dialectRegion : undefined),
+    scoredJournal(testId === 'dialect' ? 'dialect' : id)
   );
 }
 
 const IQ_ASSETS = {
-  warmup: {
-    assetId: 'iq:warmup',
-    source: require('../../assets/illustrations/comic/iq-v2/warmup.webp'),
-    accessibilityLabel: '잠옷을 입은 클레이 뇌 로봇이 시동을 기다리는 모습',
-    caption: '두뇌가 아직 커피를 못 받았습니다',
+  octopus: {
+    assetId: 'iq:octopus',
+    source: require('../../assets/illustrations/comic/iq-animals/octopus.webp'),
+    accessibilityLabel: '문어가 여러 팔로 미로와 퍼즐 조각을 탐색하는 클레이 장면',
+    caption: '여러 갈래를 만져보는 문어 탐색가',
   },
-  workshop: {
-    assetId: 'iq:workshop',
-    source: require('../../assets/illustrations/comic/iq-v2/workshop.webp'),
-    accessibilityLabel: '클레이 뇌 정비공이 퍼즐 기계를 조립하는 모습',
-    caption: '두뇌 공방 정상 영업 중',
+  raccoon: {
+    assetId: 'iq:raccoon',
+    source: require('../../assets/illustrations/comic/iq-animals/raccoon.webp'),
+    accessibilityLabel: '라쿤이 여러 잠금장치가 달린 퍼즐 상자를 여는 클레이 장면',
+    caption: '다른 문도 눌러보는 라쿤 해결사',
   },
-  mission: {
-    assetId: 'iq:mission',
-    source: require('../../assets/illustrations/comic/iq-v2/mission.webp'),
-    accessibilityLabel: '클레이 뇌 우주비행사가 관제실에서 축하하는 모습',
-    caption: '문제 풀이를 우주 임무처럼 해버림',
+  corvid: {
+    assetId: 'iq:corvid',
+    source: require('../../assets/illustrations/comic/iq-animals/corvid.webp'),
+    accessibilityLabel: '까마귀가 여러 도구를 골라 투명관의 토큰을 꺼내는 클레이 장면',
+    caption: '도구 순서를 조립하는 까마귀 발명가',
+  },
+  chimpanzee: {
+    assetId: 'iq:chimpanzee',
+    source: require('../../assets/illustrations/comic/iq-animals/chimpanzee.webp'),
+    accessibilityLabel: '침팬지가 가려진 색 타일의 순서를 기억하는 클레이 장면',
+    caption: '순서를 붙잡는 침팬지 관제사',
   },
 } as const;
 
 export function iqComic(estimatedScore: number): ResultComic {
-  const raw = estimatedScore >= 130 ? IQ_ASSETS.mission : estimatedScore >= 100 ? IQ_ASSETS.workshop : IQ_ASSETS.warmup;
-  return comic(raw.assetId, raw.source, raw.accessibilityLabel, raw.caption, iqStory(estimatedScore));
+  const friend = iqAnimalFriend(estimatedScore);
+  const raw = IQ_ASSETS[friend.id];
+  return comic(raw.assetId, raw.source, raw.accessibilityLabel, raw.caption, iqStory(estimatedScore), IQ_JOURNAL);
 }
 
 /** 테스트가 추가될 때 총수와 assetId 중복 검사가 함께 깨지도록 전체 목록을 공개한다. */
@@ -281,7 +298,10 @@ function typedComic(
   accessibilityLabel: string,
   caption: string
 ): ResultComic {
-  return comic(assetId, source, accessibilityLabel, caption, typeStory(assetId));
+  const journal = assetId.startsWith('personality:')
+    ? personalityJournal()
+    : psychJournal(assetId.split(':')[1] ?? 'recharge');
+  return comic(assetId, source, accessibilityLabel, caption, typeStory(assetId), journal);
 }
 
 function comic(
@@ -289,7 +309,8 @@ function comic(
   source: ImageSourcePropType,
   accessibilityLabel: string,
   caption: string,
-  story: ResultStory
+  story: ResultStory,
+  journal: ResultJournal
 ): ResultComic {
-  return { assetId, source, accessibilityLabel, caption, story };
+  return { assetId, source, accessibilityLabel, caption, story, journal };
 }

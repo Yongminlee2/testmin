@@ -24,20 +24,20 @@ export function Certificate({ label, grade, title, detail, note, illustration }:
         <Text style={styles.grade} maxFontSizeMultiplier={1}>
           {grade}급
         </Text>
-        {illustration ? <ResultIllustration {...illustration} /> : null}
-        <Text style={styles.detail} maxFontSizeMultiplier={font.maxScale}>
-          {detail}
-        </Text>
         <View style={styles.seal}>
           <Text style={styles.sealText} maxFontSizeMultiplier={font.maxScale}>
             🏅 <Text>{title}</Text>
           </Text>
         </View>
+        <Text style={styles.detail} maxFontSizeMultiplier={font.maxScale}>
+          {detail}
+        </Text>
         {note ? (
           <Text style={styles.note} maxFontSizeMultiplier={font.maxScale}>
             {note}
           </Text>
         ) : null}
+        {illustration ? <ResultIllustration {...illustration} /> : null}
       </View>
     </Card>
   );
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     marginVertical: space.xs,
   },
   detail: {
-    marginTop: space.sm,
+    marginTop: space.md,
     fontSize: font.size.caption,
     fontFamily: font.family.bold,
     color: colors.muted,

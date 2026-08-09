@@ -16,6 +16,9 @@ interface Props {
   readonly hardWith?: CompatEntry;
   /** 궁합을 무엇으로 판정했는지. 규칙을 밝히지 않으면 근거 없는 단정이 된다 */
   readonly rule: string;
+  readonly goodHeading?: string;
+  readonly hardHeading?: string;
+  readonly disclaimer?: string;
 }
 
 /**
@@ -26,12 +29,19 @@ interface Props {
  * (3) 재미로 보는 것이라는 안내를 항상 함께 띄운다. IQ 추정 점수에 안내 문구를
  * 강제한 것과 같은 이유다 — 근거가 약한 값을 단정처럼 보여주면 안 된다.
  */
-export function CompatCard({ goodWith, hardWith, rule }: Props) {
+export function CompatCard({
+  goodWith,
+  hardWith,
+  rule,
+  goodHeading = '이런 사람과 잘 맞아요',
+  hardHeading = '이런 사람과는 설명이 길어져요',
+  disclaimer = '궁합은 재미로 보는 것입니다. 사람 사이가 네 글자로 정해지지는 않습니다.',
+}: Props) {
   return (
     <Card radius={radius.card} offset={4} style={styles.wrap}>
       <View style={styles.inner}>
         <Text style={styles.heading} maxFontSizeMultiplier={font.maxScale}>
-          이런 사람과 잘 맞아요
+          {goodHeading}
         </Text>
 
         {goodWith.map((e) => (
@@ -53,7 +63,7 @@ export function CompatCard({ goodWith, hardWith, rule }: Props) {
         {hardWith ? (
           <>
             <Text style={[styles.heading, styles.headingGap]} maxFontSizeMultiplier={font.maxScale}>
-              이런 사람과는 설명이 길어져요
+              {hardHeading}
             </Text>
             <View style={[styles.row, styles.hard]}>
               <Text style={styles.rowLabel} maxFontSizeMultiplier={font.maxScale}>
@@ -75,7 +85,7 @@ export function CompatCard({ goodWith, hardWith, rule }: Props) {
           {rule}
         </Text>
         <Text testID="compat-disclaimer" style={styles.rule} maxFontSizeMultiplier={font.maxScale}>
-          궁합은 재미로 보는 것입니다. 사람 사이가 네 글자로 정해지지는 않습니다.
+          {disclaimer}
         </Text>
       </View>
     </Card>
