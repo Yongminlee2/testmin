@@ -3,14 +3,26 @@ import {
   type BottomTabBarProps,
 } from 'expo-router/build/react-navigation/bottom-tabs';
 import { Tabs } from 'expo-router';
-import { StyleSheet, View, type ColorValue } from 'react-native';
+import { StyleSheet, View, useWindowDimensions, type ColorValue } from 'react-native';
 import { colors, font } from '@/ui/tokens';
-import { TAB_BAR_CONTENT_HEIGHT, tabBarMetrics } from '@/ui/tabBarMetrics';
+import {
+  WIDE_TAB_BAR_MAX_WIDTH,
+  tabBarMetrics,
+  tabBarVisualMetrics,
+  type TabBarVisualMetrics,
+} from '@/ui/tabBarMetrics';
 import { TabBarIcon, type TabBarIconName } from '@/ui/TabBarIcon';
 
-function icon(name: TabBarIconName) {
+function icon(name: TabBarIconName, metrics: TabBarVisualMetrics) {
   return ({ focused, color }: { readonly focused: boolean; readonly color: ColorValue }) => (
-    <TabBarIcon name={name} focused={focused} color={color} />
+    <TabBarIcon
+      name={name}
+      focused={focused}
+      color={color}
+      size={metrics.iconSize}
+      wrapWidth={metrics.iconWrapWidth}
+      wrapHeight={metrics.iconWrapHeight}
+    />
   );
 }
 
@@ -42,6 +54,9 @@ function FloatingTabBar(props: BottomTabBarProps) {
 }
 
 export default function TabsLayout() {
+  const { width: viewportWidth } = useWindowDimensions();
+  const visual = tabBarVisualMetrics(viewportWidth);
+
   return (
     <Tabs
       tabBar={(props) => <FloatingTabBar {...props} />}
@@ -53,9 +68,25 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: colors.muted,
         tabBarHideOnKeyboard: true,
         tabBarAllowFontScaling: false,
-        tabBarStyle: styles.tabBar,
-        tabBarLabelStyle: styles.tabBarLabel,
-        tabBarItemStyle: styles.tabBarItem,
+        tabBarLabelPosition: 'below-icon',
+        tabBarStyle: {
+          ...styles.tabBar,
+          height: visual.contentHeight,
+          width: visual.wide ? '100%' : undefined,
+          maxWidth: visual.wide ? WIDE_TAB_BAR_MAX_WIDTH : undefined,
+          alignSelf: visual.wide ? 'center' : undefined,
+          paddingBottom: visual.verticalPadding,
+          paddingTop: visual.verticalPadding,
+        },
+        tabBarLabelStyle: {
+          ...styles.tabBarLabel,
+          fontSize: visual.labelFontSize,
+          lineHeight: visual.labelLineHeight,
+        },
+        tabBarItemStyle: {
+          ...styles.tabBarItem,
+          minHeight: visual.itemMinHeight,
+        },
         sceneStyle: { backgroundColor: colors.cream },
       }}
     >
@@ -64,20 +95,20 @@ export default function TabsLayout() {
         options={{
           title: '응시',
           headerShown: false,
-          tabBarIcon: icon('exam'),
+          tabBarIcon: icon('exam', visual),
         }}
       />
       <Tabs.Screen
         name="records"
-        options={{ title: '성적표', tabBarIcon: icon('records') }}
+        options={{ title: '성적표', tabBarIcon: icon('records', visual) }}
       />
       <Tabs.Screen
         name="notes"
-        options={{ title: '오답노트', tabBarIcon: icon('notes') }}
+        options={{ title: '오답노트', tabBarIcon: icon('notes', visual) }}
       />
       <Tabs.Screen
         name="settings"
-        options={{ title: '설정', tabBarIcon: icon('settings') }}
+        options={{ title: '설정', tabBarIcon: icon('settings', visual) }}
       />
     </Tabs>
   );
@@ -94,9 +125,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1.5,
     borderColor: colors.ink,
     borderRadius: 20,
-    height: TAB_BAR_CONTENT_HEIGHT,
-    paddingBottom: 4,
-    paddingTop: 4,
     shadowColor: colors.ink,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
@@ -105,12 +133,9 @@ const styles = StyleSheet.create({
   },
   tabBarLabel: {
     fontFamily: font.family.bold,
-    fontSize: 10,
-    lineHeight: 13,
     marginTop: 1,
   },
   tabBarItem: {
-    minHeight: 50,
     paddingVertical: 1,
   },
 });

@@ -8,6 +8,9 @@ interface Props {
   readonly name: TabBarIconName;
   readonly focused: boolean;
   readonly color: ColorValue;
+  readonly size?: number;
+  readonly wrapWidth?: number;
+  readonly wrapHeight?: number;
 }
 
 const iconName = {
@@ -18,13 +21,26 @@ const iconName = {
 } as const;
 
 /** 익숙한 도형과 일정한 선 굵기를 쓰는 Material Community Icons 기반 탭 아이콘. */
-export function TabBarIcon({ name, focused, color }: Props) {
+export function TabBarIcon({
+  name,
+  focused,
+  color,
+  size = 18,
+  wrapWidth = 32,
+  wrapHeight = 24,
+}: Props) {
   return (
-    <View style={[styles.wrap, focused && styles.focused]}>
+    <View
+      style={[
+        styles.wrap,
+        { width: wrapWidth, height: wrapHeight },
+        focused && styles.focused,
+      ]}
+    >
       <MaterialCommunityIcons
         accessible={false}
         name={iconName[name]}
-        size={18}
+        size={size}
         color={focused ? colors.ink : color}
       />
     </View>
@@ -33,8 +49,6 @@ export function TabBarIcon({ name, focused, color }: Props) {
 
 const styles = StyleSheet.create({
   wrap: {
-    width: 32,
-    height: 24,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radius.pill,

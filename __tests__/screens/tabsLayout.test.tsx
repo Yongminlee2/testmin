@@ -45,5 +45,6 @@ describe('TabsLayout 하단 내비게이션', () => {
     expect(mockCapturedOptions?.tabBarLabelStyle).toMatchObject({ lineHeight: 13 });
     expect(mockCapturedOptions?.tabBarItemStyle).toMatchObject({ minHeight: 50 });
     expect(mockCapturedOptions?.tabBarAllowFontScaling).toBe(false);
+    expect(mockCapturedOptions?.tabBarLabelPosition).toBe('below-icon');
   });
 });
