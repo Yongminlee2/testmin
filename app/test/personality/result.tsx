@@ -97,7 +97,7 @@ export default function PersonalityResultScreen() {
       >
         <View ref={cardRef} collapsable={false}>
           <TypeCard
-            label="성격 16유형 고사"
+            label="MBTI식 16유형 고사"
             headline={result.code}
             nickname={entry?.nickname ?? result.code}
             description={entry?.description ?? ''}
@@ -107,7 +107,7 @@ export default function PersonalityResultScreen() {
           <ShareCompatSummary goodWith={shareGoodWith} hardWith={shareHardWith} />
         </View>
 
-        <ShareButton targetRef={cardRef} dialogTitle="성격 16유형 고사" />
+        <ShareButton targetRef={cardRef} dialogTitle="MBTI식 16유형 고사" />
 
         <CompatCard
           goodWith={(entry?.goodWith ?? []).map((g) => ({

@@ -10,6 +10,8 @@ interface Props {
 export function AxisBar({ score }: Props) {
   const letters = AXIS_LETTERS[score.axis];
   const fillsRight = score.letter === letters.positive;
+  const negativePercent = fillsRight ? 100 - score.percent : score.percent;
+  const positivePercent = 100 - negativePercent;
 
   return (
     <View style={styles.wrap}>
@@ -18,7 +20,7 @@ export function AxisBar({ score }: Props) {
           style={[styles.side, !fillsRight && styles.sideActive]}
           maxFontSizeMultiplier={font.maxScale}
         >
-          {letters.negative}
+          {letters.negative} {negativePercent}%
         </Text>
         <View style={styles.track}>
           <View
@@ -33,7 +35,7 @@ export function AxisBar({ score }: Props) {
           style={[styles.side, fillsRight && styles.sideActive]}
           maxFontSizeMultiplier={font.maxScale}
         >
-          {letters.positive}
+          {letters.positive} {positivePercent}%
         </Text>
       </View>
       {score.wasTie ? (
@@ -49,7 +51,7 @@ const styles = StyleSheet.create({
   wrap: { marginBottom: space.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   side: {
-    width: 22,
+    width: 58,
     textAlign: 'center',
     fontSize: font.size.body,
     lineHeight: font.size.body * 1.4,

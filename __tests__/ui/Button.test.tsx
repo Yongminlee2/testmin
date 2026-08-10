@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { Button } from '@/ui/Button';
 import { colors, font } from '@/ui/tokens';
 
@@ -22,6 +23,16 @@ describe('Button', () => {
     await fireEvent.press(screen.getByTestId('go'));
     expect(onPress).not.toHaveBeenCalled();
   });
+
+  test('마우스를 올리면 hover 피드백을 보여준다', async () => {
+    await render(<Button label="응시하기" onPress={() => {}} testID="go" />);
+    const button = screen.getByTestId('go');
+
+    await fireEvent(button, 'hoverIn', {});
+
+    expect(StyleSheet.flatten(button.props.style)).toMatchObject({ opacity: 0.94 });
+  });
+
 });
 
 describe('tokens', () => {

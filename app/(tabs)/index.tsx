@@ -1,10 +1,12 @@
-import { ScrollView, Text, View, Pressable, StyleSheet } from 'react-native';
+import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/ui/Card';
 import { Badge } from '@/ui/Badge';
 import { AdSlot } from '@/ui/AdSlot';
 import { PageTitle } from '@/ui/PageTitle';
+import { WebInfoFooter } from '@/ui/WebInfoFooter';
+import { InteractivePressable } from '@/ui/InteractivePressable';
 import { CATEGORIES } from '@/content/registry';
 import { attachParticle } from '@/engine/korean';
 import { dailyPick } from '@/engine/dailyPick';
@@ -14,7 +16,7 @@ import { categoryColor, colors, font, space } from '@/ui/tokens';
 
 const DAILY_COPY: Readonly<Record<string, string>> = {
   iq: '뇌를 깨우는 도형 한 판',
-  personality: '오늘의 나를 네 글자로 압축',
+  personality: '오늘의 나를 MBTI 네 글자로 압축',
   mz: '유행어 감별반 긴급 출동',
   dialect: '말끝만 듣고 고향 탐지',
   psych: '마음속 회의록 몰래 열람',
@@ -61,7 +63,7 @@ export default function HomeScreen() {
       </Text>
 
       {today ? (
-        <Pressable
+        <InteractivePressable
           testID="daily-pick"
           accessibilityRole="button"
           accessibilityLabel={
@@ -69,7 +71,6 @@ export default function HomeScreen() {
           }
           accessibilityHint="추천 고사를 시작합니다"
           onPress={() => openCategory(today)}
-          style={({ pressed }) => pressed && styles.pressed}
         >
           <Card color={categoryColor[today.colorKey]} style={styles.dailyCard}>
             <View style={styles.dailyTopRow}>
@@ -88,7 +89,7 @@ export default function HomeScreen() {
               시험지 펼치기 →
             </Text>
           </Card>
-        </Pressable>
+        </InteractivePressable>
       ) : null}
 
       <View style={styles.collectionRow} accessibilityRole="summary">
@@ -105,14 +106,13 @@ export default function HomeScreen() {
       </View>
 
       {CATEGORIES.map((c) => (
-        <Pressable
+        <InteractivePressable
           key={c.id}
           testID={`category-${c.id}`}
           accessibilityRole="button"
           accessibilityLabel={c.title + ', ' + c.subtitle + ', ' + String(c.questionCount) + '문항'}
           accessibilityHint="고사 안내 화면으로 이동합니다"
           onPress={() => openCategory(c)}
-          style={({ pressed }) => pressed && styles.pressed}
         >
           <Card color={categoryColor[c.colorKey]} style={styles.card}>
             <View style={styles.row}>
@@ -128,9 +128,10 @@ export default function HomeScreen() {
               <Badge label={`${c.questionCount}문`} />
             </View>
           </Card>
-        </Pressable>
+        </InteractivePressable>
       ))}
 
+      <WebInfoFooter />
       <AdSlot />
     </ScrollView>
   );
@@ -152,7 +153,6 @@ const styles = StyleSheet.create({
     marginTop: space.xs,
     marginBottom: space.md,
   },
-  pressed: { opacity: 0.7 },
   dailyCard: { marginBottom: space.md },
   dailyTopRow: {
     flexDirection: 'row',

@@ -277,7 +277,7 @@ export const CATEGORIES: readonly CategoryMeta[] = [
   },
   {
     id: 'personality',
-    title: '성격 16유형 고사',
+    title: 'MBTI식 16유형 고사',
     subtitle: '4개 축 × 6문항',
     emoji: '🎭',
     colorKey: 'personality',

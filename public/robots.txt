@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yongminlee2.github.io/testmin/sitemap.xml

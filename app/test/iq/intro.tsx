@@ -2,6 +2,7 @@ import { ScrollView, Text, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/ui/Button';
+import { PageTitle } from '@/ui/PageTitle';
 import { IQ_DRAW } from '@/content/registry';
 import { useSession } from '@/store/session';
 import { assembleIq } from '@/engine/iq/assembleIq';
@@ -23,6 +24,7 @@ export default function IqIntroScreen() {
 
   return (
     <>
+      <PageTitle title="IQ 고사" />
       <Stack.Screen options={{ title: 'IQ 고사' }} />
       <ScrollView
         style={styles.screen}

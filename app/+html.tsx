@@ -8,6 +8,8 @@ import type { PropsWithChildren } from 'react';
  * 선언되면 브라우저 번역 안내가 뜨고, 제목이 없으면 공유 링크에 URL만 찍힌다.
  */
 export default function Root({ children }: PropsWithChildren) {
+  const adsenseClient = getAdsenseClient();
+
   return (
     <html lang="ko">
       <head>
@@ -23,13 +25,16 @@ export default function Root({ children }: PropsWithChildren) {
             탭 이름이 URL로 나온다. 제목은 화면마다 expo-router/head로 채운다. */}
         <meta
           name="description"
-          content="IQ·성격 16유형·MZ·사투리·맞춤법·순우리말·고사성어·심리 테스트를 한곳에서. 문항마다 정답과 이유를 함께 보여줍니다."
+          content="IQ·MBTI식 16유형·MZ·사투리·맞춤법·순우리말·고사성어·심리 테스트를 한곳에서. 문항마다 정답과 이유를 함께 보여줍니다."
         />
         <meta name="theme-color" content="#FFF8E1" />
         <meta name="robots" content="index,follow" />
         <link rel="canonical" href="https://yongminlee2.github.io/testmin/" />
+        <link rel="icon" href="/testmin/favicon.png" />
+        <link rel="apple-touch-icon" href="/testmin/apple-touch-icon.png" />
+        <link rel="manifest" href="/testmin/site.webmanifest" />
 
-        {/* 링크 공유용 미리보기. 이미지는 아직 없으므로 제목·설명만 둔다. */}
+        {/* 링크 공유용 미리보기 */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content="테스트의 민족" />
         <meta
@@ -54,6 +59,17 @@ export default function Root({ children }: PropsWithChildren) {
           content="https://yongminlee2.github.io/legal/testmin/social-preview-1200x630.png"
         />
 
+        {adsenseClient ? (
+          <>
+            <meta name="google-adsense-account" content={adsenseClient} />
+            <script
+              async
+              crossOrigin="anonymous"
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+            />
+          </>
+        ) : null}
+
         {/* 배경색을 body에 직접 준다. 앱이 뜨기 전 흰 화면이 번쩍이는 걸 막는다. */}
         <style dangerouslySetInnerHTML={{ __html: BODY_STYLE }} />
 
@@ -74,3 +90,8 @@ const BODY_STYLE = `
     border-radius: 14px !important;
   }
 `;
+
+function getAdsenseClient(): string | undefined {
+  const value = process.env.EXPO_PUBLIC_ADSENSE_CLIENT_ID?.trim();
+  return value && /^ca-pub-\d+$/.test(value) ? value : undefined;
+}

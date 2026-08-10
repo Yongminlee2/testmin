@@ -14,13 +14,13 @@ describe('TypeCard', () => {
   test('라벨·큰글씨·별명·설명을 보여준다', async () => {
     await render(
       <TypeCard
-        label="성격 16유형 고사"
+        label="MBTI식 16유형 고사"
         headline="ENFP"
         nickname="판 벌이고 수습 안 하는 사람"
         description="아이디어는 열 개, 완성은 한 개."
       />
     );
-    expect(screen.getByText('성격 16유형 고사')).toBeTruthy();
+    expect(screen.getByText('MBTI식 16유형 고사')).toBeTruthy();
     expect(screen.getByText('ENFP')).toBeTruthy();
     expect(screen.getByText('판 벌이고 수습 안 하는 사람')).toBeTruthy();
     expect(screen.getByText('아이디어는 열 개, 완성은 한 개.')).toBeTruthy();
@@ -36,7 +36,7 @@ describe('TypeCard', () => {
   test('축이 있으면 여덟 글자가 모두 나온다', async () => {
     await render(
       <TypeCard
-        label="성격 16유형 고사"
+        label="MBTI식 16유형 고사"
         headline="ESTP"
         nickname="일단 지르고 보는 사람"
         description="고민하는 시간에 이미 해버립니다."
@@ -44,14 +44,16 @@ describe('TypeCard', () => {
       />
     );
     for (const letter of ['E', 'I', 'S', 'N', 'T', 'F', 'J', 'P']) {
-      expect(screen.getAllByText(letter).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(new RegExp(`^${letter} \\d+%$`)).length).toBeGreaterThan(0);
     }
+    expect(screen.getByText('E 90%')).toBeTruthy();
+    expect(screen.getByText('I 10%')).toBeTruthy();
   });
 
   test('동점인 축에만 "거의 반반" 안내가 붙는다', async () => {
     await render(
       <TypeCard
-        label="성격 16유형 고사"
+        label="MBTI식 16유형 고사"
         headline="ESTP"
         nickname="일단 지르고 보는 사람"
         description="고민하는 시간에 이미 해버립니다."

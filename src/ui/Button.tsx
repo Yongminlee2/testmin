@@ -1,6 +1,7 @@
 import React from 'react';
-import { Pressable, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import { HardShadow } from './HardShadow';
+import { InteractivePressable } from './InteractivePressable';
 import { borderWidth, colors, font, radius, space } from './tokens';
 
 interface Props {
@@ -20,7 +21,7 @@ export function Button({
 }: Props) {
   return (
     <HardShadow offset={disabled ? 0 : 3} radius={radius.button} style={styles.wrap}>
-      <Pressable
+      <InteractivePressable
         testID={testID}
         accessibilityRole="button"
         accessibilityState={{ disabled }}
@@ -38,7 +39,7 @@ export function Button({
         >
           {label}
         </Text>
-      </Pressable>
+      </InteractivePressable>
     </HardShadow>
   );
 }

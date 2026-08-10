@@ -63,7 +63,7 @@ describe('PersonalityResultScreen', () => {
 
     await render(<PersonalityResultScreen />);
     for (const letter of ['E', 'I', 'S', 'N', 'T', 'F', 'J', 'P']) {
-      expect(screen.getAllByText(letter).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(new RegExp(`^${letter} \\d+%$`)).length).toBeGreaterThan(0);
     }
   });
 

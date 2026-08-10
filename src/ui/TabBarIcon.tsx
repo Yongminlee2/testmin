@@ -1,4 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, View, type ColorValue } from 'react-native';
 import { colors, radius } from './tokens';
 
@@ -14,13 +14,13 @@ interface Props {
 }
 
 const iconName = {
-  exam: 'pencil-outline',
-  records: 'trophy-outline',
-  notes: 'book-open-page-variant-outline',
-  settings: 'cog-outline',
+  exam: { active: 'sparkles', inactive: 'sparkles-outline' },
+  records: { active: 'stats-chart', inactive: 'stats-chart-outline' },
+  notes: { active: 'reader', inactive: 'reader-outline' },
+  settings: { active: 'options', inactive: 'options-outline' },
 } as const;
 
-/** 익숙한 도형과 일정한 선 굵기를 쓰는 Material Community Icons 기반 탭 아이콘. */
+/** 활성 상태는 채움, 비활성 상태는 윤곽으로 구분하는 현대적인 Ionicons 탭 아이콘. */
 export function TabBarIcon({
   name,
   focused,
@@ -31,15 +31,18 @@ export function TabBarIcon({
 }: Props) {
   return (
     <View
+      accessible={false}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
       style={[
         styles.wrap,
         { width: wrapWidth, height: wrapHeight },
         focused && styles.focused,
       ]}
     >
-      <MaterialCommunityIcons
+      <Ionicons
         accessible={false}
-        name={iconName[name]}
+        name={focused ? iconName[name].active : iconName[name].inactive}
         size={size}
         color={focused ? colors.ink : color}
       />

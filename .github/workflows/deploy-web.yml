@@ -42,7 +42,10 @@ jobs:
       - run: npm run validate:content
       - run: npm test
 
-      - run: npx expo export --platform web
+      - run: npm run build:web
+        env:
+          EXPO_PUBLIC_ADSENSE_CLIENT_ID: ${{ vars.ADSENSE_CLIENT_ID }}
+          ADSENSE_PUBLISHER_ID: ${{ vars.ADSENSE_PUBLISHER_ID }}
 
       # Pages는 Jekyll을 거치는데, Jekyll은 밑줄로 시작하는 폴더를 무시한다.
       # expo가 번들을 _expo/에 넣으므로 이 파일이 없으면 배포본이 빈 화면이 된다.

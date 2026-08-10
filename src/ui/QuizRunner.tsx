@@ -3,7 +3,6 @@ import {
   ScrollView,
   Text,
   View,
-  Pressable,
   StyleSheet,
   useWindowDimensions,
 } from 'react-native';
@@ -12,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from './Card';
 import { Badge } from './Badge';
 import { SvgFigure } from './SvgFigure';
+import { InteractivePressable } from './InteractivePressable';
 import {
   figureChoiceGridMetrics,
   questionFigureSizeForViewport,
@@ -116,7 +116,7 @@ export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
         }
       >
         {current.choices.map((c, i) => (
-          <Pressable
+          <InteractivePressable
             key={`${current.id}-${i}`}
             testID={`choice-${i}`}
             accessibilityRole="button"
@@ -151,7 +151,7 @@ export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
                 </Text>
               )}
             </Card>
-          </Pressable>
+          </InteractivePressable>
         ))}
       </View>
     </ScrollView>

@@ -26,11 +26,11 @@ describe('tabBarMetrics', () => {
 });
 
 describe('tabBarVisualMetrics', () => {
-  test('작은 Android 화면은 기존 크기를 유지한다', () => {
+  test('작은 Android 화면에서도 아이콘을 또렷하게 보여준다', () => {
     expect(tabBarVisualMetrics(320)).toMatchObject({
       wide: false,
       contentHeight: 60,
-      iconSize: 18,
+      iconSize: 21,
       labelFontSize: 10,
       labelLineHeight: 13,
     });
@@ -40,7 +40,7 @@ describe('tabBarVisualMetrics', () => {
     expect(tabBarVisualMetrics(1884)).toEqual({
       wide: true,
       contentHeight: 72,
-      iconSize: 24,
+      iconSize: 25,
       iconWrapWidth: 42,
       iconWrapHeight: 30,
       labelFontSize: 13,

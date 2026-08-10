@@ -1,4 +1,4 @@
-import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { Platform, ScrollView, Text, View, StyleSheet } from 'react-native';
 import Constants from 'expo-constants';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PageTitle } from '@/ui/PageTitle';
@@ -46,8 +46,9 @@ export default function SettingsScreen() {
           테스트의 민족 v{appVersion}
         </Text>
         <Text style={styles.heroText} maxFontSizeMultiplier={font.maxScale}>
-          계정도 광고도 분석 도구도 없습니다.{'\n'}
-          응시 기록은 이 기기에만 남습니다.
+          {Platform.OS === 'web'
+            ? '계정과 분석 도구는 없습니다. 웹에는 광고가 표시될 수 있습니다.\n응시 기록은 이 브라우저에만 남습니다.'
+            : '계정도 광고도 분석 도구도 없습니다.\n응시 기록은 이 기기에만 남습니다.'}
         </Text>
       </Card>
 

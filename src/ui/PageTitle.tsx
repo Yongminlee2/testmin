@@ -6,6 +6,7 @@ interface Props {
 }
 
 const APP = '테스트의 민족';
+const HOME_TITLE = '테스트의 민족 | 코믹 심리테스트·IQ·MBTI식 16유형';
 
 /**
  * 웹에서 문서 제목을 채운다. 네이티브에서는 expo-router/head가 아무것도 그리지 않으므로
@@ -15,7 +16,7 @@ const APP = '테스트의 민족';
  * 빈 <title>을 먼저 넣어서, 껍데기에 또 쓰면 브라우저가 빈 쪽을 골라 버린다.
  */
 export function PageTitle({ title }: Props) {
-  const text = title === undefined || title === '' ? APP : `${title} · ${APP}`;
+  const text = title === undefined || title === '' ? HOME_TITLE : `${title} | ${APP}`;
   return (
     <Head>
       <title>{text}</title>

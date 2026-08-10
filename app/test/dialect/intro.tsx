@@ -1,8 +1,10 @@
-import { ScrollView, Text, View, Pressable, StyleSheet } from 'react-native';
+import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
+import { PageTitle } from '@/ui/PageTitle';
+import { InteractivePressable } from '@/ui/InteractivePressable';
 import { DIALECT_DRAW, DIALECT_REGIONS, getPool } from '@/content/registry';
 import { useSession } from '@/store/session';
 import { assemble } from '@/engine/assemble';
@@ -34,6 +36,7 @@ export default function DialectIntroScreen() {
 
   return (
     <>
+      <PageTitle title="사투리 고사" />
       <Stack.Screen options={{ title: '사투리 고사' }} />
       <ScrollView
         style={styles.screen}
@@ -48,7 +51,7 @@ export default function DialectIntroScreen() {
 
         <View style={styles.grid}>
           {DIALECT_REGIONS.map((r) => (
-            <Pressable
+            <InteractivePressable
               key={r.id}
               testID={`region-${r.id}`}
               accessibilityRole="button"
@@ -73,7 +76,7 @@ export default function DialectIntroScreen() {
                   {r.title}
                 </Text>
               </Card>
-            </Pressable>
+            </InteractivePressable>
           ))}
         </View>
 

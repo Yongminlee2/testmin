@@ -9,6 +9,7 @@ import { useHistory } from '@/store/history';
 import { colors, font } from '@/ui/tokens';
 import { APP_CONTENT_MAX_WIDTH } from '@/ui/layoutMetrics';
 import { Button } from '@/ui/Button';
+import { PageTitle } from '@/ui/PageTitle';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -68,6 +69,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider value={navigationTheme}>
         <StatusBar style="dark" />
+        <PageTitle />
         <Stack
           screenOptions={{
             headerStyle: { backgroundColor: colors.cream },

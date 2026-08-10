@@ -2,6 +2,7 @@ import { ScrollView, Text, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/ui/Button';
+import { PageTitle } from '@/ui/PageTitle';
 import { MZ_DRAW, getPool } from '@/content/registry';
 import { useSession } from '@/store/session';
 import { assemble } from '@/engine/assemble';
@@ -25,6 +26,7 @@ export default function MzIntroScreen() {
 
   return (
     <>
+      <PageTitle title="MZ 고사" />
       <Stack.Screen options={{ title: 'MZ 고사' }} />
       <ScrollView
         style={styles.screen}

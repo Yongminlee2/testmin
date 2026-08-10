@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { ScrollView, Text, View, Pressable, StyleSheet } from 'react-native';
+import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
+import { PageTitle } from '@/ui/PageTitle';
+import { InteractivePressable } from '@/ui/InteractivePressable';
 import { PSYCH_TESTS, getPsychTest } from '@/content/registry';
 import { useSession } from '@/store/session';
 import { hashSeed } from '@/engine/rng';
@@ -31,6 +33,7 @@ export default function PsychIntroScreen() {
 
   return (
     <>
+      <PageTitle title="심리 테스트" />
       <Stack.Screen options={{ title: '심리 테스트' }} />
       <ScrollView
         style={styles.screen}
@@ -41,7 +44,7 @@ export default function PsychIntroScreen() {
         </Text>
 
         {PSYCH_TESTS.map((t) => (
-          <Pressable
+          <InteractivePressable
             key={t.id}
             testID={`psych-${t.id}`}
             accessibilityRole="button"
@@ -67,7 +70,7 @@ export default function PsychIntroScreen() {
                 {t.available ? '' : ' · 준비 중'}
               </Text>
             </Card>
-          </Pressable>
+          </InteractivePressable>
         ))}
 
         <Text style={styles.note} maxFontSizeMultiplier={font.maxScale}>

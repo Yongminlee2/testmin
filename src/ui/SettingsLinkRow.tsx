@@ -1,7 +1,8 @@
 import type { ComponentProps } from 'react';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { notify } from './dialog';
+import { InteractivePressable } from './InteractivePressable';
 import { colors, font, space } from './tokens';
 
 interface Props {
@@ -22,13 +23,13 @@ export function SettingsLinkRow({ icon, label, detail, href, testID }: Props) {
   };
 
   return (
-    <Pressable
+    <InteractivePressable
       testID={testID}
       accessibilityRole="link"
       accessibilityLabel={detail ? `${label}, ${detail}` : label}
       accessibilityHint="외부 브라우저에서 엽니다"
       onPress={() => void open()}
-      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+      style={styles.row}
     >
       <View style={styles.iconWrap}>
         <Feather name={icon} size={18} color={colors.ink} />
@@ -44,7 +45,7 @@ export function SettingsLinkRow({ icon, label, detail, href, testID }: Props) {
         ) : null}
       </View>
       <Feather name="external-link" size={17} color={colors.muted} />
-    </Pressable>
+    </InteractivePressable>
   );
 }
 
@@ -59,7 +60,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(17,17,17,0.18)',
   },
-  pressed: { opacity: 0.65 },
   iconWrap: {
     width: 34,
     height: 34,

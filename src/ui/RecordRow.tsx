@@ -1,6 +1,7 @@
 import React from 'react';
-import { Pressable, View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Card } from './Card';
+import { InteractivePressable } from './InteractivePressable';
 import { space } from './tokens';
 
 interface Props {
@@ -27,7 +28,7 @@ export function RecordRow({ onPress, expanded, testID, children }: Props) {
   }
 
   return (
-    <Pressable
+    <InteractivePressable
       testID={testID}
       style={styles.row}
       accessibilityRole="button"
@@ -35,7 +36,7 @@ export function RecordRow({ onPress, expanded, testID, children }: Props) {
       onPress={onPress}
     >
       <Card>{children}</Card>
-    </Pressable>
+    </InteractivePressable>
   );
 }
 

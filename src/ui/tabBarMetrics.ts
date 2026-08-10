@@ -46,7 +46,7 @@ export function tabBarVisualMetrics(viewportWidth: number): TabBarVisualMetrics 
     ? {
         wide: true,
         contentHeight: 72,
-        iconSize: 24,
+        iconSize: 25,
         iconWrapWidth: 42,
         iconWrapHeight: 30,
         labelFontSize: 13,
@@ -57,9 +57,9 @@ export function tabBarVisualMetrics(viewportWidth: number): TabBarVisualMetrics 
     : {
         wide: false,
         contentHeight: TAB_BAR_CONTENT_HEIGHT,
-        iconSize: 18,
-        iconWrapWidth: 32,
-        iconWrapHeight: 24,
+        iconSize: 21,
+        iconWrapWidth: 36,
+        iconWrapHeight: 26,
         labelFontSize: 10,
         labelLineHeight: 13,
         itemMinHeight: 50,

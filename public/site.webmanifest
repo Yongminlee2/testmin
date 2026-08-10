@@ -1,0 +1,23 @@
+{
+  "name": "테스트의 민족",
+  "short_name": "테스트의 민족",
+  "description": "내 심리를 맞혀보는 코믹 테스트 모음",
+  "lang": "ko-KR",
+  "start_url": "/testmin/",
+  "scope": "/testmin/",
+  "display": "standalone",
+  "background_color": "#FFF8E1",
+  "theme_color": "#FFD737",
+  "icons": [
+    {
+      "src": "/testmin/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/testmin/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

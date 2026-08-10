@@ -3,7 +3,7 @@ export const packageName = 'com.testmin.app';
 
 const legalBaseUrl = 'https://yongminlee2.github.io/legal/testmin';
 
-export const appWebsiteUrl = `${legalBaseUrl}/`;
+export const appWebsiteUrl = 'https://yongminlee2.github.io/testmin/';
 export const privacyPolicyUrl = `${legalBaseUrl}/privacy.html`;
 export const supportUrl = `${legalBaseUrl}/support.html`;
 export const termsUrl = `${legalBaseUrl}/terms.html`;

@@ -1,8 +1,11 @@
 import {
   BottomTabBar,
+  type BottomTabBarButtonProps,
   type BottomTabBarProps,
 } from 'expo-router/build/react-navigation/bottom-tabs';
+import { PlatformPressable } from 'expo-router/build/react-navigation/elements';
 import { Tabs } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, View, useWindowDimensions, type ColorValue } from 'react-native';
 import { colors, font } from '@/ui/tokens';
 import {
@@ -22,6 +25,61 @@ function icon(name: TabBarIconName, metrics: TabBarVisualMetrics) {
       size={metrics.iconSize}
       wrapWidth={metrics.iconWrapWidth}
       wrapHeight={metrics.iconWrapHeight}
+    />
+  );
+}
+
+/** 하단 탭 자체에도 마우스 hover와 터치 press 피드백을 준다. */
+function TabButton({
+  style,
+  onHoverIn,
+  onHoverOut,
+  onPressIn,
+  onPressOut,
+  onFocus,
+  onBlur,
+  ...props
+}: BottomTabBarButtonProps) {
+  const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
+  const [focused, setFocused] = useState(false);
+
+  return (
+    <PlatformPressable
+      {...props}
+      pressColor="rgba(255,212,59,0.26)"
+      pressOpacity={1}
+      onHoverIn={(event) => {
+        setHovered(true);
+        onHoverIn?.(event);
+      }}
+      onHoverOut={(event) => {
+        setHovered(false);
+        onHoverOut?.(event);
+      }}
+      onPressIn={(event) => {
+        setPressed(true);
+        onPressIn?.(event);
+      }}
+      onPressOut={(event) => {
+        setPressed(false);
+        onPressOut?.(event);
+      }}
+      onFocus={(event) => {
+        setFocused(true);
+        onFocus?.(event);
+      }}
+      onBlur={(event) => {
+        setFocused(false);
+        onBlur?.(event);
+      }}
+      style={[
+        style,
+        styles.tabButton,
+        hovered && styles.tabButtonHovered,
+        pressed && styles.tabButtonPressed,
+        focused && styles.tabButtonFocused,
+      ]}
     />
   );
 }
@@ -69,6 +127,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.ink,
         tabBarInactiveTintColor: colors.muted,
         tabBarHideOnKeyboard: true,
+        tabBarButton: TabButton,
         tabBarAllowFontScaling: false,
         tabBarLabelPosition: 'below-icon',
         tabBarStyle: {
@@ -141,5 +200,23 @@ const styles = StyleSheet.create({
   },
   tabBarItem: {
     paddingVertical: 1,
+  },
+  tabButton: {
+    borderRadius: 16,
+    cursor: 'pointer',
+    marginHorizontal: 3,
+  },
+  tabButtonHovered: {
+    backgroundColor: 'rgba(255,212,59,0.16)',
+  },
+  tabButtonPressed: {
+    backgroundColor: 'rgba(255,212,59,0.28)',
+    transform: [{ scale: 0.97 }],
+  },
+  tabButtonFocused: {
+    outlineColor: colors.sky,
+    outlineOffset: -2,
+    outlineStyle: 'solid',
+    outlineWidth: 3,
   },
 });
