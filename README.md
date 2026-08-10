@@ -608,19 +608,20 @@ AdSense 게시자 값은 저장소 변수로만 주입한다. 값이 없으면 �
 분리했고, Android 앱은 계속 광고 SDK와 인터넷 권한 없이 유지한다.
 
 Play 제출용으로 EAS production 프로필(AAB), 최신 API 36 설정, 스토어 설명·데이터 보안
-답변·아이콘·피처 그래픽을 한곳에 맞췄다. 업로드 키와 Play Console 계정 입력, AdSense
-게시자 ID와 CMP 활성화는 계정 소유자가 콘솔에서 완료해야 하므로 저장소에는 넣지 않는다.
+답변·아이콘·피처 그래픽을 한곳에 맞췄다. 기존 운영 업로드 키는 Git에서 제외한
+`credentials.json`과 `testmin-upload.jks`로 연결했고 EAS production·preview 프로필은
+로컬 자격 증명을 사용한다. Play Console 계정 입력, AdSense 게시자 ID와 CMP 활성화는
+계정 소유자가 콘솔에서 완료해야 하므로 저장소에는 넣지 않는다.
 전체 572개 테스트, 콘텐츠 검증, 타입 검사, Expo Doctor 20/20, 웹 정적 내보내기를 통과했고 새 아이콘이
 Android legacy·round·adaptive 리소스로 생성되는 것을 확인했다. R8·리소스 축소가 적용된
-로컬 검증용 release AAB도 생성했다. 이 파일은 업로드 키를 연결하기 전 산출물이므로 Play
-제출본으로 사용하지 않는다.
+운영 키로 서명한 release AAB도 생성했고, AAB 내부 인증서 SHA-256이 원본 업로드 키와
+일치하며 JAR 서명 검증을 통과하는 것을 확인했다.
 
 ---
 
 ## 남은 일
 
-- 업로드 키를 안전한 외부 위치에 만들고 `release` 서명 설정 연결
-- `npx eas build --platform android --profile production`으로 서명된 AAB를 만들고 내부 테스트 트랙에 업로드
+- 생성된 서명 AAB를 Play Console 내부 테스트 트랙에 업로드
 - 준비된 `store/` 문구·그래픽·실기기 스크린샷으로 스토어 등록정보와 데이터 보안 양식 제출
 - AdSense 승인 후 저장소 변수 `ADSENSE_CLIENT_ID`, `ADSENSE_PUBLISHER_ID` 등록
 - AdSense 개인정보 보호 및 메시지에서 Google 인증 CMP를 활성화하고 모바일 광고 겹침 확인
@@ -634,10 +635,7 @@ Android legacy·round·adaptive 리소스로 생성되는 것을 확인했다. R
 
 - 아이콘 원본: `store/assets/icon-master-personality-wheel.png`
 - 아이콘·스토어 이미지 재생성: `python tools/make-icons.py`
-- GitHub 원격 기본 브랜치는 아직 `feat/foundation`이다. Pages 환경은 기본 브랜치 배포만
-  최종 승인하므로 `main`을 반영한 뒤 `git push origin main:feat/foundation`으로
-  fast-forward 동기화한다. GitHub 설정에서 기본 브랜치를 `main`으로 바꾼 뒤에는 워크플로의
-  대상 브랜치도 `main` 하나로 정리한다.
+- GitHub 원격 기본 브랜치와 Pages 배포 대상은 `main`이다.
 - 공개 법적 문서: 별도 `legal` 저장소의 `testmin/` 폴더
 - 앱 광고와 웹 광고를 혼동하지 않는다. Android 앱은 오프라인·광고 없음, AdSense는 웹 전용이다.
 - 게시자 ID, 업로드 키, keystore, Play 서비스 계정 파일은 커밋하지 않는다.
