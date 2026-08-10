@@ -634,7 +634,10 @@ Android legacy·round·adaptive 리소스로 생성되는 것을 확인했다. R
 
 - 아이콘 원본: `store/assets/icon-master-personality-wheel.png`
 - 아이콘·스토어 이미지 재생성: `python tools/make-icons.py`
-- GitHub Pages 배포: `main` 푸시 → `.github/workflows/deploy-web.yml`
+- GitHub 원격 기본 브랜치는 아직 `feat/foundation`이다. Pages 환경은 기본 브랜치 배포만
+  최종 승인하므로 `main`을 반영한 뒤 `git push origin main:feat/foundation`으로
+  fast-forward 동기화한다. GitHub 설정에서 기본 브랜치를 `main`으로 바꾼 뒤에는 워크플로의
+  대상 브랜치도 `main` 하나로 정리한다.
 - 공개 법적 문서: 별도 `legal` 저장소의 `testmin/` 폴더
 - 앱 광고와 웹 광고를 혼동하지 않는다. Android 앱은 오프라인·광고 없음, AdSense는 웹 전용이다.
 - 게시자 ID, 업로드 키, keystore, Play 서비스 계정 파일은 커밋하지 않는다.
