@@ -72,16 +72,17 @@ describe('PsychResultScreen', () => {
 
     for (const g of flame.goodWith) {
       const goodType = test.types.find((t) => t.id === g.code)!;
-      expect(screen.getByText(goodType.name)).toBeTruthy();
+      expect(screen.getAllByText(goodType.name).length).toBeGreaterThan(0);
       expect(screen.getByText(g.why)).toBeTruthy();
     }
     const hardType = test.types.find((t) => t.id === flame.hardWith.code)!;
-    expect(screen.getByText(hardType.name)).toBeTruthy();
+    expect(screen.getAllByText(hardType.name).length).toBeGreaterThan(0);
     expect(screen.getByText(flame.hardWith.why)).toBeTruthy();
 
     expect(screen.getByTestId('compat-rule')).toBeTruthy();
     expect(screen.getByText(test.compatRule)).toBeTruthy();
     expect(screen.getByTestId('compat-disclaimer')).toBeTruthy();
+    expect(screen.getByTestId('share-compat-summary')).toBeTruthy();
   });
 
   // 세 심리 테스트 전부가 실제로 배선됐는지 — 하나만 확인하면 stress·comm의

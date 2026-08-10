@@ -122,32 +122,32 @@ const PSYCH_RELATIONS: Record<string, PsychRelationCopy> = {
   love: {
     goodHeading: '이 연애 리듬과 호흡이 좋아요',
     hardHeading: '속도를 맞추면 더 편해져요',
-    disclaimer: '두 유형의 표현 속도를 재미있게 비교한 것이며 실제 관계를 판정하지 않습니다.',
+    disclaimer: '연애 판결문이 아니라 리듬 체크예요. 실제 호흡은 둘이 맞춰가는 쪽이 훨씬 정확합니다.',
   },
   stress: {
     goodHeading: '함께 쓰면 회복에 도움 되는 방식',
     hardHeading: '동시에 쓰면 엇갈릴 수 있는 방식',
-    disclaimer: '대처 방식의 조합을 설명한 것이며 사람 사이의 궁합이나 건강 상태를 판정하지 않습니다.',
+    disclaimer: '회복법 조합을 본 것이지 사람이나 건강에 점수를 매긴 건 아니에요. 오늘의 압력계는 내일 달라질 수 있습니다.',
   },
   comm: {
     goodHeading: '대화가 잘 이어지는 방식',
     hardHeading: '한 번 더 번역이 필요한 방식',
-    disclaimer: '말을 주고받는 습관을 비교한 것이며 누가 더 좋은 소통가인지 평가하지 않습니다.',
+    disclaimer: '대화 습관의 번역 난이도를 본 거예요. 누가 더 훌륭한 소통가인지 뽑는 시험은 아닙니다.',
   },
   recharge: {
     goodHeading: '충전 리듬을 지켜주는 방식',
     hardHeading: '휴식 시간이 엇갈리기 쉬운 방식',
-    disclaimer: '쉬는 방식의 차이를 재미있게 정리한 것이며 사람 사이의 궁합을 판정하지 않습니다.',
+    disclaimer: '쉬는 박자를 비교한 것이지 사람 사이 합격표는 아니에요. 오늘 배터리 잔량에 따라 모드는 달라집니다.',
   },
   procrastination: {
     goodHeading: '함께 쓰면 시동이 잘 걸리는 방식',
     hardHeading: '압박으로 느껴질 수 있는 방식',
-    disclaimer: '일을 시작하는 장치를 비교한 것이며 의지나 성실함을 평가하는 결과가 아닙니다.',
+    disclaimer: '시동 버튼이 다른 것뿐, 의지나 성실함의 등수표가 아니에요.',
   },
   travel: {
     goodHeading: '같이 떠나면 합이 좋은 여행 모드',
     hardHeading: '일정 합의가 먼저 필요한 모드',
-    disclaimer: '여행 취향의 조합을 재미있게 본 것이며 실제 동행 관계를 판정하지 않습니다.',
+    disclaimer: '여행 모드를 비교한 것이지 동행 금지 명단은 아니에요. 합의 한 줄이면 일정은 꽤 잘 굴러갑니다.',
   },
 };
 

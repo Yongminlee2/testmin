@@ -119,15 +119,18 @@ export function SvgFigure({ spec, size = 120, testID }: Props) {
         })}
 
         {/* 바깥 테두리 */}
-        <Rect
-          x={STROKE / 2}
-          y={STROKE / 2}
-          width={span - STROKE}
-          height={span - STROKE}
-          fill="none"
-          stroke={colors.ink}
-          strokeWidth={STROKE}
-        />
+        {isGrid ? (
+          <Rect
+            testID="figure-frame"
+            x={STROKE / 2}
+            y={STROKE / 2}
+            width={span - STROKE}
+            height={span - STROKE}
+            fill="none"
+            stroke={colors.ink}
+            strokeWidth={STROKE}
+          />
+        ) : null}
       </Svg>
     </View>
   );

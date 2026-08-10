@@ -33,9 +33,9 @@ export function CompatCard({
   goodWith,
   hardWith,
   rule,
-  goodHeading = '이런 사람과 잘 맞아요',
-  hardHeading = '이런 사람과는 설명이 길어져요',
-  disclaimer = '궁합은 재미로 보는 것입니다. 사람 사이가 네 글자로 정해지지는 않습니다.',
+  goodHeading = '이 조합은 티키타카가 빨라요',
+  hardHeading = '이 조합은 통역 한 번 더',
+  disclaimer = '네 글자는 판결문이 아니라 대화 시작 버튼이에요. 실제 관계는 서로의 말과 행동이 만듭니다.',
 }: Props) {
   return (
     <Card radius={radius.card} offset={4} style={styles.wrap}>
@@ -81,10 +81,15 @@ export function CompatCard({
           </>
         ) : null}
 
-        <Text testID="compat-rule" style={styles.rule} maxFontSizeMultiplier={font.maxScale}>
-          {rule}
-        </Text>
-        <Text testID="compat-disclaimer" style={styles.rule} maxFontSizeMultiplier={font.maxScale}>
+        <View style={styles.ruleBox}>
+          <Text style={styles.ruleLabel} maxFontSizeMultiplier={font.maxScale}>
+            왜 이런 조합인가요?
+          </Text>
+          <Text testID="compat-rule" style={styles.rule} maxFontSizeMultiplier={font.maxScale}>
+            {rule}
+          </Text>
+        </View>
+        <Text testID="compat-disclaimer" style={styles.disclaimer} maxFontSizeMultiplier={font.maxScale}>
           {disclaimer}
         </Text>
       </View>
@@ -132,11 +137,32 @@ const styles = StyleSheet.create({
     color: colors.ink,
     marginTop: space.sm,
   },
+  ruleBox: {
+    marginTop: space.md,
+    padding: space.sm,
+    borderWidth: borderWidth.strong,
+    borderColor: colors.ink,
+    borderRadius: radius.button,
+    backgroundColor: colors.cream,
+  },
+  ruleLabel: {
+    fontSize: font.size.caption,
+    lineHeight: font.size.caption * 1.4,
+    fontFamily: font.family.black,
+    color: colors.ink,
+  },
   rule: {
     fontSize: font.size.caption,
     lineHeight: font.size.caption * 1.5,
     fontFamily: font.family.body,
+    color: colors.ink,
+    marginTop: space.xs,
+  },
+  disclaimer: {
+    fontSize: 10,
+    lineHeight: 15,
+    fontFamily: font.family.body,
     color: colors.muted,
-    marginTop: space.md,
+    marginTop: space.sm,
   },
 });

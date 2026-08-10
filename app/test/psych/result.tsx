@@ -4,6 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PsychResultCard } from '@/ui/PsychResultCard';
 import { CompatCard } from '@/ui/CompatCard';
+import { ShareCompatSummary } from '@/ui/ShareCompatSummary';
 import { Button } from '@/ui/Button';
 import { ShareButton } from '@/ui/ShareButton';
 import { AdSlot } from '@/ui/AdSlot';
@@ -58,6 +59,28 @@ export default function PsychResultScreen() {
   const won = test.types.find((t) => t.id === result.typeId);
   const votes = result.tally[result.typeId] ?? 0;
   const relationCopy = psychRelationCopy(test.id);
+  const shareGoodWith = (won?.goodWith ?? []).map((item) => {
+    const target = test.types.find((type) => type.id === item.code);
+    const comic = psychComic(test.id, item.code);
+    return {
+      label: target?.name ?? item.code,
+      sub: target?.emoji,
+      image: comic.source,
+      accessibilityLabel: comic.accessibilityLabel,
+    };
+  });
+  const shareHardWith = won
+    ? (() => {
+        const target = test.types.find((type) => type.id === won.hardWith.code);
+        const comic = psychComic(test.id, won.hardWith.code);
+        return {
+          label: target?.name ?? won.hardWith.code,
+          sub: target?.emoji,
+          image: comic.source,
+          accessibilityLabel: comic.accessibilityLabel,
+        };
+      })()
+    : undefined;
 
   const retry = () => {
     const nextSeed = hashSeed(`psych:${test.id}:${Date.now()}`);
@@ -84,6 +107,7 @@ export default function PsychResultScreen() {
                 : `12문항 중 ${votes}표`
             }
           />
+          <ShareCompatSummary goodWith={shareGoodWith} hardWith={shareHardWith} />
         </View>
 
         <ShareButton targetRef={cardRef} dialogTitle={test.title} />

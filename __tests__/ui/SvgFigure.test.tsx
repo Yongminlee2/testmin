@@ -60,4 +60,14 @@ describe('SvgFigure', () => {
     await render(<SvgFigure spec={spec} testID="fig" />);
     expect(screen.getByTestId('fig')).toBeTruthy();
   });
+
+  test('single choices do not draw a misleading frame', async () => {
+    await render(<SvgFigure spec={single()} testID="single-fig" />);
+    expect(screen.queryByTestId('figure-frame')).toBeNull();
+  });
+
+  test('grid questions keep their outer frame', async () => {
+    await render(<SvgFigure spec={grid()} testID="grid-fig" />);
+    expect(screen.getByTestId('figure-frame')).toBeTruthy();
+  });
 });

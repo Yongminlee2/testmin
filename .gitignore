@@ -29,6 +29,9 @@ local.properties
 *.key
 *.mobileprovision
 
+# Local visual QA captures
+artifacts/
+
 # Metro
 .metro-health-check*
 

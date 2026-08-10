@@ -4,6 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TypeCard } from '@/ui/TypeCard';
 import { CompatCard } from '@/ui/CompatCard';
+import { ShareCompatSummary } from '@/ui/ShareCompatSummary';
 import { Button } from '@/ui/Button';
 import { ShareButton } from '@/ui/ShareButton';
 import { AdSlot } from '@/ui/AdSlot';
@@ -53,6 +54,28 @@ export default function PersonalityResultScreen() {
   }
 
   const entry = getTypeName(result.code);
+  const shareGoodWith = (entry?.goodWith ?? []).map((item) => {
+    const target = getTypeName(item.code);
+    const comic = personalityComic(item.code);
+    return {
+      label: item.code,
+      sub: target?.nickname,
+      image: comic.source,
+      accessibilityLabel: comic.accessibilityLabel,
+    };
+  });
+  const shareHardWith = entry
+    ? (() => {
+        const target = getTypeName(entry.hardWith.code);
+        const comic = personalityComic(entry.hardWith.code);
+        return {
+          label: entry.hardWith.code,
+          sub: target?.nickname,
+          image: comic.source,
+          accessibilityLabel: comic.accessibilityLabel,
+        };
+      })()
+    : undefined;
 
   const retry = () => {
     const pool = getPool('personality', 'default');
@@ -81,6 +104,7 @@ export default function PersonalityResultScreen() {
             axes={result.axes}
             illustration={personalityComic(result.code)}
           />
+          <ShareCompatSummary goodWith={shareGoodWith} hardWith={shareHardWith} />
         </View>
 
         <ShareButton targetRef={cardRef} dialogTitle="성격 16유형 고사" />

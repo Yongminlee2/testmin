@@ -46,6 +46,7 @@ describe('PersonalityResultScreen', () => {
     await render(<PersonalityResultScreen />);
     expect(screen.getByText('ENFP')).toBeTruthy();
     expect(screen.getByText('판 벌이고 수습 안 하는 사람')).toBeTruthy();
+    expect(screen.getByTestId('share-compat-summary')).toBeTruthy();
   });
 
   test('모두 음수를 고르면 ISTJ가 나온다', async () => {
