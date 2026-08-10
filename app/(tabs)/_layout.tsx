@@ -45,10 +45,12 @@ function FloatingTabBar(props: BottomTabBarProps) {
         },
       ]}
     >
-      <BottomTabBar
-        {...props}
-        insets={{ ...props.insets, bottom: 0 }}
-      />
+      <View pointerEvents="box-none" style={styles.barFrame}>
+        <BottomTabBar
+          {...props}
+          insets={{ ...props.insets, bottom: 0 }}
+        />
+      </View>
     </View>
   );
 }
@@ -72,9 +74,6 @@ export default function TabsLayout() {
         tabBarStyle: {
           ...styles.tabBar,
           height: visual.contentHeight,
-          width: visual.wide ? '100%' : undefined,
-          maxWidth: visual.wide ? WIDE_TAB_BAR_MAX_WIDTH : undefined,
-          alignSelf: visual.wide ? 'center' : undefined,
           paddingBottom: visual.verticalPadding,
           paddingTop: visual.verticalPadding,
         },
@@ -118,6 +117,11 @@ const styles = StyleSheet.create({
   safeShelf: {
     backgroundColor: colors.cream,
     paddingHorizontal: 12,
+  },
+  barFrame: {
+    width: '100%',
+    maxWidth: WIDE_TAB_BAR_MAX_WIDTH,
+    alignSelf: 'center',
   },
   tabBar: {
     backgroundColor: colors.white,

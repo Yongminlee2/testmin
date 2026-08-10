@@ -93,13 +93,24 @@ function NoteEntryRow({ entry }: { readonly entry: Entry }) {
 
   return (
     <RecordRow onPress={() => setOpen((v) => !v)} expanded={open} testID={`note-row-${key}`}>
-      <Text
-        style={styles.prompt}
-        numberOfLines={open ? undefined : 2}
-        maxFontSizeMultiplier={font.maxScale}
-      >
-        {question.prompt}
-      </Text>
+      <View style={styles.promptRow}>
+        {!open && question.figure ? (
+          <View
+            style={styles.previewFigure}
+            accessible
+            accessibilityLabel="문제 도형 미리보기"
+          >
+            <SvgFigure spec={question.figure} size={56} testID={`note-preview-figure-${key}`} />
+          </View>
+        ) : null}
+        <Text
+          style={styles.prompt}
+          numberOfLines={open ? undefined : 2}
+          maxFontSizeMultiplier={font.maxScale}
+        >
+          {question.prompt}
+        </Text>
+      </View>
 
       {open ? (
         <View style={styles.detail}>
@@ -204,7 +215,10 @@ const styles = StyleSheet.create({
     color: colors.ink,
     marginBottom: space.sm,
   },
+  promptRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  previewFigure: { width: 64, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   prompt: {
+    flex: 1,
     fontSize: font.size.body,
     fontFamily: font.family.bold,
     color: colors.ink,

@@ -130,8 +130,10 @@ describe('NotesScreen', () => {
 
     const key = `iq:default:${generated.question.id}`;
     await render(<NotesScreen />);
+    expect(screen.getByTestId(`note-preview-figure-${key}`)).toBeTruthy();
     await fireEvent.press(screen.getByTestId(`note-row-${key}`));
 
+    expect(screen.queryByTestId(`note-preview-figure-${key}`)).toBeNull();
     expect(screen.getByTestId(`note-question-figure-${key}`)).toBeTruthy();
     expect(screen.getByTestId(`note-chosen-${key}`)).toBeTruthy();
     expect(screen.getByTestId(`note-answer-${key}`)).toBeTruthy();

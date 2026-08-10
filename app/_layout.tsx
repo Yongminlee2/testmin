@@ -1,13 +1,24 @@
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Platform } from 'react-native';
+import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import { useHistory } from '@/store/history';
 import { colors, font } from '@/ui/tokens';
+import { APP_CONTENT_MAX_WIDTH } from '@/ui/layoutMetrics';
 
 void SplashScreen.preventAutoHideAsync();
+
+const navigationTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: colors.cream,
+    card: colors.cream,
+  },
+};
 
 export default function RootLayout() {
   // 원본 Noto Sans KR은 한자 약 2만 자까지 담은 전체 CJK 폰트라 굵기당 5.9MB다.
@@ -39,17 +50,28 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: colors.cream },
-          headerTintColor: colors.ink,
-          headerTitleStyle: { fontFamily: font.family.black },
-          contentStyle: { backgroundColor: colors.cream },
-        }}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
+      <ThemeProvider value={navigationTheme}>
+        <StatusBar style="dark" />
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.cream },
+            headerTintColor: colors.ink,
+            headerTitleStyle: { fontFamily: font.family.black },
+            contentStyle: {
+              backgroundColor: colors.cream,
+              ...(Platform.OS === 'web'
+                ? {
+                    width: '100%',
+                    maxWidth: APP_CONTENT_MAX_WIDTH,
+                    alignSelf: 'center' as const,
+                  }
+                : {}),
+            },
+          }}
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

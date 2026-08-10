@@ -46,4 +46,12 @@ export default function Root({ children }: PropsWithChildren) {
   );
 }
 
-const BODY_STYLE = `body { background-color: #FFF8E1; }`;
+const BODY_STYLE = `
+  body { background-color: #FFF8E1; }
+  a[role="tab"]:focus { outline: none; }
+  a[role="tab"]:focus-visible {
+    outline: 2px solid #111111;
+    outline-offset: -4px;
+    border-radius: 14px !important;
+  }
+`;
