@@ -132,6 +132,7 @@ def main() -> None:
 
     favicon = icon.resize((196, 196), Image.Resampling.LANCZOS)
     favicon.save(APP_IMAGES / "favicon.png", optimize=True)
+    favicon.save(PUBLIC / "favicon.png", optimize=True)
     icon.resize((512, 512), Image.Resampling.LANCZOS).save(
         STORE_ASSETS / "play-icon-512.png", optimize=True
     )
