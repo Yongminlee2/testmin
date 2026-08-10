@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { Platform } from 'react-native';
-import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { Platform, StyleSheet, Text, View } from 'react-native';
+import { DefaultTheme, Stack, ThemeProvider, type ErrorBoundaryProps } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
@@ -8,6 +8,7 @@ import { useFonts } from 'expo-font';
 import { useHistory } from '@/store/history';
 import { colors, font } from '@/ui/tokens';
 import { APP_CONTENT_MAX_WIDTH } from '@/ui/layoutMetrics';
+import { Button } from '@/ui/Button';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -19,6 +20,21 @@ const navigationTheme = {
     card: colors.cream,
   },
 };
+
+export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+  return (
+    <SafeAreaProvider>
+      <View style={errorStyles.screen}>
+        <Text style={errorStyles.eyebrow}>잠깐만요</Text>
+        <Text style={errorStyles.title}>시험지가 잠깐 엉켰습니다</Text>
+        <Text style={errorStyles.body}>
+          기록은 기기에 그대로 있습니다. 다시 펼치면 대부분 바로 돌아옵니다.
+        </Text>
+        <Button label="시험지 다시 펼치기" color={colors.yellow} onPress={() => void retry()} />
+      </View>
+    </SafeAreaProvider>
+  );
+}
 
 export default function RootLayout() {
   // 원본 Noto Sans KR은 한자 약 2만 자까지 담은 전체 CJK 폰트라 굵기당 5.9MB다.
@@ -75,3 +91,36 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+const errorStyles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    alignItems: 'stretch',
+    justifyContent: 'center',
+    padding: 28,
+    backgroundColor: colors.cream,
+  },
+  eyebrow: {
+    color: colors.coral,
+    fontSize: 13,
+    fontFamily: font.family.black,
+    textAlign: 'center',
+  },
+  title: {
+    marginTop: 6,
+    color: colors.ink,
+    fontSize: 24,
+    lineHeight: 34,
+    fontFamily: font.family.display,
+    textAlign: 'center',
+  },
+  body: {
+    marginTop: 10,
+    marginBottom: 22,
+    color: colors.muted,
+    fontSize: 14,
+    lineHeight: 22,
+    fontFamily: font.family.body,
+    textAlign: 'center',
+  },
+});

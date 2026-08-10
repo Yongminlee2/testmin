@@ -1,13 +1,12 @@
-"""앱 아이콘 생성기.
+"""앱 아이콘 보조 자산 생성기.
 
-디자인 시스템(네오브루탈 팝)을 그대로 따른다:
-  - 크림 배경, 굵은 검정 테두리, 하드 오프셋 그림자
-  - 글리프는 앱이 정답 배지로 쓰는 ⭕ 표시
+`assets/images/icon.png`의 코믹 뇌 캐릭터가 앱 아이콘과 어댑티브 전경,
+스플래시의 단일 원본이다. 이 스크립트는 그 래스터 원본을 다시 그리지 않는다.
+실행해도 상용 아이콘을 예전 ⭕ 글리프로 덮어쓰지 않게, 아래 보조 자산만 만든다.
 
-안드로이드 어댑티브 아이콘은 바깥 1/3이 런처 마스크에 잘릴 수 있다.
-그래서 전경 글리프는 캔버스 중앙 66%(안전 영역) 안에 들어가야 한다.
-여기서는 링 바깥 반지름을 290px(캔버스 1024 기준 중심에서 28%)로 잡아
-어떤 마스크 모양에서도 잘리지 않는다.
+  - 어댑티브 배경: 크림 단색
+  - 테마 아이콘: 기존 정답 ⭕ 실루엣
+  - 파비콘: 현재 icon.png를 196px로 축소
 
 실행: python tools/make-icons.py
 """
@@ -64,19 +63,17 @@ def glyph(geom, bg=None, ring_fill=CORAL, ink=INK, shadow=True):
 def main():
     out = "assets/images"
 
-    # 어댑티브 아이콘: 배경 판 + 전경 글리프를 따로 낸다.
+    # 전경은 app.json이 icon.png를 직접 읽는다. 여기서는 보조 레이어만 만든다.
     Image.new("RGBA", (SIZE, SIZE), CREAM).save(f"{out}/android-icon-background.png")
-    glyph(ADAPTIVE).save(f"{out}/android-icon-foreground.png")
 
     # 테마 아이콘(모노크롬)은 실루엣만 쓴다. 색과 그림자는 무의미하므로 뺀다.
     glyph(ADAPTIVE, ring_fill=INK, shadow=False).save(f"{out}/android-icon-monochrome.png")
 
-    # 일반 아이콘 / 스플래시 / 파비콘
-    glyph(PLAIN, bg=CREAM).save(f"{out}/icon.png")
-    glyph(PLAIN, bg=CREAM).save(f"{out}/splash-icon.png")
-    glyph(PLAIN, bg=CREAM).resize((196, 196), Image.LANCZOS).save(f"{out}/favicon.png")
+    # 파비콘은 상용 아이콘 원본에서만 파생한다.
+    with Image.open(f"{out}/icon.png") as icon:
+        icon.convert("RGB").resize((196, 196), Image.LANCZOS).save(f"{out}/favicon.png")
 
-    print("icons written to", out)
+    print("icon helper assets written to", out)
 
 
 if __name__ == "__main__":

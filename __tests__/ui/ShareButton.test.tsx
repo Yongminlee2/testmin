@@ -20,9 +20,12 @@ describe('ShareButton', () => {
 
   test('누르면 캡처한 uri로 공유 시트를 연다', async () => {
     await render(<Harness />);
-    fireEvent.press(screen.getByTestId('share-card'));
+    await fireEvent.press(screen.getByTestId('share-card'));
 
-    await waitFor(() => expect(Sharing.shareAsync).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(Sharing.shareAsync).toHaveBeenCalled();
+      expect(screen.getByTestId('share-card')).toBeEnabled();
+    });
 
     expect(captureRef).toHaveBeenCalled();
     expect(Sharing.shareAsync).toHaveBeenCalledWith(
@@ -36,9 +39,12 @@ describe('ShareButton', () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 
     await render(<Harness />);
-    fireEvent.press(screen.getByTestId('share-card'));
+    await fireEvent.press(screen.getByTestId('share-card'));
 
-    await waitFor(() => expect(alertSpy).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalled();
+      expect(screen.getByTestId('share-card')).toBeEnabled();
+    });
     expect(Sharing.shareAsync).not.toHaveBeenCalled();
   });
 
@@ -47,9 +53,12 @@ describe('ShareButton', () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 
     await render(<Harness />);
-    fireEvent.press(screen.getByTestId('share-card'));
+    await fireEvent.press(screen.getByTestId('share-card'));
 
-    await waitFor(() => expect(alertSpy).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalled();
+      expect(screen.getByTestId('share-card')).toBeEnabled();
+    });
     expect(Sharing.shareAsync).not.toHaveBeenCalled();
   });
 });

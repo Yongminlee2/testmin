@@ -26,6 +26,8 @@ export default function Root({ children }: PropsWithChildren) {
           content="IQ·성격 16유형·MZ·사투리·맞춤법·순우리말·고사성어·심리 테스트를 한곳에서. 문항마다 정답과 이유를 함께 보여줍니다."
         />
         <meta name="theme-color" content="#FFF8E1" />
+        <meta name="robots" content="index,follow" />
+        <link rel="canonical" href="https://yongminlee2.github.io/testmin/" />
 
         {/* 링크 공유용 미리보기. 이미지는 아직 없으므로 제목·설명만 둔다. */}
         <meta property="og:type" content="website" />
@@ -33,6 +35,23 @@ export default function Root({ children }: PropsWithChildren) {
         <meta
           property="og:description"
           content="오늘도 응시하셨습니다 — 8가지 고사를 웹에서 바로."
+        />
+        <meta
+          property="og:image"
+          content="https://yongminlee2.github.io/legal/testmin/social-preview-1200x630.png"
+        />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:locale" content="ko_KR" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="테스트의 민족" />
+        <meta
+          name="twitter:description"
+          content="IQ·성격·사투리·심리 테스트를 코믹 결과와 함께."
+        />
+        <meta
+          name="twitter:image"
+          content="https://yongminlee2.github.io/legal/testmin/social-preview-1200x630.png"
         />
 
         {/* 배경색을 body에 직접 준다. 앱이 뜨기 전 흰 화면이 번쩍이는 걸 막는다. */}
