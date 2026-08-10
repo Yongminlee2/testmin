@@ -12,12 +12,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from './Card';
 import { Badge } from './Badge';
 import { SvgFigure } from './SvgFigure';
-import { figureChoiceGridMetrics } from './figureChoiceLayout';
+import {
+  figureChoiceGridMetrics,
+  questionFigureSizeForViewport,
+} from './figureChoiceLayout';
 import { useSession } from '@/store/session';
 import { colors, font, space } from './tokens';
 
 const MAX_QUIZ_CONTENT_WIDTH = 920;
-const WIDE_VIEWPORT = 768;
 
 interface Props {
   /** 마지막 문항 뒤 이동할 결과 화면 경로 */
@@ -34,7 +36,7 @@ interface Props {
 export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { width: viewportWidth } = useWindowDimensions();
+  const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
   const questions = useSession((s) => s.questions);
   const answer = useSession((s) => s.answer);
   const [index, setIndex] = useState(0);
@@ -63,8 +65,12 @@ export function QuizRunner({ resultRoute, accent = colors.yellow }: Props) {
   }
 
   const figureChoices = current.choices.some((c) => c.figure !== undefined);
-  const figureGrid = figureChoiceGridMetrics(viewportWidth, current.choices.length);
-  const questionFigureSize = viewportWidth >= WIDE_VIEWPORT ? 240 : 220;
+  const figureGrid = figureChoiceGridMetrics(
+    viewportWidth,
+    current.choices.length,
+    viewportHeight,
+  );
+  const questionFigureSize = questionFigureSizeForViewport(viewportWidth, viewportHeight);
 
   const choose = (choiceIndex: number) => {
     answer(current.id, choiceIndex);

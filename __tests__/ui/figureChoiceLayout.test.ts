@@ -1,6 +1,28 @@
-import { figureChoiceGridMetrics } from '@/ui/figureChoiceLayout';
+import {
+  figureChoiceGridMetrics,
+  questionFigureSizeForViewport,
+} from '@/ui/figureChoiceLayout';
+
+describe('questionFigureSizeForViewport', () => {
+  test('compact Android heights use a smaller puzzle so the second choice row remains reachable', () => {
+    expect(questionFigureSizeForViewport(360, 640)).toBe(180);
+  });
+
+  test('regular phones and wide web screens keep their intended puzzle sizes', () => {
+    expect(questionFigureSizeForViewport(393, 829)).toBe(220);
+    expect(questionFigureSizeForViewport(1440, 900)).toBe(240);
+  });
+});
 
 describe('figureChoiceGridMetrics', () => {
+  test('compact heights reduce option figures while keeping large tap targets', () => {
+    expect(figureChoiceGridMetrics(360, 5, 640)).toMatchObject({
+      columns: 3,
+      figureSize: 60,
+      itemWidth: 101,
+    });
+  });
+
   test('오지선다를 3열로 배치해 마지막 두 보기를 가운데 정렬할 수 있게 한다', () => {
     expect(figureChoiceGridMetrics(412, 5)).toEqual({
       columns: 3,
