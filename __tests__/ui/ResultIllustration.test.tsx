@@ -1,8 +1,18 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import { ResultIllustration } from '@/ui/ResultIllustration';
+import {
+  ResultIllustration,
+  WEB_RESULT_ILLUSTRATION_MAX_WIDTH,
+  resultIllustrationMaxWidth,
+} from '@/ui/ResultIllustration';
 
 describe('ResultIllustration', () => {
+  test('웹에서만 결과 일러스트의 최대 폭을 제한한다', () => {
+    expect(resultIllustrationMaxWidth('web')).toBe(WEB_RESULT_ILLUSTRATION_MAX_WIDTH);
+    expect(resultIllustrationMaxWidth('android')).toBeUndefined();
+    expect(resultIllustrationMaxWidth('ios')).toBeUndefined();
+  });
+
   test('코믹 캡션과 기분 상하지 않는 상세 관찰일지를 함께 보여준다', async () => {
     await render(
       <ResultIllustration
