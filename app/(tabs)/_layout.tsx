@@ -6,7 +6,13 @@ import {
 import { PlatformPressable } from 'expo-router/build/react-navigation/elements';
 import { Tabs } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View, useWindowDimensions, type ColorValue } from 'react-native';
+import {
+  Platform,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+  type ColorValue,
+} from 'react-native';
 import { colors, font } from '@/ui/tokens';
 import {
   WIDE_TAB_BAR_MAX_WIDTH,
@@ -115,7 +121,7 @@ function FloatingTabBar(props: BottomTabBarProps) {
 
 export default function TabsLayout() {
   const { width: viewportWidth } = useWindowDimensions();
-  const visual = tabBarVisualMetrics(viewportWidth);
+  const visual = tabBarVisualMetrics(viewportWidth, Platform.OS === 'web');
 
   return (
     <Tabs

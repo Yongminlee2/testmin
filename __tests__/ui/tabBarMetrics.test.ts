@@ -36,6 +36,16 @@ describe('tabBarVisualMetrics', () => {
     });
   });
 
+  test('좁은 웹 화면에서는 한글 라벨의 아래 획이 잘리지 않도록 높이를 확보한다', () => {
+    expect(tabBarVisualMetrics(320, true)).toMatchObject({
+      wide: false,
+      contentHeight: 64,
+      labelFontSize: 10,
+      labelLineHeight: 16,
+      itemMinHeight: 54,
+    });
+  });
+
   test('넓은 웹 화면은 아이콘과 라벨을 함께 키운다', () => {
     expect(tabBarVisualMetrics(1884)).toEqual({
       wide: true,

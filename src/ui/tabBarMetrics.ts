@@ -35,12 +35,29 @@ export interface TabBarVisualMetrics {
 }
 
 /** 모바일 밀도는 유지하고, 태블릿·웹에서만 아이콘과 글자를 함께 키운다. */
-export function tabBarVisualMetrics(viewportWidth: number): TabBarVisualMetrics {
+export function tabBarVisualMetrics(
+  viewportWidth: number,
+  web = false,
+): TabBarVisualMetrics {
   const safeWidth =
     Number.isFinite(viewportWidth) && viewportWidth > 0
       ? viewportWidth
       : 360;
   const wide = safeWidth >= WIDE_TAB_BAR_BREAKPOINT;
+
+  if (!wide && web) {
+    return {
+      wide: false,
+      contentHeight: 64,
+      iconSize: 21,
+      iconWrapWidth: 36,
+      iconWrapHeight: 26,
+      labelFontSize: 10,
+      labelLineHeight: 16,
+      itemMinHeight: 54,
+      verticalPadding: 4,
+    };
+  }
 
   return wide
     ? {
