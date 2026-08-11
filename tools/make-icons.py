@@ -33,18 +33,22 @@ def load_square_master() -> Image.Image:
     side = min(source.size)
     source = ImageOps.fit(source, (side, side), method=Image.Resampling.LANCZOS)
 
-    # 생성 원본은 이미 둥근 앱 아이콘 모양이라 네 모서리에 검은 바탕과 검은 테두리가
-    # 들어 있다. Play와 Android가 다시 마스크를 씌우므로 그 테두리 안쪽만 정사각형으로
-    # 잘라 이중 테두리와 검은 모서리를 없앤다.
-    crop = int(side * 0.07)
-    return source.crop((crop, crop, side - crop, side - crop))
+    # 원본 가장자리의 검은 바탕과 테두리는 모서리에서 연결돼 있다. 이를 노란색으로
+    # flood-fill해 제거하면 얼굴의 검은 눈·입은 보존하면서 원본 구도를 자르지 않아도 된다.
+    # 예전 7% 크롭은 캐릭터의 입과 위쪽 색종이가 잘려 보이는 원인이었다.
+    for corner in ((0, 0), (side - 1, 0), (0, side - 1), (side - 1, side - 1)):
+        ImageDraw.floodfill(source, corner, YELLOW, thresh=128)
+
+    return source
 
 
 def adaptive_foreground(icon: Image.Image, size: int = 1024) -> Image.Image:
     # Android adaptive icon의 원형·물방울형 마스크에서도 얼굴과 네 캐릭터가 남도록
     # 전체 구도를 안전 영역 안으로 줄인다.
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    inner = int(size * 0.82)
+    # Adaptive Icon의 어떤 마스크에서도 안전한 중앙 약 66% 안에 핵심 구도가 들어가야 한다.
+    # 64%로 두어 Samsung 원형 마스크에서도 얼굴·룰렛·네 감정 캐릭터가 잘리지 않게 한다.
+    inner = int(size * 0.64)
     artwork = icon.resize((inner, inner), Image.Resampling.LANCZOS).convert("RGBA")
     alpha = Image.new("L", (inner, inner), 0)
     ImageDraw.Draw(alpha).rounded_rectangle(
