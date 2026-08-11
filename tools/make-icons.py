@@ -86,8 +86,10 @@ def draw_marketing_canvas(icon: Image.Image, size: tuple[int, int]) -> Image.Ima
     width, height = size
     image = gradient(size)
     draw = ImageDraw.Draw(image)
-    title_font = font("assets/fonts/BlackHanSans_400Regular.ttf", round(height * 0.16))
-    subtitle_font = font("assets/fonts/NotoSansKR_700Bold.ttf", round(height * 0.052))
+    # Play 피처 그래픽은 작은 썸네일에서도 한글 자소가 또렷해야 한다. 장식체는
+    # '의'와 인접 글자가 뭉쳐 보일 수 있어 제목도 Noto Sans KR로 통일한다.
+    title_font = font("assets/fonts/NotoSansKR_700Bold.ttf", round(height * 0.13))
+    subtitle_font = font("assets/fonts/NotoSansKR_700Bold.ttf", round(height * 0.050))
     small_font = font("assets/fonts/NotoSansKR_500Medium.ttf", round(height * 0.035))
 
     icon_size = round(height * 0.87)
