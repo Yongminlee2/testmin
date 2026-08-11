@@ -90,7 +90,7 @@ def draw_marketing_canvas(icon: Image.Image, size: tuple[int, int]) -> Image.Ima
     # '의'와 인접 글자가 뭉쳐 보일 수 있어 제목도 Noto Sans KR로 통일한다.
     title_font = font("assets/fonts/NotoSansKR_700Bold.ttf", round(height * 0.13))
     subtitle_font = font("assets/fonts/NotoSansKR_700Bold.ttf", round(height * 0.050))
-    small_font = font("assets/fonts/NotoSansKR_500Medium.ttf", round(height * 0.035))
+    small_font = font("assets/fonts/NotoSansKR_700Bold.ttf", round(height * 0.036))
 
     icon_size = round(height * 0.87)
     icon_art = icon.resize((icon_size, icon_size), Image.Resampling.LANCZOS)
@@ -107,7 +107,7 @@ def draw_marketing_canvas(icon: Image.Image, size: tuple[int, int]) -> Image.Ima
         fill=MUTED,
     )
     draw.rounded_rectangle(
-        (left, round(height * 0.67), left + round(width * 0.30), round(height * 0.80)),
+        (left, round(height * 0.67), left + round(width * 0.32), round(height * 0.80)),
         radius=round(height * 0.065),
         fill=(255, 255, 255),
         outline=INK,
@@ -115,7 +115,7 @@ def draw_marketing_canvas(icon: Image.Image, size: tuple[int, int]) -> Image.Ima
     )
     draw.text(
         (left + round(width * 0.025), round(height * 0.695)),
-        "IQ · MBTI식 16유형 · 심리",
+        "IQ · MBTI · 심리 테스트",
         font=small_font,
         fill=INK,
     )
