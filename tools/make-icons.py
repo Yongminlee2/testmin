@@ -114,10 +114,11 @@ def draw_marketing_canvas(icon: Image.Image, size: tuple[int, int]) -> Image.Ima
         width=max(2, round(height * 0.007)),
     )
     draw.text(
-        (left + round(width * 0.025), round(height * 0.695)),
+        (left + round(width * 0.025), round(height * 0.735)),
         "IQ · MBTI · 심리 테스트",
         font=small_font,
         fill=INK,
+        anchor="lm",
     )
     return image
 
