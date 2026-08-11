@@ -25,6 +25,7 @@
       "expo-router",
       "./plugins/withNoPermissions",
       "./plugins/withLocalReleaseSigning",
+      "./plugins/withReleaseOptimization",
       [
         "expo-build-properties",
         {
