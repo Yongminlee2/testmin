@@ -89,8 +89,8 @@ def draw_marketing_canvas(icon: Image.Image, size: tuple[int, int]) -> Image.Ima
     # Play 피처 그래픽은 작은 썸네일에서도 한글 자소가 또렷해야 한다. 장식체는
     # '의'와 인접 글자가 뭉쳐 보일 수 있어 제목도 Noto Sans KR로 통일한다.
     title_font = font("assets/fonts/NotoSansKR_700Bold.ttf", round(height * 0.13))
-    subtitle_font = font("assets/fonts/NotoSansKR_700Bold.ttf", round(height * 0.050))
-    small_font = font("assets/fonts/NotoSansKR_500Medium.ttf", round(height * 0.044))
+    subtitle_font = font("assets/fonts/NotoSansKR_700Bold.ttf", round(height * 0.052))
+    detail_font = font("assets/fonts/NotoSansKR_500Medium.ttf", round(height * 0.037))
 
     icon_size = round(height * 0.87)
     icon_art = icon.resize((icon_size, icon_size), Image.Resampling.LANCZOS)
@@ -101,24 +101,26 @@ def draw_marketing_canvas(icon: Image.Image, size: tuple[int, int]) -> Image.Ima
     left = round(width * 0.065)
     draw.text((left, round(height * 0.22)), "테스트의 민족", font=title_font, fill=INK)
     draw.text(
-        (left, round(height * 0.49)),
-        "내 심리를 맞혀보는 코믹 테스트",
+        (left, round(height * 0.50)),
+        "IQ · MBTI · 심리를 코믹하게!",
         font=subtitle_font,
+        fill=INK,
+    )
+    draw.text(
+        (left, round(height * 0.62)),
+        "결과마다 달라지는 140가지 코믹 일러스트",
+        font=detail_font,
         fill=MUTED,
     )
     draw.rounded_rectangle(
-        (left, round(height * 0.67), left + round(width * 0.32), round(height * 0.80)),
-        radius=round(height * 0.065),
-        fill=(255, 255, 255),
-        outline=INK,
-        width=max(2, round(height * 0.007)),
-    )
-    draw.text(
-        (left + round(width * 0.025), round(height * 0.735)),
-        "IQ · MBTI · 심리 테스트",
-        font=small_font,
-        fill=INK,
-        anchor="lm",
+        (
+            left,
+            round(height * 0.73),
+            left + round(width * 0.16),
+            round(height * 0.745),
+        ),
+        radius=round(height * 0.008),
+        fill=(75, 201, 196),
     )
     return image
 
