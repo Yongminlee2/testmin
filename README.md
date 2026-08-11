@@ -665,11 +665,23 @@ Play Console의 앱 번들 최적화 화면에서 전체 모드와 기존 리소
 제거 목록이 생성된 것을 확인했다. 강화된 release APK는 SM-A165N에 설치해 정상 실행과
 홈 화면 렌더링, 크래시 없음까지 확인한 뒤 동일 산출물의 AAB를 최종 업로드 파일로 교체했다.
 
+### 18단계 — Play 재업로드용 versionCode 2 AAB 확정
+
+Play Console에 먼저 등록한 versionCode 1과 구분되도록 Android 버전 코드를 2로 올리고,
+Expo prebuild 때 클래스 재패키징 설정까지 자동 복원되도록 release 최적화 plugin을 보강했다.
+영문 SDK 경로에서 release bundle을 새로 빌드해 패키지 버전 1.0.0, versionCode 2,
+target API 36이 포함된 것을 확인했다.
+
+최종 AAB는 R8 전체 모드, 코드 축소, 리소스 축소, 코드 최적화, 최적화된 리소스 축소,
+클래스 재패키징이 모두 적용된 설정으로 생성했다. `configuration.txt`에서
+`-dontoptimize`가 없고 `-repackageclasses`가 있는 것, mapping·usage·resources 결과가
+생성된 것과 업로드 인증서 및 JAR 서명 검증 통과까지 확인했다.
+
 ---
 
 ## 남은 일
 
-- 최종 승인 뒤 서명 AAB를 생성해 Play Console 내부 테스트 트랙에 업로드
+- versionCode 2 서명 AAB를 Play Console 내부 테스트 트랙에 업로드
 - `store/구글플레이-제출패키지.md` 순서대로 스토어 등록정보와 앱 콘텐츠 양식 제출
 - AdSense 승인 후 저장소 변수 `ADSENSE_CLIENT_ID`, `ADSENSE_PUBLISHER_ID` 등록
 - AdSense 개인정보 보호 및 메시지에서 Google 인증 CMP를 활성화하고 모바일 광고 겹침 확인

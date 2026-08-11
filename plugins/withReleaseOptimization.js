@@ -1,6 +1,13 @@
-const { withAppBuildGradle, withGradleProperties } = require('expo/config-plugins');
+const fs = require('fs');
+const path = require('path');
+const {
+  withAppBuildGradle,
+  withDangerousMod,
+  withGradleProperties,
+} = require('expo/config-plugins');
 
 const OPTIMIZED_RESOURCE_SHRINKING = 'android.r8.optimizedResourceShrinking';
+const REPACKAGE_MARKER = '# testmin-r8-class-repackaging';
 
 /**
  * Expo prebuild 이후에도 Google이 권장하는 release R8 설정을 유지한다.
@@ -20,7 +27,7 @@ module.exports = function withReleaseOptimization(config) {
     return cfg;
   });
 
-  return withGradleProperties(config, (cfg) => {
+  config = withGradleProperties(config, (cfg) => {
     cfg.modResults = cfg.modResults.filter(
       (item) => item.type !== 'property' || item.key !== OPTIMIZED_RESOURCE_SHRINKING
     );
@@ -31,4 +38,23 @@ module.exports = function withReleaseOptimization(config) {
     });
     return cfg;
   });
+
+  return withDangerousMod(config, [
+    'android',
+    async (cfg) => {
+      const proguardPath = path.join(
+        cfg.modRequest.platformProjectRoot,
+        'app',
+        'proguard-rules.pro'
+      );
+      const contents = fs.readFileSync(proguardPath, 'utf8');
+      if (!contents.includes(REPACKAGE_MARKER)) {
+        fs.writeFileSync(
+          proguardPath,
+          `${contents.trimEnd()}\n\n${REPACKAGE_MARKER}\n-repackageclasses\n`
+        );
+      }
+      return cfg;
+    },
+  ]);
 };
