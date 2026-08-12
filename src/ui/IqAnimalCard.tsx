@@ -1,5 +1,6 @@
-import { Text, View, StyleSheet } from 'react-native';
+import { Platform, Text, View, StyleSheet } from 'react-native';
 import { Card } from './Card';
+import { resultCardMaxWidth } from './ResultIllustration';
 import { borderWidth, colors, font, radius, space } from './tokens';
 import type { IqAnimalFriend } from '@/content/resultPresentation';
 
@@ -38,7 +39,13 @@ export function IqAnimalCard({ friend }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: space.md, backgroundColor: colors.sky },
+  wrap: {
+    width: '100%',
+    maxWidth: resultCardMaxWidth(Platform.OS),
+    alignSelf: 'center',
+    marginBottom: space.md,
+    backgroundColor: colors.sky,
+  },
   inner: { alignItems: 'center', paddingVertical: space.md },
   eyebrow: {
     fontSize: font.size.caption,

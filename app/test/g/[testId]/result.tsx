@@ -45,8 +45,9 @@ export default function ScoredResultScreen() {
         title: result.title,
       },
       wrong: result.wrong,
+      questions,
     });
-  }, [result, meta, seed]);
+  }, [result, meta, seed, questions]);
 
   if (result === null || meta === undefined) {
     return (

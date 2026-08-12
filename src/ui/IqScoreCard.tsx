@@ -1,5 +1,6 @@
-import { Text, View, StyleSheet } from 'react-native';
+import { Platform, Text, View, StyleSheet } from 'react-native';
 import { Card } from './Card';
+import { resultCardMaxWidth } from './ResultIllustration';
 import { IQ_SCORE_MAX, IQ_SCORE_MIN } from '@/engine/iq/iqScore';
 import { borderWidth, colors, font, radius, space } from './tokens';
 
@@ -76,7 +77,13 @@ export function IqScoreCard({ score, percent, grade, title, correct, total, disc
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: space.md, backgroundColor: colors.mint },
+  wrap: {
+    width: '100%',
+    maxWidth: resultCardMaxWidth(Platform.OS),
+    alignSelf: 'center',
+    marginBottom: space.md,
+    backgroundColor: colors.mint,
+  },
   inner: { alignItems: 'center', paddingVertical: space.md },
   label: {
     fontSize: font.size.caption,

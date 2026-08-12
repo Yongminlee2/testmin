@@ -1,7 +1,7 @@
-import { Text, View, StyleSheet } from 'react-native';
+import { Platform, Text, View, StyleSheet } from 'react-native';
 import { Card } from './Card';
 import { AxisBar } from './AxisBar';
-import { ResultIllustration } from './ResultIllustration';
+import { ResultIllustration, resultCardMaxWidth } from './ResultIllustration';
 import { borderWidth, colors, font, radius, space } from './tokens';
 import type { AxisScore } from '@/engine/types';
 import type { ResultComic } from '@/content/resultIllustrations';
@@ -61,7 +61,12 @@ export function TypeCard({ label, headline, nickname, description, axes, note, i
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: space.lg },
+  wrap: {
+    width: '100%',
+    maxWidth: resultCardMaxWidth(Platform.OS),
+    alignSelf: 'center',
+    marginBottom: space.lg,
+  },
   inner: { alignItems: 'stretch', paddingVertical: space.md },
   label: {
     fontSize: font.size.caption,

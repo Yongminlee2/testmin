@@ -49,8 +49,9 @@ export default function MzResultScreen() {
         title: result.title,
       },
       wrong: result.wrong,
+      questions,
     });
-  }, [result, variant, seed]);
+  }, [result, variant, seed, questions]);
 
   if (result === null || variant === null) {
     return (

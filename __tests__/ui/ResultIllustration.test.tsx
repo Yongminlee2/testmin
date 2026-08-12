@@ -2,15 +2,27 @@ import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import {
   ResultIllustration,
+  WEB_RESULT_CARD_MAX_WIDTH,
   WEB_RESULT_ILLUSTRATION_MAX_WIDTH,
+  resultCardMaxWidth,
   resultIllustrationMaxWidth,
 } from '@/ui/ResultIllustration';
+import { borderWidth, space } from '@/ui/tokens';
 
 describe('ResultIllustration', () => {
   test('웹에서만 결과 일러스트의 최대 폭을 제한한다', () => {
     expect(resultIllustrationMaxWidth('web')).toBe(WEB_RESULT_ILLUSTRATION_MAX_WIDTH);
     expect(resultIllustrationMaxWidth('android')).toBeUndefined();
     expect(resultIllustrationMaxWidth('ios')).toBeUndefined();
+  });
+
+  test('웹 결과 카드의 안쪽 폭은 일러스트 폭과 정확히 일치한다', () => {
+    expect(WEB_RESULT_CARD_MAX_WIDTH).toBe(
+      WEB_RESULT_ILLUSTRATION_MAX_WIDTH + (space.md + borderWidth.card) * 2
+    );
+    expect(resultCardMaxWidth('web')).toBe(WEB_RESULT_CARD_MAX_WIDTH);
+    expect(resultCardMaxWidth('android')).toBeUndefined();
+    expect(resultCardMaxWidth('ios')).toBeUndefined();
   });
 
   test('코믹 캡션과 기분 상하지 않는 상세 관찰일지를 함께 보여준다', async () => {

@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { Platform, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IqScoreCard } from '@/ui/IqScoreCard';
 import { IqAnimalCard } from '@/ui/IqAnimalCard';
 import { Card } from '@/ui/Card';
-import { ResultIllustration } from '@/ui/ResultIllustration';
+import { ResultIllustration, resultCardMaxWidth } from '@/ui/ResultIllustration';
 import { Button } from '@/ui/Button';
 import { ShareButton } from '@/ui/ShareButton';
 import { AdSlot } from '@/ui/AdSlot';
@@ -58,8 +58,9 @@ export default function IqResultScreen() {
         estimatedScore: result.estimatedScore,
       },
       wrong: result.wrong,
+      questions,
     });
-  }, [result, variant, seed]);
+  }, [result, variant, seed, questions]);
 
   if (result === null || variant === null) {
     return (
@@ -140,7 +141,12 @@ export default function IqResultScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream },
   content: { padding: space.lg, paddingBottom: space.xxl },
-  comicCard: { marginBottom: space.lg },
+  comicCard: {
+    width: '100%',
+    maxWidth: resultCardMaxWidth(Platform.OS),
+    alignSelf: 'center',
+    marginBottom: space.lg,
+  },
   empty: {
     flex: 1,
     backgroundColor: colors.cream,

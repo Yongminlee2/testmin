@@ -25,30 +25,98 @@ import { loadNotesRaw, loadRecordsRaw, saveNotesRaw, saveRecordsRaw } from './st
  * 하지 않는다. "복원 실패"는 오래된 콘텐츠가 남긴 흔적일 뿐, 앱 오류가 아니다.
  */
 export function restoreQuestion(note: WrongNote): Question | undefined {
-  if (note.testId === 'iq') {
-    const parsed = parseIqQuestionId(note.questionId);
+  return restoreQuestionByRef(note.testId, note.variant, note.questionId);
+}
+
+function restoreQuestionByRef(
+  testId: string,
+  variant: string,
+  questionId: string
+): Question | undefined {
+  if (testId === 'iq') {
+    const parsed = parseIqQuestionId(questionId);
     if (parsed === undefined) return undefined;
     const generator = GENERATORS.find((g) => g.id === parsed.generatorId);
     if (generator === undefined) return undefined;
     return generator.generate(parsed.seed).question;
   }
 
-  const pool = getPool(note.testId, note.variant);
-  return pool.find((q) => q.id === note.questionId);
+  const pool = getPool(testId, variant);
+  return pool.find((q) => q.id === questionId);
+}
+
+/** JSON 데이터인 Choice를 원본 보기와 비교하기 위한 안정적인 값 키. */
+function choiceKey(choice: Question['choices'][number] | undefined): string | undefined {
+  return choice === undefined ? undefined : JSON.stringify(choice);
+}
+
+function canonicalChoiceIndex(
+  displayed: Question,
+  canonical: Question,
+  displayedIndex: number
+): number | undefined {
+  if (displayedIndex === -1) return -1;
+  const key = choiceKey(displayed.choices[displayedIndex]);
+  if (key === undefined) return undefined;
+  const index = canonical.choices.findIndex((choice) => choiceKey(choice) === key);
+  return index >= 0 ? index : undefined;
+}
+
+/**
+ * 화면에서 섞인 선택지 번호를 오답노트가 복원하는 원본 문항 번호로 되돌린다.
+ * 하나라도 확실히 대응하지 못하면 그 항목은 저장하지 않는다. 틀린 보기를
+ * 자신 있게 표시하는 것보다 항목 하나를 생략하는 편이 안전하다.
+ */
+export function canonicalizeWrongItems(
+  testId: string,
+  variant: string,
+  displayedQuestions: readonly Question[],
+  wrong: readonly WrongItem[]
+): WrongItem[] {
+  const displayedById = new Map(displayedQuestions.map((question) => [question.id, question]));
+  const normalized: WrongItem[] = [];
+
+  for (const item of wrong) {
+    const displayed = displayedById.get(item.questionId);
+    const canonical = restoreQuestionByRef(testId, variant, item.questionId);
+    if (displayed === undefined || canonical === undefined) continue;
+
+    const chosenIndex = canonicalChoiceIndex(displayed, canonical, item.chosenIndex);
+    const answerIndex = canonicalChoiceIndex(displayed, canonical, item.answerIndex);
+    if (chosenIndex === undefined || answerIndex === undefined) continue;
+
+    normalized.push({ questionId: item.questionId, chosenIndex, answerIndex });
+  }
+
+  return normalized;
 }
 
 function makeRecordId(testId: string, seed: number): string {
   return `${testId}-${seed}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export interface SaveResultInput {
+interface SaveResultBase {
   readonly testId: string;
   readonly variant: string;
   readonly seed: number;
   readonly result: RecordResult;
-  /** 정답형 채점(scoreTest/scoreIq)에서만 넘어온다. 있으면 오답노트에도 반영한다. */
-  readonly wrong?: readonly WrongItem[];
 }
+
+/**
+ * 정답형 결과는 오답과 사용자가 실제로 본 문항을 반드시 한 쌍으로 넘긴다.
+ * 한쪽을 빼먹으면 다시 인덱스만 저장하는 결함이 생기므로 타입 단계에서 막는다.
+ */
+export type SaveResultInput = SaveResultBase &
+  (
+    | {
+        readonly wrong: readonly WrongItem[];
+        readonly questions: readonly Question[];
+      }
+    | {
+        readonly wrong?: undefined;
+        readonly questions?: undefined;
+      }
+  );
 
 interface HistoryState {
   readonly records: readonly TestRecord[];
@@ -94,12 +162,19 @@ export const useHistory = create<HistoryState>((set, get) => ({
     let notes = state.notes;
     if (input.wrong !== undefined && input.wrong.length > 0) {
       const addedAt = Date.now();
-      const newNotes: WrongNote[] = input.wrong.map((w) => ({
+      const normalizedWrong = canonicalizeWrongItems(
+        input.testId,
+        input.variant,
+        input.questions,
+        input.wrong
+      );
+      const newNotes: WrongNote[] = normalizedWrong.map((w) => ({
         testId: input.testId,
         variant: input.variant,
         questionId: w.questionId,
         chosenIndex: w.chosenIndex,
         answerIndex: w.answerIndex,
+        choiceOrder: 'canonical',
         addedAt,
       }));
       notes = addNotes(state.notes, newNotes);

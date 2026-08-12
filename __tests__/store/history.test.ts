@@ -73,29 +73,40 @@ describe('useHistory.saveResult', () => {
   });
 
   test('wrong이 있으면 오답노트에도 반영된다', async () => {
+    const generated = GENERATORS[0]?.generate(7);
+    if (generated === undefined) throw new Error('테스트 전제: IQ 생성기가 있어야 한다');
+    const answerIndex = generated.question.answerIndex as number;
+    const chosenIndex = answerIndex === 0 ? 1 : 0;
     await useHistory.getState().saveResult({
       testId: 'iq',
       variant: 'default',
       seed: 7,
       result: { kind: 'scored', correct: 1, total: 2, grade: 5, title: '5급', estimatedScore: 100 },
-      wrong: [{ questionId: 'iq-rotation-7', chosenIndex: 0, answerIndex: 1 }],
+      wrong: [{ questionId: generated.question.id, chosenIndex, answerIndex }],
+      questions: [generated.question],
     });
 
     const s = useHistory.getState();
     expect(s.notes).toHaveLength(1);
-    expect(s.notes[0]?.questionId).toBe('iq-rotation-7');
+    expect(s.notes[0]?.questionId).toBe(generated.question.id);
+    expect(s.notes[0]?.choiceOrder).toBe('canonical');
 
     const raw = await AsyncStorage.getItem(KEY_NOTES);
     expect(JSON.parse(raw as string)).toHaveLength(1);
   });
 
   test('wrong이 없는 결과(axis·vote)는 오답노트를 건드리지 않는다', async () => {
+    const generated = GENERATORS[0]?.generate(7);
+    if (generated === undefined) throw new Error('테스트 전제: IQ 생성기가 있어야 한다');
+    const answerIndex = generated.question.answerIndex as number;
+    const chosenIndex = answerIndex === 0 ? 1 : 0;
     await useHistory.getState().saveResult({
       testId: 'iq',
       variant: 'default',
       seed: 7,
       result: { kind: 'scored', correct: 1, total: 2, grade: 5, title: '5급' },
-      wrong: [{ questionId: 'iq-rotation-7', chosenIndex: 0, answerIndex: 1 }],
+      wrong: [{ questionId: generated.question.id, chosenIndex, answerIndex }],
+      questions: [generated.question],
     });
     await useHistory.getState().saveResult({
       testId: 'personality',
@@ -109,24 +120,34 @@ describe('useHistory.saveResult', () => {
   });
 
   test('같은 문항을 다시 틀리면 오답노트가 갱신되고 쌓이지 않는다', async () => {
+    const question = getPool('dialect', 'gyeongsang')[0];
+    if (question === undefined) throw new Error('테스트 전제: 경상도 문항이 있어야 한다');
+    const answerIndex = question.answerIndex as number;
+    const firstWrong = answerIndex === 0 ? 1 : 0;
+    const secondWrong = [0, 1, 2, 3].find(
+      (index) => index !== answerIndex && index !== firstWrong
+    );
+    if (secondWrong === undefined) throw new Error('테스트 전제: 오답 선택지가 2개 이상이어야 한다');
     await useHistory.getState().saveResult({
       testId: 'dialect',
       variant: 'gyeongsang',
       seed: 1,
       result: { kind: 'scored', correct: 0, total: 1, grade: 9, title: '9급' },
-      wrong: [{ questionId: 'dialect-gs-0001', chosenIndex: 1, answerIndex: 0 }],
+      wrong: [{ questionId: question.id, chosenIndex: firstWrong, answerIndex }],
+      questions: [question],
     });
     await useHistory.getState().saveResult({
       testId: 'dialect',
       variant: 'gyeongsang',
       seed: 2,
       result: { kind: 'scored', correct: 0, total: 1, grade: 9, title: '9급' },
-      wrong: [{ questionId: 'dialect-gs-0001', chosenIndex: 2, answerIndex: 0 }],
+      wrong: [{ questionId: question.id, chosenIndex: secondWrong, answerIndex }],
+      questions: [question],
     });
 
     const notes = useHistory.getState().notes;
     expect(notes).toHaveLength(1);
-    expect(notes[0]?.chosenIndex).toBe(2);
+    expect(notes[0]?.chosenIndex).toBe(secondWrong);
   });
 });
 
@@ -138,6 +159,7 @@ describe('useHistory.clearAll', () => {
       seed: 1,
       result: { kind: 'scored', correct: 1, total: 1, grade: 1, title: '1급' },
       wrong: [],
+      questions: [],
     });
     await useHistory.getState().clearAll();
 

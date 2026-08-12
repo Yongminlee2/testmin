@@ -51,11 +51,11 @@ describe('QuizScreen', () => {
     expect(screen.getByText('2 / 2')).toBeTruthy();
   });
 
-  test('고른 답이 세션에 기록된다', async () => {
+  test.each([0, 1, 2, 3])('%i번 보기를 누르면 같은 인덱스가 세션에 기록된다', async (choiceIndex) => {
     await render(<QuizScreen />);
-    await fireEvent.press(screen.getByTestId('choice-2'));
+    await fireEvent.press(screen.getByTestId(`choice-${choiceIndex}`));
     expect(useSession.getState().answers).toEqual([
-      { questionId: 'a', chosenIndex: 2 },
+      { questionId: 'a', chosenIndex: choiceIndex },
     ]);
   });
 

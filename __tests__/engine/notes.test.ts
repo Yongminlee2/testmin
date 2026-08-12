@@ -8,6 +8,7 @@ function note(overrides: Partial<WrongNote> = {}): WrongNote {
     questionId: 'q1',
     chosenIndex: 1,
     answerIndex: 0,
+    choiceOrder: 'canonical',
     addedAt: 1000,
     ...overrides,
   };
@@ -45,6 +46,20 @@ describe('parseNotes', () => {
     const raw = [note({ questionId: 'a' }), note({ questionId: 'b', chosenIndex: -1 })];
     const roundTripped = JSON.parse(JSON.stringify(raw));
     expect(parseNotes(roundTripped)).toEqual(raw);
+  });
+
+  test('선택지 순서를 알 수 없는 예전 정적 풀 오답은 잘못 보여주지 않고 제외한다', () => {
+    const { choiceOrder: _choiceOrder, ...legacy } = note({ testId: 'spelling' });
+    expect(parseNotes([legacy])).toEqual([]);
+  });
+
+  test('선택지 순서를 자체 seed로 복원하는 예전 IQ 오답은 유지한다', () => {
+    const { choiceOrder: _choiceOrder, ...legacy } = note({
+      testId: 'iq',
+      variant: 'default',
+      questionId: 'iq-rotation-7',
+    });
+    expect(parseNotes([legacy])).toEqual([legacy]);
   });
 
   test('배열이 아닌 값이 오면 빈 배열을 준다', () => {

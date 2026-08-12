@@ -13,6 +13,12 @@ export interface WrongNote {
   readonly questionId: string;
   readonly chosenIndex: number;
   readonly answerIndex: number;
+  /**
+   * 선택지를 섞기 전 원본 문항 기준의 인덱스인지 표시한다.
+   * 예전 버전은 화면에 섞인 인덱스를 그대로 저장해 오답노트에서 다른 보기를
+   * 가리킬 수 있었으므로, 새 기록에는 이 표식을 반드시 넣는다.
+   */
+  readonly choiceOrder?: 'canonical';
   readonly addedAt: number;
 }
 
@@ -48,12 +54,19 @@ function parseOneNote(value: unknown): WrongNote | undefined {
   if (typeof r.answerIndex !== 'number') return undefined;
   if (typeof r.addedAt !== 'number') return undefined;
 
+  // IQ 생성기는 questionId 안의 seed로 선택지 순서까지 그대로 복원되므로 예전
+  // 기록도 안전하다. 정적 풀은 예전 버전에서 섞인 인덱스를 저장했기 때문에
+  // 정확한 답을 복원할 근거가 없으며, 잘못 보여주느니 해당 옛 기록을 버린다.
+  const choiceOrder = r.choiceOrder === 'canonical' ? 'canonical' : undefined;
+  if (r.testId !== 'iq' && choiceOrder === undefined) return undefined;
+
   return {
     testId: r.testId,
     variant: r.variant,
     questionId: r.questionId,
     chosenIndex: r.chosenIndex,
     answerIndex: r.answerIndex,
+    ...(choiceOrder ? { choiceOrder } : {}),
     addedAt: r.addedAt,
   };
 }

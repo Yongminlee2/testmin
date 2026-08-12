@@ -12,10 +12,17 @@ interface Props {
 }
 
 export const WEB_RESULT_ILLUSTRATION_MAX_WIDTH = 560;
+export const WEB_RESULT_CARD_MAX_WIDTH =
+  WEB_RESULT_ILLUSTRATION_MAX_WIDTH + (space.md + borderWidth.card) * 2;
 
 /** 네이티브 앱은 카드 폭을 그대로 쓰고 웹의 넓은 화면에서만 최대 폭을 둔다. */
 export function resultIllustrationMaxWidth(platform: string): number | undefined {
   return platform === 'web' ? WEB_RESULT_ILLUSTRATION_MAX_WIDTH : undefined;
+}
+
+/** 웹 결과 카드의 안쪽 폭을 일러스트 폭과 정확히 맞춘다. */
+export function resultCardMaxWidth(platform: string): number | undefined {
+  return platform === 'web' ? WEB_RESULT_CARD_MAX_WIDTH : undefined;
 }
 
 /** 결과 카드에 들어가는 래스터 코믹 컷. 공유 이미지에도 그대로 포함된다. */
