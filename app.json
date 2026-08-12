@@ -9,7 +9,7 @@
     "backgroundColor": "#FFF8E1",
     "android": {
       "package": "com.testmin.app",
-      "versionCode": 2,
+      "versionCode": 4,
       "allowBackup": false,
       "adaptiveIcon": {
         "backgroundImage": "./assets/images/android-icon-background.png",

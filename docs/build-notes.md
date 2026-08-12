@@ -39,6 +39,42 @@ Windows 프로필 경로에 한글(`C:\Users\사용자`)이 들어 있다. AGP�
 
 빌드 산출물: `android/app/build/outputs/apk/release/app-release.apk`
 
+## 릴리스 AAB 빌드 (Play 업로드용)
+
+위 환경변수를 똑같이 설정한 뒤:
+
+    cd C:\workAndroid\TestMin\android
+    .\gradlew.bat bundleRelease --no-daemon --max-workers=4 "-PreactNativeArchitectures=arm64-v8a,armeabi-v7a"
+
+빌드 산출물: `android/app/build/outputs/bundle/release/app-release.aab`
+
+**`-P` 인자는 반드시 따옴표로 감쌀 것.** PowerShell이 쉼표를 배열 구분자로,
+`-v8a`를 파라미터 이름으로 해석해서 `Missing argument in parameter list`로 죽는다.
+
+### prebuild를 생략하면 3~4배 빠르다
+
+`npx expo prebuild`는 `--clean` 없이도 `android/`를 통째로 지운다(`Clearing android`).
+그러면 4개 ABI의 C++ 네이티브 빌드 캐시가 전부 날아가 11분 넘게 걸린다.
+**`app.json`이나 `plugins/`를 고치지 않았으면 prebuild를 돌리지 말 것** — 3분 58초로 떨어진다.
+
+`app.json`의 `versionCode`만 바꿀 때도 prebuild 대신 `android/app/build.gradle`의
+`versionCode`에 같은 값을 미러링하면 캐시를 지킬 수 있다. app.json이 durable 소스이므로
+다음 prebuild에서 동일하게 재생성된다.
+
+### ABI를 arm 2종으로 줄이는 이유
+
+x86/x86_64는 인텔 아톰폰용이라 실기기 시장에 사실상 없다. 빼면 네이티브 빌드 시간이 절반이고
+AAB가 83MB → 55MB로 준다. **gradle.properties를 고치지 않고 CLI 플래그로만 주는 이유**는
+디버그 빌드가 x86_64 에뮬레이터를 계속 지원하게 하기 위해서다.
+
+### versionCode는 되돌릴 수 없다
+
+Play는 업로드된 versionCode를 영구히 잠근다. 번들을 삭제하거나 반려해도 같은 숫자를 다시 못 쓴다.
+2026-08-12 기준 1·2·3이 소진되어 **4**를 사용 중이며, 다음 업로드는 5부터다.
+
+릴리스에 옛 번들이 남아 있으면 `이 APK는 버전 코드가 더 높은 APK로 완전히 대체되므로...` 오류가
+난다. Play Console의 **App bundle 및 APK** 목록에서 옛 줄을 지우고 최신 것만 남겨야 한다.
+
 ## 권한 제거 방식 — config plugin이 유일하게 durable한 자리
 
 `expo prebuild`는 `android/` 디렉터리를 매번 새로 생성한다(`--clean`이 아니어도 다시 만든다). 즉 `android/app/src/main/AndroidManifest.xml`을 손으로 고쳐도 다음 prebuild에서 사라진다. 권한을 지우는 유일한 durable한 위치는 `plugins/withNoPermissions.js` (Expo config plugin)이며, `app.json`의 `plugins` 배열에 `"./plugins/withNoPermissions"`로 등록되어 있다.

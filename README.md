@@ -677,11 +677,52 @@ target API 36이 포함된 것을 확인했다.
 `-dontoptimize`가 없고 `-repackageclasses`가 있는 것, mapping·usage·resources 결과가
 생성된 것과 업로드 인증서 및 JAR 서명 검증 통과까지 확인했다.
 
+### 19단계 — versionCode 4 업로드와 빌드 시간 3분의 1로 단축
+
+Play Console의 최적화·난독화·축소 비율이 계속 `-`로 뜨는 문제를 추적했다. 업로드된 AAB의
+`BUNDLE-METADATA/com.android.tools/r8.json`을 직접 열어보니 난독화 80.02%, 최적화 79.43%,
+축소 80.12%가 파일 안에 이미 들어 있었다. 즉 빌드 설정 문제가 아니었고, 화면에 보이던 값은
+R8 강화 이전에 올라간 옛 번들의 것이었다. 새 번들에서는 `R8 구성` 네 항목(전체 모드,
+리소스 축소, 리소스 축소 최적화됨, 클래스 리패키징)이 모두 통과로 바뀌었지만 비율 세 칸은
+여전히 `-`다. Play가 같은 화면에서 AGP 9.0 업그레이드를 권하는 것으로 보아 비율 표시는
+AGP 8.x 빌드에서는 계산되지 않는 것으로 판단했다. 릴리스 오류 목록에 잡히지 않는 참고
+지표이므로 AGP는 Expo SDK 57이 지원하는 8.x에 그대로 둔다.
+
+**versionCode는 되돌릴 수 없다.** Play는 한 번 업로드된 번호를 영구히 잠그며 번들을 삭제하거나
+반려해도 풀리지 않는다. 1·2·3이 차례로 소진되어 이번 제출본은 **4**이고 다음은 5부터다.
+또한 하나의 릴리스에 옛 번들이 함께 남아 있으면 `더 높은 버전 코드로 완전히 대체되므로
+제공되지 않습니다` 오류가 난다. 릴리스의 App bundle 목록에서 옛 줄을 지우고 최신 하나만
+남겨야 통과한다. 이 두 가지를 `docs/build-notes.md`에 남겼다.
+
+빌드 시간을 11분 29초에서 **3분 58초**로 줄였다. 원인은 `npx expo prebuild`가 `--clean` 없이도
+`android/`를 통째로 삭제해(`Clearing android`) 4개 ABI의 C++ 네이티브 캐시를 매번 버리는 것이었다.
+`app.json`과 `plugins/`를 고치지 않았으면 prebuild를 건너뛴다. 여기에 x86·x86_64를 제외해
+armeabi-v7a와 arm64-v8a만 담았다. 인텔 아톰폰은 실기기 시장에 사실상 없고, 이 축소로 AAB가
+83.1MB에서 **55.1MB**로, Play가 계산한 신규 설치 크기는 **28.2MB**(다운로드 16초)가 됐다.
+ABI 지정은 `gradle.properties`를 고치지 않고 `-PreactNativeArchitectures` CLI 인자로만 주어,
+개발용 디버그 빌드는 x86_64 에뮬레이터를 계속 지원한다.
+
+빌드가 두 번 연속 실패했는데 코드와 무관한 환경 문제였다. 증상은 Metro의
+`JavaScript heap out of memory`, prefab JVM의 `mmap failed to map 536870912 bytes`,
+그리고 `Gradle build daemon disappeared unexpectedly`로 제각각이었지만 실제 원인은 하나였다.
+끝난 빌드가 남긴 Gradle·Kotlin 데몬 8개가 10.8GB를 점유해 시스템 커밋이 34.2/37.6GB,
+페이지파일 여유가 17MB까지 몰린 상태였다. `--no-daemon`이 만드는 단발 데몬과 Kotlin 컴파일
+데몬은 데몬 레지스트리 밖이라 `gradlew --stop`으로 잡히지 않는다. JVM 크래시 로그의
+`Memory:` 절에 있는 `AvailPageFile` 값이 이 상황을 가리키는 지표다.
+
+최종 산출물은 `android/`를 prebuild로 재생성한 상태에서 만들었고, 패키지 `com.testmin.app`,
+versionCode 4, versionName 1.0.0, target API 36, 사용자 노출 권한 0건
+(`DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` 1건은 AndroidX 내부용 의도된 예외),
+`jar verified.`와 업로드 인증서 SHA-256 일치, R8 전체 모드를 모두 확인했다.
+
 ---
 
 ## 남은 일
 
-- versionCode 2 서명 AAB를 Play Console 내부 테스트 트랙에 업로드
+- **R8 강화본의 실기기 확인.** 실기기에 설치해 본 APK는 8/10 빌드로 R8 최적화 강화 이전
+  것이다. 난독화·코드 최적화·리소스 축소가 모두 켜진 뒤로는 실행 코드가 달라졌으므로,
+  `getIdentifier`류로만 참조되는 리소스가 축소에 잘려나가지 않았는지 한 번은 실기기에서
+  확인한다. 같은 설정으로 뽑은 설치용 APK가 `artifacts/`에 있다.
 - `store/구글플레이-제출패키지.md` 순서대로 스토어 등록정보와 앱 콘텐츠 양식 제출
 - AdSense 승인 후 저장소 변수 `ADSENSE_CLIENT_ID`, `ADSENSE_PUBLISHER_ID` 등록
 - AdSense 개인정보 보호 및 메시지에서 Google 인증 CMP를 활성화하고 모바일 광고 겹침 확인
