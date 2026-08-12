@@ -70,7 +70,11 @@ AAB가 83MB → 55MB로 준다. **gradle.properties를 고치지 않고 CLI 플�
 ### versionCode는 되돌릴 수 없다
 
 Play는 업로드된 versionCode를 영구히 잠근다. 번들을 삭제하거나 반려해도 같은 숫자를 다시 못 쓴다.
-2026-08-12 기준 1·2·3이 소진되어 **4**를 사용 중이며, 다음 업로드는 5부터다.
+2026-08-12 기준 1~4가 소진되어 **5**를 사용 중이며, 다음 업로드는 6부터다.
+
+`app.json`의 versionCode만 올릴 때는 prebuild(=`android/` 전체 삭제) 대신
+`android/app/build.gradle`의 `versionCode`에 같은 값을 미러링한다. app.json이 durable
+소스이므로 다음 prebuild에서 동일하게 재생성된다.
 
 릴리스에 옛 번들이 남아 있으면 `이 APK는 버전 코드가 더 높은 APK로 완전히 대체되므로...` 오류가
 난다. Play Console의 **App bundle 및 APK** 목록에서 옛 줄을 지우고 최신 것만 남겨야 한다.
